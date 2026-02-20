@@ -2,7 +2,7 @@
 // ARVET - APP PRINCIPAL
 // ============================================
 
-const API_URL = 'https://script.google.com/macros/s/AKfycby2MXcHmWKcyHlJI1kp0YPk2LihMMC5x6EvrkwHTRl5_NbXE1Sjw5VPfudAOQna873K/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbzIV64bmm7isZCoucbInIZkb5di8jzKXKYsZJFQUvFJy4EBFH2TC5a0V8modjo9XxZv/exec'; 
 
 // ============================================
 // UTILIDADES
