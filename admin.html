@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - ARVET</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ARVET</h2>
+                <p id="userName">Cargando...</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" onclick="showSection('dashboard')">📊 Dashboard</li>
+                <li onclick="showSection('partidos')">⚔️ Partidos</li>
+                <li onclick="showSection('cuotas')">💰 Cuotas</li>
+                <li onclick="showSection('jugadores')">👥 Jugadores</li>
+                <li onclick="showSection('finanzas')">📈 Finanzas</li>
+                <li onclick="logout()">🚪 Cerrar Sesión</li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard -->
+            <div id="dashboard" class="section-content">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <span id="currentDate"></span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Jugadores Activos</h3>
+                        <div class="stat-value" id="statJugadores">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Partidos este mes</h3>
+                        <div class="stat-value" id="statPartidos">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Recaudación mensual</h3>
+                        <div class="stat-value" id="statRecaudacion">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Deuda total</h3>
+                        <div class="stat-value text-danger" id="statDeuda">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Partidos -->
+            <div id="partidos" class="section-content hidden">
+                <div class="page-header">
+                    <h1>Gestión de Partidos</h1>
+                    <button class="btn-primary" onclick="nuevoPartido()">+ Nuevo Partido</button>
+                </div>
+                <div class="table-container">
+                    <table id="tablaPartidos">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Rival</th>
+                                <th>Lugar</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cuotas -->
+            <div id="cuotas" class="section-content hidden">
+                <div class="page-header">
+                    <h1>Gestión de Cuotas</h1>
+                </div>
+                <div class="table-container">
+                    <table id="tablaCuotas">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Tipo</th>
+                                <th>Mes</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Jugadores -->
+            <div id="jugadores" class="section-content hidden">
+                <div class="page-header">
+                    <h1>Gestión de Jugadores</h1>
+                    <button class="btn-primary" onclick="nuevoJugador()">+ Nuevo Jugador</button>
+                </div>
+                <div class="table-container">
+                    <table id="tablaJugadores">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Posición</th>
+                                <th>Email</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Finanzas -->
+            <div id="finanzas" class="section-content hidden">
+                <div class="page-header">
+                    <h1>Resumen Financiero</h1>
+                </div>
+                <div id="finanzasContent">
+                    <p>Cargando datos financieros...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/partidos.js"></script>
+    <script src="js/cuotas.js"></script>
+    <script>
+        // Verificar autenticación
+        const user = checkAuth();
+        document.getElementById('userName').textContent = `${user.nombre} ${user.apellido}`;
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES');
+        
+        // Cargar datos iniciales
+        cargarDashboard();
+        cargarPartidosAdmin();
+        cargarJugadoresAdmin();
+        cargarCuotasAdmin();
+
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+            // Mostrar la seleccionada
+            document.getElementById(sectionId).classList.remove('hidden');
+            // Actualizar menú
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        async function cargarDashboard() {
+            // Aquí irían las llamadas a la API para estadísticas
+            document.getElementById('statJugadores').textContent = '25';
+            document.getElementById('statPartidos').textContent = '4';
+            document.getElementById('statRecaudacion').textContent = '$450.000';
+            document.getElementById('statDeuda').textContent = '$125.000';
+        }
+
+        async function cargarJugadoresAdmin() {
+            try {
+                const response = await fetchAPI('getJugadores', { equipoId: user.equipoId });
+                if (response.success) {
+                    const tbody = document.querySelector('#tablaJugadores tbody');
+                    tbody.innerHTML = response.data.map(j => `
+                        <tr>
+                            <td>${j.numeroCamiseta || '-'}</td>
+                            <td>${j.nombre} ${j.apellido}</td>
+                            <td>${j.posicion || '-'}</td>
+                            <td>${j.email}</td>
+                            <td><span class="badge badge-success">${j.estado}</span></td>
+                            <td>
+                                <button class="btn-action btn-edit" onclick="editarJugador('${j.id}')">Editar</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function nuevoJugador() {
+            alert('Función para crear nuevo jugador');
+        }
+
+        function editarJugador(id) {
+            alert('Editar jugador: ' + id);
+        }
+    </script>
+</body>
+</html>
