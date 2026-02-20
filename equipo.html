@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipo - ARVET</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">ARVET</a>
+            <div class="nav-links">
+                <a href="#portada">Inicio</a>
+                <a href="#quienes-somos">Nosotros</a>
+                <a href="#plantel">Plantel</a>
+                <a href="#partidos">Partidos</a>
+                <a href="login.html" class="btn-login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Portada -->
+    <section id="portada" class="hero" style="margin-top: 70px;">
+        <div class="container">
+            <div id="equipoHeader">
+                <div class="loading">Cargando equipo...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiénes Somos -->
+    <section id="quienes-somos" class="section">
+        <div class="container">
+            <h2>📋 Quiénes Somos</h2>
+            <div id="quienesSomosContent" class="card">
+                <div class="loading">Cargando información...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comisión -->
+    <section id="comision" class="section" style="background: #f1f5f9;">
+        <div class="container">
+            <h2>👥 Comisión Directiva</h2>
+            <div id="comisionGrid" class="results-grid">
+                <div class="loading">Cargando comisión...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Plantel -->
+    <section id="plantel" class="section">
+        <div class="container">
+            <h2>⚽ Plantel</h2>
+            <div id="plantelGrid" class="results-grid">
+                <div class="loading">Cargando plantel...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partidos -->
+    <section id="partidos" class="section" style="background: #f1f5f9;">
+        <div class="container">
+            <h2>⚔️ Próximos Partidos</h2>
+            <div id="partidosEquipoList" class="partidos-list">
+                <div class="loading">Cargando partidos...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Galería -->
+    <section id="galeria" class="section">
+        <div class="container">
+            <h2>📸 Galería</h2>
+            <div id="galeriaGrid" class="paises-grid">
+                <p>Galería de fotos del equipo</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Cargar datos del equipo
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('slug');
+        
+        if (slug) {
+            cargarEquipo(slug);
+        }
+
+        async function cargarEquipo(slug) {
+            try {
+                const response = await fetchAPI('getEquipoBySlug', { slug });
+                if (response.success) {
+                    const equipo = response.data;
+                    document.getElementById('equipoHeader').innerHTML = `
+                        <h1>${equipo.nombre}</h1>
+                        <p>${equipo.ciudad}, ${equipo.pais}</p>
+                        <p>${equipo.descripcion || ''}</p>
+                    `;
+                    
+                    document.getElementById('quienesSomosContent').innerHTML = `
+                        <p>${equipo.historia || 'Sin información disponible'}</p>
+                        <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
+                        <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
+                    `;
+                    
+                    // Cargar jugadores
+                    cargarJugadores(equipo.id);
+                    // Cargar partidos
+                    cargarPartidosEquipo(equipo.id);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function cargarJugadores(equipoId) {
+            try {
+                const response = await fetchAPI('getJugadores', { equipoId });
+                if (response.success) {
+                    const jugadores = response.data;
+                    
+                    // Separar comisión
+                    const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
+                    const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
+                    
+                    document.getElementById('comisionGrid').innerHTML = comision.map(j => `
+                        <div class="card">
+                            <h3>${j.nombre} ${j.apellido}</h3>
+                            <p class="badge badge-success">${j.rol}</p>
+                        </div>
+                    `).join('') || '<p>Sin comisión registrada</p>';
+                    
+                    document.getElementById('plantelGrid').innerHTML = plantel.map(j => `
+                        <div class="card">
+                            <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
+                            <p>${j.posicion || 'Jugador'}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function cargarPartidosEquipo(equipoId) {
+            try {
+                const response = await fetchAPI('getPartidos', { equipoId });
+                if (response.success) {
+                    document.getElementById('partidosEquipoList').innerHTML = response.data.map(partido => {
+                        const fecha = formatDate(partido.fecha);
+                        return `
+                            <div class="partido-card">
+                                <div class="partido-info">
+                                    <h3>vs ${partido.rival}</h3>
+                                    <div class="partido-meta">
+                                        <span>📍 ${partido.lugar}</span>
+                                        <span>🕐 ${partido.hora}</span>
+                                    </div>
+                                </div>
+                                <div class="partido-fecha">
+                                    <div class="dia">${fecha.dia}</div>
+                                    <div class="mes">${fecha.mes}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
