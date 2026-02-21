@@ -254,6 +254,45 @@ if (currentUser) {
         function editarJugador(id) {
             alert('Editar jugador: ' + id);
         }
+        // ============================================
+// LOGOUT
+// ============================================
+
+function logout() {
+    // Confirmar antes de salir (opcional)
+    if (confirm('¿Estás seguro de que querés cerrar sesión?')) {
+        // Limpiar todo el localStorage de ARVET
+        localStorage.removeItem('arvet_user');
+        localStorage.removeItem('arvet_login_time');
+        localStorage.removeItem('arvet_equipo');
+        
+        // Redirigir al login
+        window.location.href = 'login.html';
+    }
+}
+
+// ============================================
+// AUTO-LOGOUT POR INACTIVIDAD (opcional)
+// ============================================
+
+let inactivityTimer;
+const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutos
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        alert('Sesión expirada por inactividad');
+        logout();
+    }, INACTIVITY_LIMIT);
+}
+
+// Detectar actividad del usuario
+document.addEventListener('mousemove', resetInactivityTimer);
+document.addEventListener('keypress', resetInactivityTimer);
+document.addEventListener('click', resetInactivityTimer);
+
+// Iniciar el timer cuando carga la página
+resetInactivityTimer();
     </script>
 </body>
 </html>
