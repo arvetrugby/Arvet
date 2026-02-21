@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Crear Equipo - ARVET</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="container" style="margin-top:100px; max-width:500px;">
+  <h2>Crear Equipo</h2>
+
+  <input type="text" id="nombre" placeholder="Nombre del equipo"><br><br>
+  <input type="text" id="paisId" placeholder="Pais ID"><br><br>
+  <input type="text" id="provinciaId" placeholder="Provincia ID"><br><br>
+  <input type="text" id="ciudadId" placeholder="Ciudad ID"><br><br>
+  <input type="text" id="adminNombre" placeholder="Tu nombre"><br><br>
+  <input type="email" id="email" placeholder="Email admin"><br><br>
+  <input type="password" id="password" placeholder="Password"><br><br>
+
+  <button onclick="crearEquipo()">Crear Equipo</button>
+
+  <p id="mensaje"></p>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwtW778vdItxlZrS3vSv0AlZo5t_w4KZpq_QIF3gZTeWWhCXxPneB04YpIwspedwtCr/exec";
+
+function crearEquipo() {
+  const nombre = document.getElementById("nombre").value;
+  const paisId = document.getElementById("paisId").value;
+  const provinciaId = document.getElementById("provinciaId").value;
+  const ciudadId = document.getElementById("ciudadId").value;
+  const adminNombre = document.getElementById("adminNombre").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const callbackName = "crearEquipoCallback_" + Date.now();
+
+  window[callbackName] = function(response) {
+    if (response.success) {
+      document.getElementById("mensaje").innerText = "Equipo creado correctamente";
+
+      // guardar usuario en localStorage
+      localStorage.setItem("user", JSON.stringify({
+        id: response.data.adminId,
+        equipoId: response.data.equipoId,
+        rol: "Admin"
+      }));
+
+      // redirigir al equipo
+      window.location.href = "equipo.html?slug=" + response.data.slug;
+
+    } else {
+      document.getElementById("mensaje").innerText = response.error;
+    }
+
+    document.body.removeChild(script);
+    delete window[callbackName];
+  };
+
+  const script = document.createElement("script");
+
+  script.src = API_URL +
+    "?action=crearEquipo" +
+    "&nombre=" + encodeURIComponent(nombre) +
+    "&paisId=" + encodeURIComponent(paisId) +
+    "&provinciaId=" + encodeURIComponent(provinciaId) +
+    "&ciudadId=" + encodeURIComponent(ciudadId) +
+    "&adminNombre=" + encodeURIComponent(adminNombre) +
+    "&email=" + encodeURIComponent(email) +
+    "&password=" + encodeURIComponent(password) +
+    "&callback=" + callbackName;
+
+  document.body.appendChild(script);
+}
+</script>
+
+</body>
+</html>
