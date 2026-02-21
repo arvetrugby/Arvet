@@ -6,27 +6,300 @@
     <title>Login - ARVET</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            padding: 20px;
+        }
+        
+        .login-box {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            color: #1e293b;
+        }
+        
+        .login-box p {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .form-group input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .btn-full {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            margin-top: 10px;
+        }
+        
+        .btn-full:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-full:active {
+            transform: translateY(0);
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+        }
+        
+        .back-link a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        
+        .back-link a:hover {
+            color: #6366f1;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-box">
-            <h2>🔐 Iniciar Sesión</h2>
-            <form onsubmit="login(event)">
+            <h2>🔐 Bienvenido</h2>
+            <p>Ingresa a tu cuenta de ARVET</p>
+            
+            <div id="errorMsg" class="error-message"></div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" required placeholder="tu@email.com">
+                    <label for="email">Correo electrónico</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        required 
+                        placeholder="jugador@equipo.com"
+                        autocomplete="email"
+                    >
                 </div>
+                
                 <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="password" required placeholder="••••••••">
+                    <label for="password">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        required 
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                    >
                 </div>
-                <button type="submit" class="btn-full">Ingresar</button>
+                
+                <button type="submit" class="btn-full" id="btnLogin">
+                    <span id="btnText">Ingresar</span>
+                </button>
+                
+                <div id="loading" class="loading">
+                    <span class="spinner"></span>
+                    Verificando credenciales...
+                </div>
             </form>
-            <p style="text-align: center; margin-top: 20px; color: var(--gray);">
-                <a href="index.html" style="color: var(--primary);">← Volver al inicio</a>
-            </p>
+            
+            <div class="back-link">
+                <a href="index.html">← Volver al inicio</a>
+            </div>
         </div>
     </div>
-    <script src="js/app.js"></script>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN - REEMPLAZA CON TU URL
+        // ============================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzIV64bmm7isZCoucbInIZkb5di8jzKXKYsZJFQUvFJy4EBFH2TC5a0V8modjo9XxZv/exec';
+        
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function setLoading(loading) {
+            const btn = document.getElementById('btnLogin');
+            const btnText = document.getElementById('btnText');
+            const loadingDiv = document.getElementById('loading');
+            
+            if (loading) {
+                btn.disabled = true;
+                btnText.textContent = 'Verificando...';
+                loadingDiv.style.display = 'block';
+            } else {
+                btn.disabled = false;
+                btnText.textContent = 'Ingresar';
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        // ============================================
+        // LOGIN PRINCIPAL
+        // ============================================
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Validaciones básicas
+            if (!email || !password) {
+                showError('Por favor completa todos los campos');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}?action=login`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // ✅ Login exitoso
+                    
+                    // Guardar usuario en localStorage
+                    localStorage.setItem('arvet_user', JSON.stringify(data.user));
+                    localStorage.setItem('arvet_login_time', new Date().toISOString());
+                    
+                    // Redirigir según el rol
+                    const user = data.user;
+                    
+                    if (user.rol === 'Admin' || user.rol === 'Capitán' || user.rol === 'Manager') {
+                        // Redirigir al panel de administración
+                        window.location.href = 'admin.html';
+                    } else {
+                        // Redirigir al perfil del jugador/equipo
+                        window.location.href = 'equipo.html';
+                    }
+                    
+                } else {
+                    // ❌ Login fallido
+                    showError(data.error || 'Credenciales incorrectas');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión. Intenta de nuevo.');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // ============================================
+        // VERIFICAR SI YA ESTÁ LOGUEADO
+        // ============================================
+        
+        function checkExistingSession() {
+            const user = localStorage.getItem('arvet_user');
+            if (user) {
+                // Ya hay sesión activa, redirigir
+                const userData = JSON.parse(user);
+                if (userData.rol === 'Admin' || userData.rol === 'Capitán' || userData.rol === 'Manager') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'equipo.html';
+                }
+            }
+        }
+        
+        // Verificar al cargar la página
+        checkExistingSession();
+    </script>
 </body>
 </html>
