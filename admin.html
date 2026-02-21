@@ -189,11 +189,11 @@ function checkAuth() {
     return userData;
 }
 
-const currentUser = checkAuth();
+document.addEventListener('DOMContentLoaded', function() {
 
-if (currentUser) {
+    const currentUser = checkAuth();
+    if (!currentUser) return;
 
-    // Nombre usuario
     document.getElementById('userName').textContent =
         currentUser.nombre || '';
 
@@ -203,21 +203,16 @@ if (currentUser) {
     document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('es-ES');
 
-    // 🔥 BOTÓN VER SITIO PÚBLICO
     if (currentUser.slug) {
-        document.getElementById('btnVerSitio').href =
-            `equipo.html?slug=${currentUser.slug}`;
-    } else {
-        // fallback si no tiene slug guardado
-        document.getElementById('btnVerSitio').style.display = 'none';
+        const btn = document.getElementById('btnVerSitio');
+        btn.href = `equipo.html?slug=${currentUser.slug}`;
     }
 
-    // Cargas iniciales
     cargarDashboard();
     cargarPartidosAdmin();
     cargarJugadoresAdmin();
     cargarCuotasAdmin();
-}
+});
 
 // ============================================
 // SECCIONES
