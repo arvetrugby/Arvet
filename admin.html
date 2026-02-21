@@ -10,20 +10,45 @@
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>ARVET</h2>
-                <p id="userName">Cargando...</p>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="active" onclick="showSection('dashboard')">📊 Dashboard</li>
-                <li onclick="showSection('partidos')">⚔️ Partidos</li>
-                <li onclick="showSection('cuotas')">💰 Cuotas</li>
-                <li onclick="showSection('jugadores')">👥 Jugadores</li>
-                <li onclick="showSection('finanzas')">📈 Finanzas</li>
-                <li onclick="logout()">🚪 Cerrar Sesión</li>
-            </ul>
-        </aside>
+        <!-- Reemplaza el sidebar de admin.html con esto: -->
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h2>ARVET</h2>
+        <p id="userName">Cargando...</p>
+        <small id="userRole" style="color: #94a3b8;">Rol</small>
+    </div>
+    
+    <ul class="sidebar-menu">
+        <li class="active" onclick="showSection('dashboard')">
+            <span>📊</span> Dashboard
+        </li>
+        <li onclick="showSection('partidos')">
+            <span>⚔️</span> Partidos
+        </li>
+        <li onclick="showSection('cuotas')">
+            <span>💰</span> Cuotas
+        </li>
+        <li onclick="showSection('jugadores')">
+            <span>👥</span> Jugadores
+        </li>
+        <li onclick="showSection('finanzas')">
+            <span>📈</span> Finanzas
+        </li>
+        
+        <!-- Separador visual -->
+        <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
+            <a href="equipo.html" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; width: 100%;">
+                <span>🌐</span> Ver Sitio Público
+            </a>
+        </li>
+        
+        <!-- 🔴 AQUÍ VA EL LOGOUT -->
+        <li onclick="logout()" style="color: #ef4444; cursor: pointer;">
+            <span>🚪</span> Cerrar Sesión
+        </li>
+    </ul>
+</aside>
 
         <!-- Main Content -->
         <main class="main-content">
