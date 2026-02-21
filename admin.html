@@ -165,6 +165,7 @@
     <script src="js/cuotas.js"></script>
     
 <script>
+    let currentUser = null;
 // ============================================
 // AUTH
 // ============================================
@@ -191,7 +192,7 @@ function checkAuth() {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    const currentUser = checkAuth();
+    currentUser = checkAuth();
     if (!currentUser) return;
 
     document.getElementById('userName').textContent =
@@ -213,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarJugadoresAdmin();
     cargarCuotasAdmin();
 });
-
 // ============================================
 // SECCIONES
 // ============================================
