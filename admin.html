@@ -38,9 +38,10 @@
         
         <!-- Separador visual -->
         <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
-            <a href="equipo.html" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; width: 100%;">
-                <span>🌐</span> Ver Sitio Público
-            </a>
+            <a id="btnVerSitio"
+   style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; width: 100%;">
+    <span>🌐</span> Ver Sitio Público
+</a>
         </li>
         
         <!-- 🔴 AQUÍ VA EL LOGOUT -->
@@ -163,136 +164,150 @@
     <script src="js/partidos.js"></script>
     <script src="js/cuotas.js"></script>
     <script>
+<script>
 // ============================================
-// PROTECCIÓN DE RUTA - AGREGAR EN admin.html
+// AUTH
 // ============================================
 
 function checkAuth() {
     const user = localStorage.getItem('arvet_user');
-    
+
     if (!user) {
-        // No hay sesión, redirigir al login
         window.location.href = 'login.html';
         return null;
     }
-    
+
     const userData = JSON.parse(user);
-    
-    // Verificar que tenga permisos de administración
+
     const rolesPermitidos = ['Admin', 'Capitán', 'Manager'];
     if (!rolesPermitidos.includes(userData.rol)) {
         alert('No tienes permisos para acceder a esta sección');
         window.location.href = 'index.html';
         return null;
     }
-    
+
     return userData;
 }
 
-// Ejecutar al cargar
 const currentUser = checkAuth();
+
 if (currentUser) {
-    document.getElementById('userName').textContent = 
-        `${currentUser.nombre} ${currentUser.apellido}`;
+
+    // Nombre usuario
+    document.getElementById('userName').textContent =
+        currentUser.nombre || '';
+
+    document.getElementById('userRole').textContent =
+        currentUser.rol || '';
+
+    document.getElementById('currentDate').textContent =
+        new Date().toLocaleDateString('es-ES');
+
+    // 🔥 BOTÓN VER SITIO PÚBLICO
+    if (currentUser.slug) {
+        document.getElementById('btnVerSitio').href =
+            `equipo.html?slug=${currentUser.slug}`;
+    } else {
+        // fallback si no tiene slug guardado
+        document.getElementById('btnVerSitio').style.display = 'none';
+    }
+
+    // Cargas iniciales
+    cargarDashboard();
+    cargarPartidosAdmin();
+    cargarJugadoresAdmin();
+    cargarCuotasAdmin();
 }
-        // Verificar autenticación
-        const user = checkAuth();
-        document.getElementById('userName').textContent = `${user.nombre} ${user.apellido}`;
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES');
-        
-        // Cargar datos iniciales
-        cargarDashboard();
-        cargarPartidosAdmin();
-        cargarJugadoresAdmin();
-        cargarCuotasAdmin();
 
-        function showSection(sectionId) {
-            // Ocultar todas las secciones
-            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
-            // Mostrar la seleccionada
-            document.getElementById(sectionId).classList.remove('hidden');
-            // Actualizar menú
-            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
-            event.target.classList.add('active');
+// ============================================
+// SECCIONES
+// ============================================
+
+function showSection(sectionId) {
+    document.querySelectorAll('.section-content')
+        .forEach(el => el.classList.add('hidden'));
+
+    document.getElementById(sectionId)
+        .classList.remove('hidden');
+}
+
+// ============================================
+// DASHBOARD MOCK
+// ============================================
+
+async function cargarDashboard() {
+    document.getElementById('statJugadores').textContent = '25';
+    document.getElementById('statPartidos').textContent = '4';
+    document.getElementById('statRecaudacion').textContent = '$450.000';
+    document.getElementById('statDeuda').textContent = '$125.000';
+}
+
+// ============================================
+// JUGADORES
+// ============================================
+
+async function cargarJugadoresAdmin() {
+
+    if (!currentUser) return;
+
+    try {
+        const response = await fetchAPI('getJugadores', {
+            equipoId: currentUser.equipoId
+        });
+
+        if (response.success) {
+
+            const tbody =
+                document.querySelector('#tablaJugadores tbody');
+
+            tbody.innerHTML = response.data.map(j => `
+                <tr>
+                    <td>${j.numeroCamiseta || '-'}</td>
+                    <td>${j.nombre} ${j.apellido || ''}</td>
+                    <td>${j.posicion || '-'}</td>
+                    <td>${j.email || '-'}</td>
+                    <td>
+                        <span class="badge badge-success">
+                            ${j.rol || 'Jugador'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-action btn-edit"
+                            onclick="editarJugador('${j.id}')">
+                            Editar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        async function cargarDashboard() {
-            // Aquí irían las llamadas a la API para estadísticas
-            document.getElementById('statJugadores').textContent = '25';
-            document.getElementById('statPartidos').textContent = '4';
-            document.getElementById('statRecaudacion').textContent = '$450.000';
-            document.getElementById('statDeuda').textContent = '$125.000';
-        }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
-        async function cargarJugadoresAdmin() {
-            try {
-                const response = await fetchAPI('getJugadores', { equipoId: user.equipoId });
-                if (response.success) {
-                    const tbody = document.querySelector('#tablaJugadores tbody');
-                    tbody.innerHTML = response.data.map(j => `
-                        <tr>
-                            <td>${j.numeroCamiseta || '-'}</td>
-                            <td>${j.nombre} ${j.apellido}</td>
-                            <td>${j.posicion || '-'}</td>
-                            <td>${j.email}</td>
-                            <td><span class="badge badge-success">${j.estado}</span></td>
-                            <td>
-                                <button class="btn-action btn-edit" onclick="editarJugador('${j.id}')">Editar</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
+function nuevoJugador() {
+    alert('Función para crear nuevo jugador');
+}
 
-        function nuevoJugador() {
-            alert('Función para crear nuevo jugador');
-        }
+function editarJugador(id) {
+    alert('Editar jugador: ' + id);
+}
 
-        function editarJugador(id) {
-            alert('Editar jugador: ' + id);
-        }
-        // ============================================
+// ============================================
 // LOGOUT
 // ============================================
 
 function logout() {
-    // Confirmar antes de salir (opcional)
     if (confirm('¿Estás seguro de que querés cerrar sesión?')) {
-        // Limpiar todo el localStorage de ARVET
+
         localStorage.removeItem('arvet_user');
         localStorage.removeItem('arvet_login_time');
         localStorage.removeItem('arvet_equipo');
-        
-        // Redirigir al login
+
         window.location.href = 'login.html';
     }
 }
-
-// ============================================
-// AUTO-LOGOUT POR INACTIVIDAD (opcional)
-// ============================================
-
-let inactivityTimer;
-const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutos
-
-function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-        alert('Sesión expirada por inactividad');
-        logout();
-    }, INACTIVITY_LIMIT);
-}
-
-// Detectar actividad del usuario
-document.addEventListener('mousemove', resetInactivityTimer);
-document.addEventListener('keypress', resetInactivityTimer);
-document.addEventListener('click', resetInactivityTimer);
-
-// Iniciar el timer cuando carga la página
-resetInactivityTimer();
-    </script>
+</script>
 </body>
 </html>
