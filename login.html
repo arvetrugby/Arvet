@@ -139,148 +139,117 @@
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // CONFIGURACIÓN
-        // ============================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz374QILj8hHRT1Fi9c3lqGVLg9r2jPJvb6z1qRn0PzOY5N7I_zxjUbzMipe462gF9T/exec';
+   <script>
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz374QILj8hHRT1Fi9c3lqGVLg9r2jPJvb6z1qRn0PzOY5N7I_zxjUbzMipe462gF9T/exec';
 
-        // ============================================
-        // ELEMENTOS
-        // ============================================
-        const form = document.getElementById('loginForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const btnLogin = document.getElementById('btnLogin');
-        const loadingDiv = document.getElementById('loading');
-        const errorDiv = document.getElementById('errorMsg');
+    // ============================================
+    // ELEMENTOS
+    // ============================================
+    const form = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const btnLogin = document.getElementById('btnLogin');
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('errorMsg');
 
-        // ============================================
-        // FUNCIONES
-        // ============================================
+    // ============================================
+    // FUNCIONES UI
+    // ============================================
+    
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    function setLoading(loading) {
+        if (loading) {
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Verificando...';
+            loadingDiv.style.display = 'block';
+        } else {
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Ingresar';
+            loadingDiv.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // LOGIN CON FETCH (CORRECTO)
+    // ============================================
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
         
-        function showError(message) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (!email || !password) {
+            showError('Por favor completa todos los campos');
+            return;
         }
         
-        function setLoading(loading) {
-            if (loading) {
-                btnLogin.disabled = true;
-                btnLogin.textContent = 'Verificando...';
-                loadingDiv.style.display = 'block';
-            } else {
-                btnLogin.disabled = false;
-                btnLogin.textContent = 'Ingresar';
-                loadingDiv.style.display = 'none';
-            }
-        }
+        setLoading(true);
 
-        // ============================================
-        // LOGIN CON JSONP
-        // ============================================
-        
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            
-            if (!email || !password) {
-                showError('Por favor completa todos los campos');
-                return;
-            }
-            
-            setLoading(true);
-            
-            // Nombre único para callback
-            const callbackName = 'cb_' + Date.now();
-            
-            // Crear función callback
-            window[callbackName] = function(response) {
-                console.log('Respuesta del servidor:', response);
-                
-                // Limpiar
-                delete window[callbackName];
-                if (script && script.parentNode) {
-                    script.parentNode.removeChild(script);
-                }
-                
-                if (response.success) {
-                    // Guardar sesión
-                    localStorage.setItem('arvet_user', JSON.stringify(response.user));
-                    
-                    // Redirigir
-                    const user = response.user;
-                    const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
-                    
-                    if (rolesAdmin.includes(user.rol)) {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
+        try {
+
+            const response = await fetch(
+                `${API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            );
+
+            const data = await response.json();
+
+            console.log('Respuesta del servidor:', data);
+
+            if (data.success) {
+
+                // Guardar sesión
+                localStorage.setItem('arvet_user', JSON.stringify(data.data));
+
+                const user = data.data;
+                const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
+
+                if (rolesAdmin.includes(user.rol)) {
+                    window.location.href = 'admin.html';
                 } else {
-                    showError(response.error || 'Error al iniciar sesión');
-                    setLoading(false);
+                    window.location.href = 'index.html';
                 }
-            };
-            
-            // Crear script
-            const script = document.createElement('script');
-            const url = API_URL + 
-                '?action=login' +
-                '&email=' + encodeURIComponent(email) +
-                '&password=' + encodeURIComponent(password) +
-                '&callback=' + callbackName;
-            
-            console.log('Llamando:', url);
-            
-            script.src = url;
-            
-            script.onerror = function() {
-                console.error('Error al cargar el script');
-                showError('Error de conexión. Verifica tu conexión a internet.');
-                setLoading(false);
-                delete window[callbackName];
-            };
-            
-            // Timeout de seguridad
-            setTimeout(function() {
-                if (window[callbackName]) {
-                    console.error('Timeout - el servidor no respondió');
-                    showError('El servidor no responde. Intenta de nuevo.');
-                    setLoading(false);
-                    delete window[callbackName];
-                    if (script && script.parentNode) {
-                        script.parentNode.removeChild(script);
-                    }
-                }
-            }, 15000);
-            
-            document.head.appendChild(script);
-        });
 
-        // ============================================
-        // VERIFICAR SESIÓN EXISTENTE
-        // ============================================
-        
-        (function checkSession() {
-            const user = localStorage.getItem('arvet_user');
-            if (user) {
-                try {
-                    const userData = JSON.parse(user);
-                    const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
-                    if (rolesAdmin.includes(userData.rol)) {
-                        window.location.href = 'admin.html';
-                    }
-                } catch(e) {
-                    localStorage.removeItem('arvet_user');
-                }
+            } else {
+                showError(data.error || 'Credenciales incorrectas');
+                setLoading(false);
             }
-        })();
-    </script>
+
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            showError('Error de conexión con el servidor');
+            setLoading(false);
+        }
+    });
+
+    // ============================================
+    // VERIFICAR SESIÓN EXISTENTE
+    // ============================================
+
+    (function checkSession() {
+        const user = localStorage.getItem('arvet_user');
+        if (user) {
+            try {
+                const userData = JSON.parse(user);
+                const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
+                if (rolesAdmin.includes(userData.rol)) {
+                    window.location.href = 'admin.html';
+                }
+            } catch(e) {
+                localStorage.removeItem('arvet_user');
+            }
+        }
+    })();
+</script>
 </body>
 </html>
