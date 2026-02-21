@@ -1,79 +1,189 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Crear Equipo - ARVET</title>
-  <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crear Equipo - ARVET</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:'Montserrat',sans-serif;
+    background:linear-gradient(135deg,#6366f1 0%,#ec4899 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+.box{
+    background:white;
+    padding:40px;
+    border-radius:20px;
+    width:100%;
+    max-width:500px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+h2{text-align:center;margin-bottom:10px;color:#1e293b}
+p.subtitle{text-align:center;color:#64748b;margin-bottom:30px}
+.form-group{margin-bottom:15px}
+input{
+    width:100%;
+    padding:14px;
+    border:2px solid #e2e8f0;
+    border-radius:12px;
+    font-size:15px;
+    font-family:'Montserrat';
+}
+input:focus{
+    border-color:#6366f1;
+    outline:none;
+}
+button{
+    width:100%;
+    padding:15px;
+    background:linear-gradient(135deg,#6366f1 0%,#ec4899 100%);
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+}
+button:disabled{opacity:.6;cursor:not-allowed}
+.message{
+    margin-top:15px;
+    padding:10px;
+    border-radius:8px;
+    display:none;
+    font-size:.9rem;
+}
+.error{background:#fee2e2;color:#991b1b}
+.success{background:#dcfce7;color:#166534}
+.loading{text-align:center;margin-top:10px;display:none;color:#64748b}
+</style>
 </head>
 <body>
 
-<div class="container" style="margin-top:100px; max-width:500px;">
-  <h2>Crear Equipo</h2>
+<div class="box">
+<h2>🏆 Crear Equipo</h2>
+<p class="subtitle">Comienza a gestionar tu club en ARVET</p>
 
-  <input type="text" id="nombre" placeholder="Nombre del equipo"><br><br>
-  <input type="text" id="paisId" placeholder="Pais ID"><br><br>
-  <input type="text" id="provinciaId" placeholder="Provincia ID"><br><br>
-  <input type="text" id="ciudadId" placeholder="Ciudad ID"><br><br>
-  <input type="text" id="adminNombre" placeholder="Tu nombre"><br><br>
-  <input type="email" id="email" placeholder="Email admin"><br><br>
-  <input type="password" id="password" placeholder="Password"><br><br>
+<div id="msg" class="message"></div>
 
-  <button onclick="crearEquipo()">Crear Equipo</button>
+<form id="formRegistro">
 
-  <p id="mensaje"></p>
+<div class="form-group">
+<input type="text" id="nombre" placeholder="Nombre del equipo" required>
+</div>
+
+<div class="form-group">
+<input type="text" id="paisId" placeholder="Pais ID" required>
+</div>
+
+<div class="form-group">
+<input type="text" id="provinciaId" placeholder="Provincia ID" required>
+</div>
+
+<div class="form-group">
+<input type="text" id="ciudadId" placeholder="Ciudad ID" required>
+</div>
+
+<div class="form-group">
+<input type="text" id="adminNombre" placeholder="Tu nombre" required>
+</div>
+
+<div class="form-group">
+<input type="email" id="email" placeholder="Email admin" required>
+</div>
+
+<div class="form-group">
+<input type="password" id="password" placeholder="Contraseña" required>
+</div>
+
+<button type="submit" id="btnCrear">Crear Equipo</button>
+<div id="loading" class="loading">Creando equipo...</div>
+
+</form>
 </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbz374QILj8hHRT1Fi9c3lqGVLg9r2jPJvb6z1qRn0PzOY5N7I_zxjUbzMipe462gF9T/exec";
 
-function crearEquipo() {
-  const nombre = document.getElementById("nombre").value;
-  const paisId = document.getElementById("paisId").value;
-  const provinciaId = document.getElementById("provinciaId").value;
-  const ciudadId = document.getElementById("ciudadId").value;
-  const adminNombre = document.getElementById("adminNombre").value;
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+const form = document.getElementById("formRegistro");
+const btn = document.getElementById("btnCrear");
+const loading = document.getElementById("loading");
+const msg = document.getElementById("msg");
 
-  const callbackName = "crearEquipoCallback_" + Date.now();
-
-  window[callbackName] = function(response) {
-    if (response.success) {
-      document.getElementById("mensaje").innerText = "Equipo creado correctamente";
-
-      // guardar usuario en localStorage
-      localStorage.setItem("user", JSON.stringify({
-        id: response.data.adminId,
-        equipoId: response.data.equipoId,
-        rol: "Admin"
-      }));
-
-      // redirigir al equipo
-      window.location.href = "equipo.html?slug=" + response.data.slug;
-
-    } else {
-      document.getElementById("mensaje").innerText = response.error;
-    }
-
-    document.body.removeChild(script);
-    delete window[callbackName];
-  };
-
-  const script = document.createElement("script");
-
-  script.src = API_URL +
-    "?action=crearEquipo" +
-    "&nombre=" + encodeURIComponent(nombre) +
-    "&paisId=" + encodeURIComponent(paisId) +
-    "&provinciaId=" + encodeURIComponent(provinciaId) +
-    "&ciudadId=" + encodeURIComponent(ciudadId) +
-    "&adminNombre=" + encodeURIComponent(adminNombre) +
-    "&email=" + encodeURIComponent(email) +
-    "&password=" + encodeURIComponent(password) +
-    "&callback=" + callbackName;
-
-  document.body.appendChild(script);
+function showMessage(text,type){
+    msg.textContent=text;
+    msg.className="message "+type;
+    msg.style.display="block";
 }
+
+function setLoading(state){
+    btn.disabled=state;
+    loading.style.display=state?"block":"none";
+}
+
+form.addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    setLoading(true);
+    msg.style.display="none";
+
+    const data = {
+        nombre: nombre.value.trim(),
+        paisId: paisId.value.trim(),
+        provinciaId: provinciaId.value.trim(),
+        ciudadId: ciudadId.value.trim(),
+        adminNombre: adminNombre.value.trim(),
+        email: email.value.trim(),
+        password: password.value
+    };
+
+    try{
+
+        const response = await fetch(
+            `${API_URL}?action=crearEquipo` +
+            `&nombre=${encodeURIComponent(data.nombre)}` +
+            `&paisId=${encodeURIComponent(data.paisId)}` +
+            `&provinciaId=${encodeURIComponent(data.provinciaId)}` +
+            `&ciudadId=${encodeURIComponent(data.ciudadId)}` +
+            `&adminNombre=${encodeURIComponent(data.adminNombre)}` +
+            `&email=${encodeURIComponent(data.email)}` +
+            `&password=${encodeURIComponent(data.password)}`
+        );
+
+        const result = await response.json();
+
+        if(result.success){
+
+            showMessage("Equipo creado correctamente ✅ Redirigiendo...","success");
+
+            // guardar sesión correctamente
+            localStorage.setItem("arvet_user", JSON.stringify({
+                id: result.data.equipoId,
+                equipoId: result.data.equipoId,
+                rol: "Admin"
+            }));
+
+            setTimeout(()=>{
+                window.location.href="admin.html";
+            },1500);
+
+        }else{
+            showMessage(result.error || "Error al crear equipo","error");
+            setLoading(false);
+        }
+
+    }catch(err){
+        showMessage("Error de conexión con el servidor","error");
+        setLoading(false);
+    }
+});
 </script>
 
 </body>
