@@ -138,6 +138,38 @@
     <script src="js/partidos.js"></script>
     <script src="js/cuotas.js"></script>
     <script>
+// ============================================
+// PROTECCIÓN DE RUTA - AGREGAR EN admin.html
+// ============================================
+
+function checkAuth() {
+    const user = localStorage.getItem('arvet_user');
+    
+    if (!user) {
+        // No hay sesión, redirigir al login
+        window.location.href = 'login.html';
+        return null;
+    }
+    
+    const userData = JSON.parse(user);
+    
+    // Verificar que tenga permisos de administración
+    const rolesPermitidos = ['Admin', 'Capitán', 'Manager'];
+    if (!rolesPermitidos.includes(userData.rol)) {
+        alert('No tienes permisos para acceder a esta sección');
+        window.location.href = 'index.html';
+        return null;
+    }
+    
+    return userData;
+}
+
+// Ejecutar al cargar
+const currentUser = checkAuth();
+if (currentUser) {
+    document.getElementById('userName').textContent = 
+        `${currentUser.nombre} ${currentUser.apellido}`;
+}
         // Verificar autenticación
         const user = checkAuth();
         document.getElementById('userName').textContent = `${user.nombre} ${user.apellido}`;
