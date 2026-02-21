@@ -186,120 +186,144 @@
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // CONFIGURACIÓN - REEMPLAZA CON TU URL
-        // ============================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxI61wDYAFqFr5y5pjHTRDPWxMNbxUVntK9xRqJoagelKPRYgcoW7n4BnMFM6-Vz5Zv/exec';
+    
+        <script>
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzYycqQwcTzaZ9u-HmQHjOsHvVsYHA3PWWPQvMF6ZZ2M_YJTJbfcsBAdBvjonro_HXk/exec';
+
+    // ============================================
+    // FUNCIONES DE UTILIDAD
+    // ============================================
+    
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMsg');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    function setLoading(loading) {
+        const btn = document.getElementById('btnLogin');
+        const btnText = document.getElementById('btnText');
+        const loadingDiv = document.getElementById('loading');
         
-        // ============================================
-        // FUNCIONES DE UTILIDAD
-        // ============================================
+        if (loading) {
+            btn.disabled = true;
+            btnText.textContent = 'Verificando...';
+            loadingDiv.style.display = 'block';
+        } else {
+            btn.disabled = false;
+            btnText.textContent = 'Ingresar';
+            loadingDiv.style.display = 'none';
+        }
+    }
+
+    // ============================================
+    // LOGIN CON JSONP
+    // ============================================
+    
+    function handleLogin(event) {
+        event.preventDefault();
         
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!email || !password) {
+            showError('Por favor completa todos los campos');
+            return;
         }
         
-        function setLoading(loading) {
-            const btn = document.getElementById('btnLogin');
-            const btnText = document.getElementById('btnText');
-            const loadingDiv = document.getElementById('loading');
-            
-            if (loading) {
-                btn.disabled = true;
-                btnText.textContent = 'Verificando...';
-                loadingDiv.style.display = 'block';
-            } else {
-                btn.disabled = false;
-                btnText.textContent = 'Ingresar';
-                loadingDiv.style.display = 'none';
-            }
-        }
+        setLoading(true);
         
-        // ============================================
-        // LOGIN PRINCIPAL
-        // ============================================
+        // Crear nombre único para la función callback
+        const callbackName = 'loginCallback_' + Date.now();
         
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            
-            // Validaciones básicas
-            if (!email || !password) {
-                showError('Por favor completa todos los campos');
-                return;
+        // Crear la función callback temporal
+        window[callbackName] = function(data) {
+            // Limpiar
+            delete window[callbackName];
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
             }
             
-            setLoading(true);
+            console.log('Respuesta:', data); // Para debug
             
-            try {
-                const response = await fetch(`${API_URL}?action=login`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
+            if (data.success) {
+                // Guardar usuario
+                localStorage.setItem('arvet_user', JSON.stringify(data.user));
+                localStorage.setItem('arvet_login_time', new Date().toISOString());
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    // ✅ Login exitoso
-                    
-                    // Guardar usuario en localStorage
-                    localStorage.setItem('arvet_user', JSON.stringify(data.user));
-                    localStorage.setItem('arvet_login_time', new Date().toISOString());
-                    
-                    // Redirigir según el rol
-                    const user = data.user;
-                    
-                    if (user.rol === 'Admin' || user.rol === 'Capitán' || user.rol === 'Manager') {
-                        // Redirigir al panel de administración
-                        window.location.href = 'admin.html';
-                    } else {
-                        // Redirigir al perfil del jugador/equipo
-                        window.location.href = 'equipo.html';
-                    }
-                    
-                } else {
-                    // ❌ Login fallido
-                    showError(data.error || 'Credenciales incorrectas');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Error de conexión. Intenta de nuevo.');
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        // ============================================
-        // VERIFICAR SI YA ESTÁ LOGUEADO
-        // ============================================
-        
-        function checkExistingSession() {
-            const user = localStorage.getItem('arvet_user');
-            if (user) {
-                // Ya hay sesión activa, redirigir
-                const userData = JSON.parse(user);
-                if (userData.rol === 'Admin' || userData.rol === 'Capitán' || userData.rol === 'Manager') {
+                // Redirigir según rol
+                const user = data.user;
+                if (user.rol === 'Admin' || user.rol === 'Capitán' || user.rol === 'Manager') {
                     window.location.href = 'admin.html';
                 } else {
                     window.location.href = 'equipo.html';
                 }
+            } else {
+                showError(data.error || 'Credenciales incorrectas');
+                setLoading(false);
+            }
+        };
+        
+        // Crear script tag
+        const script = document.createElement('script');
+        const url = API_URL + 
+            '?action=login' +
+            '&email=' + encodeURIComponent(email) +
+            '&password=' + encodeURIComponent(password) +
+            '&callback=' + callbackName;
+        
+        console.log('Llamando a:', url); // Para debug
+        
+        script.src = url;
+        
+        script.onerror = function() {
+            console.error('Error cargando script');
+            showError('Error de conexión. Intenta de nuevo.');
+            setLoading(false);
+            delete window[callbackName];
+        };
+        
+        // Timeout por si no responde
+        setTimeout(function() {
+            if (window[callbackName]) {
+                console.error('Timeout');
+                showError('El servidor no responde. Intenta de nuevo.');
+                setLoading(false);
+                delete window[callbackName];
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            }
+        }, 10000); // 10 segundos
+        
+        document.head.appendChild(script);
+    }
+    
+    // ============================================
+    // VERIFICAR SESIÓN EXISTENTE
+    // ============================================
+    
+    function checkExistingSession() {
+        const user = localStorage.getItem('arvet_user');
+        if (user) {
+            const userData = JSON.parse(user);
+            if (userData.rol === 'Admin' || userData.rol === 'Capitán' || userData.rol === 'Manager') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'equipo.html';
             }
         }
-        
-        // Verificar al cargar la página
-        checkExistingSession();
-    </script>
+    }
+    
+    // Verificar al cargar
+    checkExistingSession();
+</script>
+    
 </body>
 </html>
