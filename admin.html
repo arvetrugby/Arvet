@@ -198,13 +198,20 @@ if (btn && currentUser.slug) {
     btn.addEventListener('click', function() {
         window.location.href = `/${currentUser.slug}`;
     });
-} else if (btn) {
-    // Si no hay slug, mostrar error o usar equipoId como fallback
-    btn.addEventListener('click', function() {
-        alert('Error: No se encontró el slug del equipo');
+} else if (btn && currentUser.equipoId) {
+    // Fallback: si no hay slug, buscarlo manualmente
+    btn.addEventListener('click', async function() {
+        try {
+            const response = await fetchAPI('getEquipoBySlug', { slug: currentUser.equipoId });
+            if (response.success && response.data.slug) {
+                window.location.href = `/${response.data.slug}`;
+            } else {
+                window.location.href = `/${currentUser.equipoId}`;
+            }
+        } catch (e) {
+            window.location.href = `/${currentUser.equipoId}`;
+        }
     });
-    btn.style.opacity = '0.5';
-    btn.style.cursor = 'not-allowed';
 }
     // ===============================
     // SECCIONES
