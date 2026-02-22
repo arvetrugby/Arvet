@@ -194,12 +194,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const btn = document.getElementById('btnVerSitio');
 
-    if (btn && currentUser.slug) {
-        btn.setAttribute(
-            'href',
-            `equipo.html?slug=${currentUser.slug}`
-        );
-    }
+if (btn && currentUser.equipoId) {
+    btn.href = `equipo.html?slug=${currentUser.equipoId}`;
+}
 
     // ===============================
     // SECCIONES
