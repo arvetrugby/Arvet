@@ -188,32 +188,23 @@ document.addEventListener('DOMContentLoaded', function () {
             new Date().toLocaleDateString('es-ES');
     }
 
-    // ===============================
+// ===============================
 // BOTÓN SITIO PÚBLICO
 // ===============================
 
 const btn = document.getElementById('btnVerSitio');
 
-if (btn && currentUser.equipoId) {
+if (btn && currentUser.slug) {
     btn.addEventListener('click', function() {
-        // Opción 1: Si tienes el slug guardado en el usuario
-        if (currentUser.slug) {
-            window.location.href = `/${currentUser.slug}`;
-        } 
-        // Opción 2: Si no tienes slug, usar el equipoId como fallback
-        else if (currentUser.equipoId) {
-            window.location.href = `/${currentUser.equipoId}`;
-        }
-        // Opción 3: Redirigir a la raíz si no hay datos
-        else {
-            window.location.href = '/';
-        }
+        window.location.href = `/${currentUser.slug}`;
     });
 } else if (btn) {
-    // Si no hay equipoId, deshabilitar el botón o mostrar mensaje
+    // Si no hay slug, mostrar error o usar equipoId como fallback
+    btn.addEventListener('click', function() {
+        alert('Error: No se encontró el slug del equipo');
+    });
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
-    btn.title = 'No hay equipo asociado';
 }
     // ===============================
     // SECCIONES
