@@ -158,13 +158,42 @@
             </div>
         </main>
     </div>
-
     <script src="js/app.js"></script>
-    
-    
-<script>
-   
-// ============================================
+    <script src="partidos.js"></script>
+    <script src="cuotas.js"></script>
+
+    <script>
+        let currentUser = null;
+
+        currentUser = checkAuth();
+        if (!currentUser) {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById('userName').textContent =
+            currentUser.nombre || '';
+
+        document.getElementById('userRole').textContent =
+            currentUser.rol || '';
+
+        document.getElementById('currentDate').textContent =
+            new Date().toLocaleDateString('es-ES');
+
+        const btn = document.getElementById('btnVerSitio');
+
+        if (btn && currentUser.slug) {
+            btn.setAttribute(
+                'href',
+                `equipo.html?slug=${currentUser.slug}`
+            );
+        }
+
+        cargarDashboard();
+        cargarPartidosAdmin();
+        cargarJugadoresAdmin();
+        cargarCuotasAdmin();
+
+        // ============================================
 // SECCIONES
 // ============================================
 
@@ -253,44 +282,11 @@ function logout() {
         window.location.href = 'login.html';
     }
 }
-</script>
+    </script>
+
 </body>
-    </body>
-
-<script src="partidos.js"></script>
-<script src="cuotas.js"></script>
-
-<script>
-    let currentUser = null;
-
-    currentUser = checkAuth();
-    if (!currentUser) {
-        window.location.href = "login.html";
-    }
-
-    document.getElementById('userName').textContent =
-        currentUser.nombre || '';
-
-    document.getElementById('userRole').textContent =
-        currentUser.rol || '';
-
-    document.getElementById('currentDate').textContent =
-        new Date().toLocaleDateString('es-ES');
-
-    const btn = document.getElementById('btnVerSitio');
-
-    if (btn && currentUser.slug) {
-        btn.setAttribute(
-            'href',
-            `equipo.html?slug=${currentUser.slug}`
-        );
-    }
-
-    cargarDashboard();
-    cargarPartidosAdmin();
-    cargarJugadoresAdmin();
-    cargarCuotasAdmin();
-</script>
-
 </html>
-</html>
+    
+    
+   
+
