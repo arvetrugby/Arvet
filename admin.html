@@ -38,10 +38,9 @@
         
         <!-- Separador visual -->
         <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
-            <a id="btnVerSitio"
-   style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; width: 100%;">
-    <span>🌐</span> Ver Sitio Público
-</a>
+            <button id="btnVerSitio" class="btn-full">
+    🌐 Ver Sitio Público
+</button>
         </li>
         
         <!-- 🔴 AQUÍ VA EL LOGOUT -->
@@ -204,9 +203,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('es-ES');
 
-    if (currentUser.slug) {
-        const btn = document.getElementById('btnVerSitio');
-        btn.href = `equipo.html?slug=${currentUser.slug}`;
+    // 🔥 NUEVA LÓGICA DEL BOTÓN
+    const btn = document.getElementById('btnVerSitio');
+
+    if (btn && currentUser.slug) {
+        btn.addEventListener('click', function () {
+            window.location.href = `equipo.html?slug=${currentUser.slug}`;
+        });
     }
 
     cargarDashboard();
