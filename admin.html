@@ -160,63 +160,10 @@
     </div>
 
     <script src="js/app.js"></script>
-    <script src="js/partidos.js"></script>
-    <script src="js/cuotas.js"></script>
+    
     
 <script>
-    let currentUser = null;
-// ============================================
-// AUTH
-// ============================================
-
-function checkAuth() {
-    const user = localStorage.getItem('arvet_user');
-
-    if (!user) {
-        window.location.href = 'login.html';
-        return null;
-    }
-
-    const userData = JSON.parse(user);
-
-    const rolesPermitidos = ['Admin', 'Capitán', 'Manager'];
-    if (!rolesPermitidos.includes(userData.rol)) {
-        alert('No tienes permisos para acceder a esta sección');
-        window.location.href = 'index.html';
-        return null;
-    }
-
-    return userData;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    currentUser = checkAuth();
-    if (!currentUser) return;
-
-    document.getElementById('userName').textContent =
-        currentUser.nombre || '';
-
-    document.getElementById('userRole').textContent =
-        currentUser.rol || '';
-
-    document.getElementById('currentDate').textContent =
-        new Date().toLocaleDateString('es-ES');
-
-    // 🔥 NUEVA LÓGICA DEL BOTÓN
-    const btn = document.getElementById('btnVerSitio');
-
-    if (btn && currentUser.slug) {
-        btn.addEventListener('click', function () {
-            window.location.href = `equipo.html?slug=${currentUser.slug}`;
-        });
-    }
-
-    cargarDashboard();
-    cargarPartidosAdmin();
-    cargarJugadoresAdmin();
-    cargarCuotasAdmin();
-});
+   
 // ============================================
 // SECCIONES
 // ============================================
@@ -308,4 +255,42 @@ function logout() {
 }
 </script>
 </body>
+    </body>
+
+<script src="partidos.js"></script>
+<script src="cuotas.js"></script>
+
+<script>
+    let currentUser = null;
+
+    currentUser = checkAuth();
+    if (!currentUser) {
+        window.location.href = "login.html";
+    }
+
+    document.getElementById('userName').textContent =
+        currentUser.nombre || '';
+
+    document.getElementById('userRole').textContent =
+        currentUser.rol || '';
+
+    document.getElementById('currentDate').textContent =
+        new Date().toLocaleDateString('es-ES');
+
+    const btn = document.getElementById('btnVerSitio');
+
+    if (btn && currentUser.slug) {
+        btn.setAttribute(
+            'href',
+            `equipo.html?slug=${currentUser.slug}`
+        );
+    }
+
+    cargarDashboard();
+    cargarPartidosAdmin();
+    cargarJugadoresAdmin();
+    cargarCuotasAdmin();
+</script>
+
+</html>
 </html>
