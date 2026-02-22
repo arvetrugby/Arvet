@@ -3,9 +3,16 @@
 // ============================================
 
 async function cargarPartidosAdmin() {
-    const user = JSON.parse(localStorage.getItem('user'));
+
+    const user = JSON.parse(localStorage.getItem('arvet_user'));
+    if (!user || !user.equipoId) {
+        console.log('Usuario no autenticado');
+        return;
+    }
+
     try {
         const response = await fetchAPI('getPartidos', { equipoId: user.equipoId });
+
         if (response.success) {
             const tbody = document.querySelector('#tablaPartidos tbody');
             tbody.innerHTML = response.data.map(p => {
@@ -25,6 +32,7 @@ async function cargarPartidosAdmin() {
                 `;
             }).join('');
         }
+
     } catch (error) {
         console.error(error);
     }
@@ -67,7 +75,8 @@ function nuevoPartido() {
 
 async function crearPartido(event) {
     event.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('arvet_user'));
+if (!user || !user.equipoId) return;
     
     const data = {
         equipoId: user.equipoId,
@@ -160,7 +169,8 @@ async function registrarPagoPartido(convocadoId, partidoId, jugadorId) {
     const monto = prompt('Ingrese el monto pagado:');
     if (!monto) return;
     
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('arvet_user'));
+if (!user || !user.id) return;
     
     try {
         const response = await postAPI('registrarPagoPartido', {
