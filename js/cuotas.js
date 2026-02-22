@@ -3,16 +3,20 @@
 // ============================================
 
 async function cargarCuotasAdmin() {
-    const user = JSON.parse(localStorage.getItem('user'));
+
+    const user = JSON.parse(localStorage.getItem('arvet_user'));
+    if (!user || !user.equipoId) {
+        console.log('Usuario no autenticado');
+        return;
+    }
+
     try {
-        // Obtener todos los jugadores del equipo
         const jugadoresRes = await fetchAPI('getJugadores', { equipoId: user.equipoId });
         if (!jugadoresRes.success) return;
         
         const jugadores = jugadoresRes.data;
         let todasLasCuotas = [];
         
-        // Obtener cuotas de cada jugador
         for (let jugador of jugadores) {
             const cuotasRes = await fetchAPI('getCuotas', { jugadorId: jugador.id });
             if (cuotasRes.success) {
@@ -51,10 +55,15 @@ async function cargarCuotasAdmin() {
 }
 
 async function registrarPagoCuota(cuotaId, monto) {
+
     const confirmar = confirm(`¿Confirmar pago de ${formatCurrency(monto)}?`);
     if (!confirmar) return;
     
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('arvet_user'));
+    if (!user || !user.id) {
+        console.log('Usuario no autenticado');
+        return;
+    }
     
     try {
         const response = await postAPI('registrarPagoCuota', {
