@@ -38,9 +38,9 @@
         
         <!-- Separador visual -->
         <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
-            <button id="btnVerSitio" class="btn-full">
+            <a id="btnVerSitio" class="btn-full">
     🌐 Ver Sitio Público
-</button>
+</a>
         </li>
         
         <!-- 🔴 AQUÍ VA EL LOGOUT -->
@@ -162,127 +162,150 @@
     <script src="partidos.js"></script>
     <script src="cuotas.js"></script>
 
-    <script>
-        let currentUser = null;
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-        currentUser = checkAuth();
-        if (!currentUser) {
-            window.location.href = "login.html";
-        }
+    let currentUser = JSON.parse(localStorage.getItem('arvet_user'));
 
-        document.getElementById('userName').textContent =
-            currentUser.nombre || '';
+    // 🔒 Protección de sesión
+    if (!currentUser) {
+        window.location.href = "login.html";
+        return;
+    }
 
-        document.getElementById('userRole').textContent =
-            currentUser.rol || '';
+    // ===============================
+    // DATOS USUARIO
+    // ===============================
 
-        document.getElementById('currentDate').textContent =
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const currentDateEl = document.getElementById('currentDate');
+
+    if (userNameEl) userNameEl.textContent = currentUser.nombre || '';
+    if (userRoleEl) userRoleEl.textContent = currentUser.rol || '';
+    if (currentDateEl) {
+        currentDateEl.textContent =
             new Date().toLocaleDateString('es-ES');
-
-        const btn = document.getElementById('btnVerSitio');
-
-        if (btn && currentUser.slug) {
-            btn.setAttribute(
-                'href',
-                `equipo.html?slug=${currentUser.slug}`
-            );
-        }
-
-        cargarDashboard();
-        cargarPartidosAdmin();
-        cargarJugadoresAdmin();
-        cargarCuotasAdmin();
-
-        // ============================================
-// SECCIONES
-// ============================================
-
-function showSection(sectionId) {
-    document.querySelectorAll('.section-content')
-        .forEach(el => el.classList.add('hidden'));
-
-    document.getElementById(sectionId)
-        .classList.remove('hidden');
-}
-
-// ============================================
-// DASHBOARD MOCK
-// ============================================
-
-async function cargarDashboard() {
-    document.getElementById('statJugadores').textContent = '25';
-    document.getElementById('statPartidos').textContent = '4';
-    document.getElementById('statRecaudacion').textContent = '$450.000';
-    document.getElementById('statDeuda').textContent = '$125.000';
-}
-
-// ============================================
-// JUGADORES
-// ============================================
-
-async function cargarJugadoresAdmin() {
-
-    if (!currentUser) return;
-
-    try {
-        const response = await fetchAPI('getJugadores', {
-            equipoId: currentUser.equipoId
-        });
-
-        if (response.success) {
-
-            const tbody =
-                document.querySelector('#tablaJugadores tbody');
-
-            tbody.innerHTML = response.data.map(j => `
-                <tr>
-                    <td>${j.numeroCamiseta || '-'}</td>
-                    <td>${j.nombre} ${j.apellido || ''}</td>
-                    <td>${j.posicion || '-'}</td>
-                    <td>${j.email || '-'}</td>
-                    <td>
-                        <span class="badge badge-success">
-                            ${j.rol || 'Jugador'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn-action btn-edit"
-                            onclick="editarJugador('${j.id}')">
-                            Editar
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-    } catch (error) {
-        console.error(error);
     }
-}
 
-function nuevoJugador() {
-    alert('Función para crear nuevo jugador');
-}
+    // ===============================
+    // BOTÓN SITIO PÚBLICO
+    // ===============================
 
-function editarJugador(id) {
-    alert('Editar jugador: ' + id);
-}
+    const btn = document.getElementById('btnVerSitio');
 
-// ============================================
-// LOGOUT
-// ============================================
-
-function logout() {
-    if (confirm('¿Estás seguro de que querés cerrar sesión?')) {
-
-        localStorage.removeItem('arvet_user');
-        localStorage.removeItem('arvet_login_time');
-        localStorage.removeItem('arvet_equipo');
-
-        window.location.href = 'login.html';
+    if (btn && currentUser.slug) {
+        btn.setAttribute(
+            'href',
+            `equipo.html?slug=${currentUser.slug}`
+        );
     }
-}
-    </script>
+
+    // ===============================
+    // SECCIONES
+    // ===============================
+
+    window.showSection = function(sectionId) {
+        document.querySelectorAll('.section-content')
+            .forEach(el => el.classList.add('hidden'));
+
+        const section = document.getElementById(sectionId);
+        if (section) section.classList.remove('hidden');
+    }
+
+    // ===============================
+    // DASHBOARD MOCK
+    // ===============================
+
+    async function cargarDashboard() {
+        const statJugadores = document.getElementById('statJugadores');
+        const statPartidos = document.getElementById('statPartidos');
+        const statRecaudacion = document.getElementById('statRecaudacion');
+        const statDeuda = document.getElementById('statDeuda');
+
+        if (statJugadores) statJugadores.textContent = '25';
+        if (statPartidos) statPartidos.textContent = '4';
+        if (statRecaudacion) statRecaudacion.textContent = '$450.000';
+        if (statDeuda) statDeuda.textContent = '$125.000';
+    }
+
+    // ===============================
+    // JUGADORES
+    // ===============================
+
+    async function cargarJugadoresAdmin() {
+
+        try {
+            const response = await fetchAPI('getJugadores', {
+                equipoId: currentUser.equipoId
+            });
+
+            if (response.success) {
+
+                const tbody =
+                    document.querySelector('#tablaJugadores tbody');
+
+                if (!tbody) return;
+
+                tbody.innerHTML = response.data.map(j => `
+                    <tr>
+                        <td>${j.numeroCamiseta || '-'}</td>
+                        <td>${j.nombre} ${j.apellido || ''}</td>
+                        <td>${j.posicion || '-'}</td>
+                        <td>${j.email || '-'}</td>
+                        <td>
+                            <span class="badge badge-success">
+                                ${j.rol || 'Jugador'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-action btn-edit"
+                                onclick="editarJugador('${j.id}')">
+                                Editar
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    window.nuevoJugador = function() {
+        alert('Función para crear nuevo jugador');
+    }
+
+    window.editarJugador = function(id) {
+        alert('Editar jugador: ' + id);
+    }
+
+    // ===============================
+    // LOGOUT
+    // ===============================
+
+    window.logout = function() {
+        if (confirm('¿Cerrar sesión?')) {
+
+            localStorage.removeItem('arvet_user');
+            localStorage.removeItem('arvet_login_time');
+
+            window.location.href = 'login.html';
+        }
+    }
+
+    // ===============================
+    // INICIALIZAR
+    // ===============================
+
+    cargarDashboard();
+    cargarJugadoresAdmin();
+    if (typeof cargarPartidosAdmin === 'function') cargarPartidosAdmin();
+    if (typeof cargarCuotasAdmin === 'function') cargarCuotasAdmin();
+
+});
+</script>
 
 </body>
 </html>
