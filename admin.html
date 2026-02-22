@@ -38,9 +38,9 @@
         
         <!-- Separador visual -->
         <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
-            <a id="btnVerSitio" class="btn-full">
+            <button id="btnVerSitio" class="btn-full">
     🌐 Ver Sitio Público
-</a>
+</button>
         </li>
         
         <!-- 🔴 AQUÍ VA EL LOGOUT -->
@@ -195,7 +195,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const btn = document.getElementById('btnVerSitio');
 
 if (btn && currentUser.equipoId) {
-    btn.href = `equipo.html?slug=${currentUser.equipoId}`;
+    btn.addEventListener('click', function() {
+        window.location.href =
+            `equipo.html?slug=${currentUser.equipoId}`;
+    });
 }
 
     // ===============================
