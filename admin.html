@@ -196,8 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if (btn && currentUser.equipoId) {
     btn.addEventListener('click', function() {
-        window.location.href =
-            `equipo.html?slug=${currentUser.equipoId}`;
+        window.location.href = `/${currentUser.equipoId}`;
     });
 }
 
