@@ -209,7 +209,7 @@
             if (data.success) {
 
                 // Guardar sesión
-                localStorage.setItem('arvet_user', JSON.stringify(response.user));
+                localStorage.setItem('arvet_user', JSON.stringify(data.user));
 
                 const user = data.user;
                 const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
