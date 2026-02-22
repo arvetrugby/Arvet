@@ -209,7 +209,7 @@
             if (data.success) {
 
                 // Guardar sesión
-                localStorage.setItem('arvet_user', JSON.stringify(data.user));
+                localStorage.setItem('arvet_user', JSON.stringify(response.user));
 
                 const user = data.user;
                 const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
@@ -237,7 +237,7 @@
     // ============================================
 
     (function checkSession() {
-        const user = localStorage.getItem('arvet_user');
+     const user = localStorage.getItem('arvet_user');
         if (user) {
             try {
                 const userData = JSON.parse(user);
