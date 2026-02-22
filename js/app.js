@@ -149,7 +149,7 @@ async function login(event) {
     try {
         const response = await postAPI('login', { email, password });
         if (response.success) {
-            localStorage.setItem('user', JSON.stringify(response.user));
+            localStorage.setItem('arvet_user', JSON.stringify(response.user));
             window.location.href = 'admin.html';
         } else {
             alert('Credenciales incorrectas');
@@ -160,7 +160,7 @@ async function login(event) {
 }
 
 function checkAuth() {
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem('arvet_user');
     if (!user) {
         window.location.href = 'login.html';
     }
@@ -168,6 +168,6 @@ function checkAuth() {
 }
 
 function logout() {
-    localStorage.removeItem('user');
+    localStorage.removeItem('arvet_user');
     window.location.href = 'index.html';
 }
