@@ -89,23 +89,41 @@
     </div>
 </section>
       
-             <script src="js/app.js"></script>
+                <script src="js/app.js"></script>
     <script>
-        // Esperar a que todo esté cargado
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== INICIO ===');
             console.log('URL completa:', window.location.href);
             console.log('Search:', window.location.search);
+            console.log('Pathname:', window.location.pathname);
             
-            // Obtener slug
+            let slug = null;
+            
+            // OPCIÓN 1: URL con ?slug=vvv (formato query string)
             const urlParams = new URLSearchParams(window.location.search);
-            let slug = urlParams.get('slug');
-            console.log('Slug obtenido:', slug);
+            slug = urlParams.get('slug');
+            console.log('Slug de query params:', slug);
             
-            if (!slug || slug === 'equipo.html') {
+            // OPCIÓN 2: URL tipo /equipo332xx (formato pathname)
+            if (!slug) {
+                const path = window.location.pathname;
+                // Obtener el último segmento de la ruta
+                const segments = path.split('/').filter(s => s);
+                const lastSegment = segments[segments.length - 1];
+                
+                console.log('Último segmento:', lastSegment);
+                
+                // Limpiar .html si existe
+                slug = lastSegment.replace('.html', '');
+                console.log('Slug limpio:', slug);
+            }
+            
+            console.log('Slug final:', slug);
+            
+            if (!slug || slug === '' || slug === 'equipo') {
                 console.error('❌ No se encontró slug válido');
                 document.getElementById('equipoHeader').innerHTML = 
-                    '<div class="error">Error: URL debe ser equipo.html?slug=NOMBRE_EQUIPO</div>';
+                    '<div class="error">Error: No se pudo identificar el equipo</div>';
                 return;
             }
             
@@ -118,13 +136,13 @@
             console.log('Llamando con slug:', slug);
             
             try {
-                // Verificar que fetchAPI existe
                 if (typeof fetchAPI !== 'function') {
-                    console.error('fetchAPI no está definido. ¿Cargó app.js?');
+                    console.error('fetchAPI no está definido');
                     return;
                 }
                 
-                console.log('Llamando fetchAPI...');
+                // IMPORTANTE: Enviar slug como parámetro explícito
+                console.log('Enviando a API: action=getEquipoBySlug, slug=' + slug);
                 const response = await fetchAPI('getEquipoBySlug', { slug: slug });
                 console.log('Respuesta:', response);
 
@@ -173,7 +191,6 @@
                     };
                 }
                 
-                // Inicializar mapa
                 if (typeof inicializarMapa === 'function') {
                     inicializarMapa();
                 }
@@ -289,5 +306,5 @@
             console.log('✅ Mapa creado');
         }
     </script>
-</body>
+    </body>
 </html>
