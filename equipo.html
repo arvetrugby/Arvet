@@ -127,11 +127,16 @@ if (slug) {
             cargarPartidosEquipo(equipo.id);
 
             // Mostrar mapa si hay coordenadas
-            if (equipo.lat && equipo.lng) {
+            // Guardar coordenadas para el mapa
+if (equipo.lat && equipo.lng) {
     window.equipoCoords = {
         lat: equipo.lat,
         lng: equipo.lng
     };
+    // Si el mapa ya se inicializó, actualizarlo
+    if (typeof inicializarMapa === 'function') {
+        inicializarMapa();
+    }
 }
         }
 
