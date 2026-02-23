@@ -165,14 +165,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    let currentUser = JSON.parse(localStorage.getItem('arvet_user'));
+    let currentUser = null;
 
+try {
+    const storedUser = localStorage.getItem('arvet_user');
+    if (storedUser && storedUser !== "undefined") {
+        currentUser = JSON.parse(storedUser);
+    }
+} catch (e) {
+    console.error("Error parseando usuario:", e);
+}
     // 🔒 Protección de sesión
     if (!currentUser) {
-        window.location.href = "login.html";
-        return;
-    }
-
+    window.location.href = "login.html";
+    return;
+}
     // ===============================
     // DATOS USUARIO
     // ===============================
