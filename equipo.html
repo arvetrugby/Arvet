@@ -126,14 +126,19 @@ if (slug) {
             cargarJugadores(equipo.id);
             cargarPartidosEquipo(equipo.id);
 
-            // Mostrar mapa si hay coordenadas
-            // Guardar coordenadas para el mapa
+            
+// Guardar coordenadas para el mapa
 if (equipo.lat && equipo.lng) {
     window.equipoCoords = {
         lat: equipo.lat,
         lng: equipo.lng
     };
-    // Si el mapa ya se inicializó, actualizarlo
+    // Llamar a inicializarMapa solo si no fue creado antes
+    if (typeof inicializarMapa === 'function') {
+        inicializarMapa();
+    }
+} else {
+    // Si no hay coordenadas, igual inicializar el mapa con default
     if (typeof inicializarMapa === 'function') {
         inicializarMapa();
     }
@@ -200,19 +205,40 @@ if (equipo.lat && equipo.lng) {
                 console.error(error);
             }
         }
-    </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    </script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Esperar a que carguen los datos del equipo
-    setTimeout(() => {
-        inicializarMapa();
-    }, 1000);
-});
+// Variable global para controlar si el mapa ya fue creado
+let mapaCreado = false;
+let mapInstance = null;
 
 function inicializarMapa() {
+    // Evitar crear el mapa dos veces
+    if (mapaCreado || mapInstance !== null) {
+        console.log('Mapa ya existe, actualizando vista...');
+        
+        // Si ya existe, solo actualizar la posición
+        if (window.equipoCoords && window.equipoCoords.lat && window.equipoCoords.lng) {
+            const lat = parseFloat(window.equipoCoords.lat);
+            const lng = parseFloat(window.equipoCoords.lng);
+            mapInstance.setView([lat, lng], 15);
+            
+            // Limpiar marcadores anteriores y agregar nuevo
+            mapInstance.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    mapInstance.removeLayer(layer);
+                }
+            });
+            
+            L.marker([lat, lng])
+                .addTo(mapInstance)
+                .bindPopup("📍 Ubicación del equipo")
+                .openPopup();
+        }
+        return;
+    }
+    
     let lat, lng, zoom;
     
     // Si hay coordenadas del equipo, usarlas
@@ -227,18 +253,27 @@ function inicializarMapa() {
         zoom = 13;
     }
     
-    const map = L.map('map').setView([lat, lng], zoom);
+    // Crear el mapa solo una vez
+    mapInstance = L.map('map').setView([lat, lng], zoom);
+    mapaCreado = true;
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    }).addTo(mapInstance);
     
     L.marker([lat, lng])
-        .addTo(map)
+        .addTo(mapInstance)
         .bindPopup("📍 Ubicación del equipo")
         .openPopup();
+        
+    console.log('Mapa creado por primera vez en:', lat, lng);
 }
-</script>
 
+// Solo inicializar cuando DOM esté listo, pero no esperar coordenadas
+document.addEventListener("DOMContentLoaded", function () {
+    // No llamamos a inicializarMapa() aquí, esperamos a que carguen los datos
+    console.log('DOM listo, esperando datos del equipo...');
+});
+</script>
 </body>
 </html>
