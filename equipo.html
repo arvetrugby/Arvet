@@ -103,7 +103,6 @@ if (slug) {
         if (response.success) {
             const equipo = response.data;
 
-            // 🔥 GUARDAMOS LOS DATOS GLOBALES
             window.equipoData = equipo;
 
             document.getElementById('equipoHeader').innerHTML = `
@@ -121,14 +120,16 @@ if (slug) {
             cargarJugadores(equipo.id);
             cargarPartidosEquipo(equipo.id);
 
-            // 🔥 SI HAY COORDENADAS, MOSTRAMOS MAPA
-           if (equipo.lat && equipo.lng) {
-    const esperarMapa = setInterval(() => {
-        if (typeof google !== "undefined" && mapa) {
-            mostrarMapa(equipo.lat, equipo.lng);
-            clearInterval(esperarMapa);
+            // Mostrar mapa si hay coordenadas
+            if (equipo.lat && equipo.lng) {
+                const esperarMapa = setInterval(() => {
+                    if (typeof google !== "undefined" && mapa) {
+                        mostrarMapa(equipo.lat, equipo.lng);
+                        clearInterval(esperarMapa);
+                    }
+                }, 300);
+            }
         }
-    }, 300);
 
     } catch (error) {
         console.error(error);
