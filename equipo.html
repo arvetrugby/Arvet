@@ -88,84 +88,94 @@
         <div id="map" style="height: 400px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
     </div>
 </section>
-       <script src="js/app.js"></script>
+      
+             <script src="js/app.js"></script>
     <script>
-        // LOGS PARA DEBUG
-        console.log('=== INICIO ===');
-        console.log('URL completa:', window.location.href);
-        console.log('Search:', window.location.search);
-        console.log('Pathname:', window.location.pathname);
-
-        // Cargar datos del equipo
-        let slug = new URLSearchParams(window.location.search).get('slug');
-        console.log('Slug de URLSearchParams:', slug);
-
-        if (!slug) {
-            slug = window.location.pathname.replace("/", "");
-            console.log('Slug de pathname:', slug);
-        }
-
-        // Limpiar slug si es vacío o "equipo.html"
-        if (!slug || slug === 'equipo.html' || slug === '') {
-            console.error('❌ No se encontró slug válido');
-            document.getElementById('equipoHeader').innerHTML = 
-                '<div class="error">Error: URL debe ser equipo.html?slug=NOMBRE_EQUIPO</div>';
-        } else {
-            console.log('✅ Slug final:', slug);
+        // Esperar a que todo esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== INICIO ===');
+            console.log('URL completa:', window.location.href);
+            console.log('Search:', window.location.search);
+            
+            // Obtener slug
+            const urlParams = new URLSearchParams(window.location.search);
+            let slug = urlParams.get('slug');
+            console.log('Slug obtenido:', slug);
+            
+            if (!slug || slug === 'equipo.html') {
+                console.error('❌ No se encontró slug válido');
+                document.getElementById('equipoHeader').innerHTML = 
+                    '<div class="error">Error: URL debe ser equipo.html?slug=NOMBRE_EQUIPO</div>';
+                return;
+            }
+            
+            console.log('✅ Slug válido:', slug);
             cargarEquipo(slug);
-        }
+        });
 
         async function cargarEquipo(slug) {
             console.log('=== cargarEquipo ===');
             console.log('Llamando con slug:', slug);
             
             try {
-                console.log('Llamando a fetchAPI...');
+                // Verificar que fetchAPI existe
+                if (typeof fetchAPI !== 'function') {
+                    console.error('fetchAPI no está definido. ¿Cargó app.js?');
+                    return;
+                }
+                
+                console.log('Llamando fetchAPI...');
                 const response = await fetchAPI('getEquipoBySlug', { slug: slug });
-                console.log('Respuesta de fetchAPI:', response);
+                console.log('Respuesta:', response);
 
-                if (response.success) {
-                    const equipo = response.data;
-                    console.log('Equipo encontrado:', equipo.nombre);
-                    console.log('Coordenadas recibidas:', equipo.lat, equipo.lng);
-
-                    window.equipoData = equipo;
-
-                    document.getElementById('equipoHeader').innerHTML = `
-                        <h1>${equipo.nombre}</h1>
-                        <p>${equipo.ciudad}, ${equipo.pais}</p>
-                        <p>${equipo.descripcion || ''}</p>
-                    `;
-
-                    document.getElementById('quienesSomosContent').innerHTML = `
-                        <p>${equipo.historia || 'Sin información disponible'}</p>
-                        <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
-                        <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
-                    `;
-
-                    cargarJugadores(equipo.id);
-                    cargarPartidosEquipo(equipo.id);
-
-                    // Guardar coordenadas para el mapa
-                    if (equipo.lat && equipo.lng) {
-                        console.log('✅ Tiene coordenadas, guardando:', equipo.lat, equipo.lng);
-                        window.equipoCoords = {
-                            lat: equipo.lat,
-                            lng: equipo.lng
-                        };
-                        if (typeof inicializarMapa === 'function') {
-                            inicializarMapa();
-                        }
-                    } else {
-                        console.log('⚠️ No tiene coordenadas, inicializando mapa con default');
-                        if (typeof inicializarMapa === 'function') {
-                            inicializarMapa();
-                        }
-                    }
-                } else {
-                    console.error('❌ Error en respuesta:', response.error);
+                if (!response.success) {
+                    console.error('Error:', response.error);
                     document.getElementById('equipoHeader').innerHTML = 
                         `<div class="error">Error: ${response.error}</div>`;
+                    return;
+                }
+
+                const equipo = response.data;
+                console.log('Equipo:', equipo.nombre);
+                console.log('Coordenadas:', equipo.lat, equipo.lng);
+
+                // Actualizar UI
+                document.getElementById('equipoHeader').innerHTML = `
+                    <h1>${equipo.nombre}</h1>
+                    <p>${equipo.ciudad}, ${equipo.pais}</p>
+                    <p>${equipo.descripcion || ''}</p>
+                `;
+
+                document.getElementById('quienesSomosContent').innerHTML = `
+                    <p>${equipo.historia || 'Sin información disponible'}</p>
+                    <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
+                    <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
+                `;
+
+                // Cargar datos adicionales
+                if (equipo.id) {
+                    cargarJugadores(equipo.id);
+                    cargarPartidosEquipo(equipo.id);
+                }
+
+                // Configurar mapa
+                if (equipo.lat && equipo.lng) {
+                    console.log('✅ Tiene coordenadas:', equipo.lat, equipo.lng);
+                    window.equipoCoords = {
+                        lat: equipo.lat,
+                        lng: equipo.lng
+                    };
+                } else {
+                    console.log('⚠️ Sin coordenadas, usando default');
+                    window.equipoCoords = {
+                        lat: -34.6037,
+                        lng: -58.3816
+                    };
+                }
+                
+                // Inicializar mapa
+                if (typeof inicializarMapa === 'function') {
+                    inicializarMapa();
                 }
 
             } catch (error) {
@@ -178,56 +188,55 @@
         async function cargarJugadores(equipoId) {
             try {
                 const response = await fetchAPI('getJugadores', { equipoId });
-                if (response.success) {
-                    const jugadores = response.data;
-                    
-                    const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
-                    const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
-                    
-                    document.getElementById('comisionGrid').innerHTML = comision.map(j => `
-                        <div class="card">
-                            <h3>${j.nombre} ${j.apellido}</h3>
-                            <p class="badge badge-success">${j.rol}</p>
-                        </div>
-                    `).join('') || '<p>Sin comisión registrada</p>';
-                    
-                    document.getElementById('plantelGrid').innerHTML = plantel.map(j => `
-                        <div class="card">
-                            <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
-                            <p>${j.posicion || 'Jugador'}</p>
-                        </div>
-                    `).join('');
-                }
+                if (!response.success) return;
+                
+                const jugadores = response.data;
+                const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
+                const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
+                
+                document.getElementById('comisionGrid').innerHTML = comision.map(j => `
+                    <div class="card">
+                        <h3>${j.nombre} ${j.apellido}</h3>
+                        <p class="badge badge-success">${j.rol}</p>
+                    </div>
+                `).join('') || '<p>Sin comisión registrada</p>';
+                
+                document.getElementById('plantelGrid').innerHTML = plantel.map(j => `
+                    <div class="card">
+                        <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
+                        <p>${j.posicion || 'Jugador'}</p>
+                    </div>
+                `).join('');
             } catch (error) {
-                console.error(error);
+                console.error('Error cargando jugadores:', error);
             }
         }
 
         async function cargarPartidosEquipo(equipoId) {
             try {
                 const response = await fetchAPI('getPartidos', { equipoId });
-                if (response.success) {
-                    document.getElementById('partidosEquipoList').innerHTML = response.data.map(partido => {
-                        const fecha = formatDate(partido.fecha);
-                        return `
-                            <div class="partido-card">
-                                <div class="partido-info">
-                                    <h3>vs ${partido.rival}</h3>
-                                    <div class="partido-meta">
-                                        <span>📍 ${partido.lugar}</span>
-                                        <span>🕐 ${partido.hora}</span>
-                                    </div>
-                                </div>
-                                <div class="partido-fecha">
-                                    <div class="dia">${fecha.dia}</div>
-                                    <div class="mes">${fecha.mes}</div>
+                if (!response.success) return;
+                
+                document.getElementById('partidosEquipoList').innerHTML = response.data.map(partido => {
+                    const fecha = formatDate(partido.fecha);
+                    return `
+                        <div class="partido-card">
+                            <div class="partido-info">
+                                <h3>vs ${partido.rival}</h3>
+                                <div class="partido-meta">
+                                    <span>📍 ${partido.lugar}</span>
+                                    <span>🕐 ${partido.hora}</span>
                                 </div>
                             </div>
-                        `;
-                    }).join('');
-                }
+                            <div class="partido-fecha">
+                                <div class="dia">${fecha.dia}</div>
+                                <div class="mes">${fecha.mes}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
-                console.error(error);
+                console.error('Error cargando partidos:', error);
             }
         }
     </script>
@@ -236,68 +245,49 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <script>
-        // Variable global para controlar si el mapa ya fue creado
         let mapaCreado = false;
         let mapInstance = null;
 
         function inicializarMapa() {
             console.log('=== inicializarMapa ===');
             
-            // Evitar crear el mapa dos veces
-            if (mapaCreado || mapInstance !== null) {
-                console.log('Mapa ya existe, actualizando vista...');
-                
-                if (window.equipoCoords && window.equipoCoords.lat && window.equipoCoords.lng) {
+            if (mapaCreado && mapInstance) {
+                console.log('Actualizando mapa existente...');
+                if (window.equipoCoords) {
                     const lat = parseFloat(window.equipoCoords.lat);
                     const lng = parseFloat(window.equipoCoords.lng);
                     mapInstance.setView([lat, lng], 15);
                     
-                    mapInstance.eachLayer(function (layer) {
-                        if (layer instanceof L.Marker) {
-                            mapInstance.removeLayer(layer);
-                        }
+                    mapInstance.eachLayer(layer => {
+                        if (layer instanceof L.Marker) mapInstance.removeLayer(layer);
                     });
                     
-                    L.marker([lat, lng])
-                        .addTo(mapInstance)
+                    L.marker([lat, lng]).addTo(mapInstance)
                         .bindPopup("📍 Ubicación del equipo")
                         .openPopup();
                 }
                 return;
             }
             
-            let lat, lng, zoom;
+            const lat = window.equipoCoords ? parseFloat(window.equipoCoords.lat) : -34.6037;
+            const lng = window.equipoCoords ? parseFloat(window.equipoCoords.lng) : -58.3816;
+            const zoom = window.equipoCoords ? 15 : 13;
             
-            if (window.equipoCoords && window.equipoCoords.lat && window.equipoCoords.lng) {
-                lat = parseFloat(window.equipoCoords.lat);
-                lng = parseFloat(window.equipoCoords.lng);
-                zoom = 15;
-                console.log('Usando coordenadas del equipo:', lat, lng);
-            } else {
-                lat = -34.6037;
-                lng = -58.3816;
-                zoom = 13;
-                console.log('Usando coordenadas default');
-            }
+            console.log('Creando mapa en:', lat, lng);
             
             mapInstance = L.map('map').setView([lat, lng], zoom);
             mapaCreado = true;
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapInstance);
             
-            L.marker([lat, lng])
-                .addTo(mapInstance)
+            L.marker([lat, lng]).addTo(mapInstance)
                 .bindPopup("📍 Ubicación del equipo")
                 .openPopup();
                 
-            console.log('✅ Mapa creado en:', lat, lng);
+            console.log('✅ Mapa creado');
         }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            console.log('DOM listo, esperando datos del equipo...');
-        });
     </script>
 </body>
 </html>
