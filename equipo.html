@@ -97,32 +97,43 @@ if (slug) {
 }
 
         async function cargarEquipo(slug) {
-            try {
-                const response = await fetchAPI('getEquipoBySlug', { slug });
-                if (response.success) {
-                    const equipo = response.data;
-                    document.getElementById('equipoHeader').innerHTML = `
-                        <h1>${equipo.nombre}</h1>
-                        <p>${equipo.ciudad}, ${equipo.pais}</p>
-                        <p>${equipo.descripcion || ''}</p>
-                    `;
-                    
-                    document.getElementById('quienesSomosContent').innerHTML = `
-                        <p>${equipo.historia || 'Sin información disponible'}</p>
-                        <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
-                        <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
-                    `;
-                    
-                    // Cargar jugadores
-                    cargarJugadores(equipo.id);
-                    // Cargar partidos
-                    cargarPartidosEquipo(equipo.id);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
+    try {
+        const response = await fetchAPI('getEquipoBySlug', { slug });
 
+        if (response.success) {
+            const equipo = response.data;
+
+            // 🔥 GUARDAMOS LOS DATOS GLOBALES
+            window.equipoData = equipo;
+
+            document.getElementById('equipoHeader').innerHTML = `
+                <h1>${equipo.nombre}</h1>
+                <p>${equipo.ciudad}, ${equipo.pais}</p>
+                <p>${equipo.descripcion || ''}</p>
+            `;
+
+            document.getElementById('quienesSomosContent').innerHTML = `
+                <p>${equipo.historia || 'Sin información disponible'}</p>
+                <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
+                <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
+            `;
+
+            cargarJugadores(equipo.id);
+            cargarPartidosEquipo(equipo.id);
+
+            // 🔥 SI HAY COORDENADAS, MOSTRAMOS MAPA
+           if (equipo.lat && equipo.lng) {
+    const esperarMapa = setInterval(() => {
+        if (typeof google !== "undefined" && mapa) {
+            mostrarMapa(equipo.lat, equipo.lng);
+            clearInterval(esperarMapa);
+        }
+    }, 300);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
         async function cargarJugadores(equipoId) {
             try {
                 const response = await fetchAPI('getJugadores', { equipoId });
@@ -180,35 +191,43 @@ if (slug) {
             }
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMeq2nZykdrZEzW4qPXMjbjuoi7uVOdLg&callback=iniciarMapa"></script>
+   
 <script>
-function iniciarMapa() {
-  // Verificar si hay coordenadas en el equipo cargado
-  if (window.equipoData && window.equipoData.lat && window.equipoData.lng) {
-    mostrarMapa(window.equipoData.lat, window.equipoData.lng);
-  }
-}
+let mapa;
+let marcador;
 
-function mostrarMapa(lat, lng) {
-  const map = new google.maps.Map(document.getElementById('mapaEquipo'), {
-    center: { lat: parseFloat(lat), lng: parseFloat(lng) },
-    zoom: 15,
+function initMap() {
+  mapa = new google.maps.Map(document.getElementById("mapaEquipo"), {
+    center: { lat: -34.6037, lng: -58.3816 },
+    zoom: 5,
     mapTypeControl: false,
     streetViewControl: false
   });
-  
-  new google.maps.Marker({ 
-    position: { lat: parseFloat(lat), lng: parseFloat(lng) }, 
-    map: map,
-    title: 'Ubicación del equipo'
+}
+
+function mostrarMapa(lat, lng) {
+  if (!mapa) return;
+
+  const posicion = {
+    lat: parseFloat(lat),
+    lng: parseFloat(lng)
+  };
+
+  mapa.setCenter(posicion);
+  mapa.setZoom(15);
+
+  if (marcador) marcador.setMap(null);
+
+  marcador = new google.maps.Marker({
+    position: posicion,
+    map: mapa,
+    title: "Ubicación del equipo"
   });
 }
-    // Al cargar datos del equipo
-window.equipoData = {
-  lat: equipo.lat,
-  lng: equipo.lng
-};
-// El callback iniciarMapa se ejecutará cuando API esté lista
+</script>
+
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMeq2nZykdrZEzW4qPXMjbjuoi7uVOdLg&callback=initMap">
 </script>
 </body>
 </html>
