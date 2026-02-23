@@ -191,46 +191,7 @@ if (slug) {
         }
     </script>
    
-<script>
-let mapa;
-let marcador;
 
-function initMap() {
-  mapa = new google.maps.Map(document.getElementById("mapaEquipo"), {
-    center: { lat: -34.6037, lng: -58.3816 },
-    zoom: 5,
-    mapTypeControl: false,
-    streetViewControl: false
-  });
 
-  if (window.equipoCoords) {
-      mostrarMapa(window.equipoCoords.lat, window.equipoCoords.lng);
-  }
-}
-
-function mostrarMapa(lat, lng) {
-  if (!mapa) return;
-
-  const posicion = {
-    lat: parseFloat(lat),
-    lng: parseFloat(lng)
-  };
-
-  mapa.setCenter(posicion);
-  mapa.setZoom(15);
-
-  if (marcador) marcador.setMap(null);
-
-  marcador = new google.maps.Marker({
-    position: posicion,
-    map: mapa,
-    title: "Ubicación del equipo"
-  });
-}
-</script>
-
-<script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMeq2nZykdrZEzW4qPXMjbjuoi7uVOdLg&callback=initMap">
-</script>
 </body>
 </html>
