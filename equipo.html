@@ -180,11 +180,16 @@ if (slug) {
             }
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMeq2nZykdrZEzW4qPXMjbjuoi7uVOdLg"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMeq2nZykdrZEzW4qPXMjbjuoi7uVOdLg&callback=iniciarMapa"></script>
 <script>
+function iniciarMapa() {
+  // Verificar si hay coordenadas en el equipo cargado
+  if (window.equipoData && window.equipoData.lat && window.equipoData.lng) {
+    mostrarMapa(window.equipoData.lat, window.equipoData.lng);
+  }
+}
+
 function mostrarMapa(lat, lng) {
-  if (!lat || !lng) return;
-  
   const map = new google.maps.Map(document.getElementById('mapaEquipo'), {
     center: { lat: parseFloat(lat), lng: parseFloat(lng) },
     zoom: 15,
@@ -198,9 +203,12 @@ function mostrarMapa(lat, lng) {
     title: 'Ubicación del equipo'
   });
 }
-
-// Llamar cuando cargues los datos del equipo
-// mostrarMapa(equipo.lat, equipo.lng);
+    // Al cargar datos del equipo
+window.equipoData = {
+  lat: equipo.lat,
+  lng: equipo.lng
+};
+// El callback iniciarMapa se ejecutará cuando API esté lista
 </script>
 </body>
 </html>
