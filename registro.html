@@ -159,22 +159,16 @@ form.addEventListener("submit", async function(e){
 
         const result = await response.json();
 
-        if(result.success){
+       if(result.success){
+    showMessage("Equipo creado correctamente ✅ Redirigiendo...","success");
 
-            showMessage("Equipo creado correctamente ✅ Redirigiendo...","success");
+    // ✅ CORRECTO: Usar el user completo que devuelve el backend
+    localStorage.setItem("arvet_user", JSON.stringify(result.data.user));
 
-            // guardar sesión correctamente
-            localStorage.setItem("arvet_user", JSON.stringify({
-                id: result.data.equipoId,
-                equipoId: result.data.equipoId,
-                rol: "Admin"
-            }));
-
-            setTimeout(()=>{
-                window.location.href="admin.html";
-            },1500);
-
-        }else{
+    setTimeout(()=>{
+        window.location.href="admin.html";
+    },1500);
+}else{
             showMessage(result.error || "Error al crear equipo","error");
             setLoading(false);
         }
