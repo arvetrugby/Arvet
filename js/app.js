@@ -10,10 +10,11 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzwd3ZZJr6InfiUafIw9Dr3
 
 async function fetchAPI(action, params = {}) {
     const queryParams = new URLSearchParams({ action, ...params });
-    const response = await fetch(`${API_URL}?${queryParams}`);
+    const url = `${API_URL}?${queryParams}`;
+    console.log('fetchAPI URL:', url); // AGREGAR ESTO
+    const response = await fetch(url);
     return await response.json();
 }
-
 async function postAPI(action, data) {
     const response = await fetch(`${API_URL}?action=${action}`, {
         method: 'POST',
