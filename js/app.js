@@ -1,20 +1,23 @@
-// ============================================
-// ARVET - APP PRINCIPAL
-// ============================================
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbw_qbsljjysOdYX46qv8I4ohiRKf-8OzPnK8QdFsjIANKwJ34GYCdHT29zNysuRsslA/exec'; 
 
 // ============================================
-// UTILIDADES
+// ARVET - APP PRINCIPAL (CONSOLIDADO)
+// ============================================
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbw_qbsljjysOdYX46qv8I4ohiRKf-8OzPnK8QdFsjIANKwJ34GYCdHT29zNysuRsslA/exec';
+
+// ============================================
+// UTILIDADES GLOBALES
 // ============================================
 
 async function fetchAPI(action, params = {}) {
     const queryParams = new URLSearchParams({ action, ...params });
     const url = `${API_URL}?${queryParams}`;
-    console.log('fetchAPI URL:', url); // AGREGAR ESTO
+    console.log('fetchAPI URL:', url);
     const response = await fetch(url);
     return await response.json();
 }
+
 async function postAPI(action, data) {
     const response = await fetch(`${API_URL}?action=${action}`, {
         method: 'POST',
@@ -40,22 +43,55 @@ function formatCurrency(amount) {
 }
 
 // ============================================
-// INICIALIZACIÓN
+// DETECTOR DE PÁGINA ACTUAL
+// ============================================
+
+function getCurrentPage() {
+    const path = window.location.pathname;
+    const page = path.split('/').pop() || 'index.html';
+    return page.replace('.html', '');
+}
+
+// ============================================
+// INICIALIZACIÓN PRINCIPAL
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Cargar datos según la página
+    const page = getCurrentPage();
+    console.log('Página actual:', page);
+
+    // Router de páginas
+    switch(page) {
+        case 'index':
+            initIndex();
+            break;
+        case 'login':
+            initLogin();
+            break;
+        case 'registro':
+            initRegistro();
+            break;
+        case 'equipo':
+            initEquipo();
+            break;
+        case 'admin':
+            initAdmin();
+            break;
+    }
+});
+
+// ============================================
+// PÁGINA: INDEX (Home)
+// ============================================
+
+function initIndex() {
     if (document.getElementById('paisesGrid')) {
         cargarPaises();
     }
     if (document.getElementById('partidosList')) {
         cargarProximosPartidos();
     }
-});
-
-// ============================================
-// PAÍSES
-// ============================================
+}
 
 async function cargarPaises() {
     const container = document.getElementById('paisesGrid');
@@ -74,10 +110,6 @@ async function cargarPaises() {
         container.innerHTML = '<p>Error al cargar países</p>';
     }
 }
-
-// ============================================
-// BÚSQUEDA
-// ============================================
 
 async function buscarEquipos() {
     const termino = document.getElementById('searchInput').value;
@@ -103,10 +135,6 @@ async function buscarEquipos() {
         container.innerHTML = '<p>Error en la búsqueda</p>';
     }
 }
-
-// ============================================
-// PRÓXIMOS PARTIDOS
-// ============================================
 
 async function cargarProximosPartidos() {
     const container = document.getElementById('partidosList');
@@ -139,36 +167,517 @@ async function cargarProximosPartidos() {
 }
 
 // ============================================
-// AUTENTICACIÓN
+// PÁGINA: REGISTRO
 // ============================================
 
-async function login(event) {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+function initRegistro() {
+    const form = document.getElementById("formRegistro");
+    const btn = document.getElementById("btnCrear");
+    const loading = document.getElementById("loading");
+    const msg = document.getElementById("msg");
+
+    if (!form) return;
+
+    function showMessage(text, type) {
+        msg.textContent = text;
+        msg.className = "message " + type;
+        msg.style.display = "block";
+    }
+
+    function setLoading(state) {
+        btn.disabled = state;
+        loading.style.display = state ? "block" : "none";
+    }
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        setLoading(true);
+        msg.style.display = "none";
+
+        const data = {
+            nombre: document.getElementById('nombre').value.trim(),
+            paisId: document.getElementById('paisId').value.trim(),
+            provinciaId: document.getElementById('provinciaId').value.trim(),
+            ciudadId: document.getElementById('ciudadId').value.trim(),
+            direccion: document.getElementById('direccion').value.trim(),
+            adminNombre: document.getElementById('adminNombre').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const response = await fetch(
+                `${API_URL}?action=crearEquipo` +
+                `&nombre=${encodeURIComponent(data.nombre)}` +
+                `&paisId=${encodeURIComponent(data.paisId)}` +
+                `&provinciaId=${encodeURIComponent(data.provinciaId)}` +
+                `&ciudadId=${encodeURIComponent(data.ciudadId)}` +
+                `&direccion=${encodeURIComponent(data.direccion)}` +
+                `&adminNombre=${encodeURIComponent(data.adminNombre)}` +
+                `&email=${encodeURIComponent(data.email)}` +
+                `&password=${encodeURIComponent(data.password)}`
+            );
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage("Equipo creado correctamente ✅ Redirigiendo...", "success");
+                localStorage.setItem("arvet_user", JSON.stringify(result.data.user));
+
+                setTimeout(() => {
+                    window.location.href = "admin.html";
+                }, 1500);
+            } else {
+                showMessage(result.error || "Error al crear equipo", "error");
+                setLoading(false);
+            }
+
+        } catch (err) {
+            showMessage("Error de conexión con el servidor", "error");
+            setLoading(false);
+        }
+    });
+}
+
+// ============================================
+// PÁGINA: LOGIN
+// ============================================
+
+function initLogin() {
+    // Verificar sesión existente primero
+    checkExistingSession();
+
+    const form = document.getElementById('loginForm');
+    const btnLogin = document.getElementById('btnLogin');
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('errorMsg');
+
+    if (!form) return;
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    function setLoading(loading) {
+        if (loading) {
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Verificando...';
+            loadingDiv.style.display = 'block';
+        } else {
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Ingresar';
+            loadingDiv.style.display = 'none';
+        }
+    }
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!email || !password) {
+            showError('Por favor completa todos los campos');
+            return;
+        }
+        
+        setLoading(true);
+
+        try {
+            const response = await fetch(
+                `${API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            );
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+
+            if (data.success) {
+                localStorage.setItem('arvet_user', JSON.stringify(data.user));
+
+                const user = data.user;
+                const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
+
+                if (rolesAdmin.includes(user.rol)) {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+
+            } else {
+                showError(data.error || 'Credenciales incorrectas');
+                setLoading(false);
+            }
+
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            showError('Error de conexión con el servidor');
+            setLoading(false);
+        }
+    });
+}
+
+function checkExistingSession() {
+    const user = localStorage.getItem('arvet_user');
+    if (user) {
+        try {
+            const userData = JSON.parse(user);
+            const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
+            if (rolesAdmin.includes(userData.rol)) {
+                window.location.href = 'admin.html';
+            }
+        } catch(e) {
+            localStorage.removeItem('arvet_user');
+        }
+    }
+}
+
+// ============================================
+// PÁGINA: EQUIPO (PÚBLICO)
+// ============================================
+
+function initEquipo() {
+    console.log('=== INICIO EQUIPO ===');
+    console.log('URL completa:', window.location.href);
+    console.log('Search:', window.location.search);
+    console.log('Pathname:', window.location.pathname);
+    
+    let slug = null;
+    
+    // OPCIÓN 1: URL con ?slug=vvv (formato query string)
+    const urlParams = new URLSearchParams(window.location.search);
+    slug = urlParams.get('slug');
+    console.log('Slug de query params:', slug);
+    
+    // OPCIÓN 2: URL tipo /equipo332xx (formato pathname)
+    if (!slug) {
+        const path = window.location.pathname;
+        const segments = path.split('/').filter(s => s);
+        const lastSegment = segments[segments.length - 1];
+        
+        console.log('Último segmento:', lastSegment);
+        slug = lastSegment.replace('.html', '');
+        console.log('Slug limpio:', slug);
+    }
+    
+    console.log('Slug final:', slug);
+    
+    if (!slug || slug === '' || slug === 'equipo') {
+        console.error('❌ No se encontró slug válido');
+        document.getElementById('equipoHeader').innerHTML = 
+            '<div class="error">Error: No se pudo identificar el equipo</div>';
+        return;
+    }
+    
+    console.log('✅ Slug válido:', slug);
+    cargarEquipo(slug);
+}
+
+async function cargarEquipo(slug) {
+    console.log('=== cargarEquipo ===');
+    console.log('Llamando con slug:', slug);
     
     try {
-        const response = await postAPI('login', { email, password });
-        if (response.success) {
-            localStorage.setItem('arvet_user', JSON.stringify(response.user));
-            window.location.href = 'admin.html';
-        } else {
-            alert('Credenciales incorrectas');
+        console.log('Enviando a API: action=getEquipoBySlug, slug=' + slug);
+        const response = await fetchAPI('getEquipoBySlug', { slug: slug });
+        console.log('Respuesta:', response);
+
+        if (!response.success) {
+            console.error('Error:', response.error);
+            document.getElementById('equipoHeader').innerHTML = 
+                `<div class="error">Error: ${response.error}</div>`;
+            return;
         }
+
+        const equipo = response.data;
+        console.log('Equipo:', equipo.nombre);
+        console.log('Coordenadas:', equipo.lat, equipo.lng);
+
+        // Actualizar UI
+        document.getElementById('equipoHeader').innerHTML = `
+            <h1>${equipo.nombre}</h1>
+            <p>${equipo.ciudad}, ${equipo.pais}</p>
+            <p>${equipo.descripcion || ''}</p>
+        `;
+
+        document.getElementById('quienesSomosContent').innerHTML = `
+            <p>${equipo.historia || 'Sin información disponible'}</p>
+            <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
+            <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
+        `;
+
+        // Cargar datos adicionales
+        if (equipo.id) {
+            cargarJugadoresEquipo(equipo.id);
+            cargarPartidosEquipoPublico(equipo.id);
+        }
+
+        // Configurar mapa
+        if (equipo.lat && equipo.lng) {
+            console.log('✅ Tiene coordenadas:', equipo.lat, equipo.lng);
+            window.equipoCoords = {
+                lat: equipo.lat,
+                lng: equipo.lng
+            };
+        } else {
+            console.log('⚠️ Sin coordenadas, usando default');
+            window.equipoCoords = {
+                lat: -34.6037,
+                lng: -58.3816
+            };
+        }
+        
+        if (typeof inicializarMapa === 'function') {
+            inicializarMapa();
+        }
+
     } catch (error) {
-        alert('Error al iniciar sesión');
+        console.error('❌ Error en cargarEquipo:', error);
+        document.getElementById('equipoHeader').innerHTML = 
+            '<div class="error">Error de conexión</div>';
     }
 }
 
-function checkAuth() {
-    const user = localStorage.getItem('arvet_user');
-    if (!user) {
+async function cargarJugadoresEquipo(equipoId) {
+    try {
+        const response = await fetchAPI('getJugadores', { equipoId });
+        if (!response.success) return;
+        
+        const jugadores = response.data;
+        const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
+        const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
+        
+        document.getElementById('comisionGrid').innerHTML = comision.map(j => `
+            <div class="card">
+                <h3>${j.nombre} ${j.apellido}</h3>
+                <p class="badge badge-success">${j.rol}</p>
+            </div>
+        `).join('') || '<p>Sin comisión registrada</p>';
+        
+        document.getElementById('plantelGrid').innerHTML = plantel.map(j => `
+            <div class="card">
+                <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
+                <p>${j.posicion || 'Jugador'}</p>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error cargando jugadores:', error);
+    }
+}
+
+async function cargarPartidosEquipoPublico(equipoId) {
+    try {
+        const response = await fetchAPI('getPartidos', { equipoId });
+        if (!response.success) return;
+        
+        document.getElementById('partidosEquipoList').innerHTML = response.data.map(partido => {
+            const fecha = formatDate(partido.fecha);
+            return `
+                <div class="partido-card">
+                    <div class="partido-info">
+                        <h3>vs ${partido.rival}</h3>
+                        <div class="partido-meta">
+                            <span>📍 ${partido.lugar}</span>
+                            <span>🕐 ${partido.hora}</span>
+                        </div>
+                    </div>
+                    <div class="partido-fecha">
+                        <div class="dia">${fecha.dia}</div>
+                        <div class="mes">${fecha.mes}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error cargando partidos:', error);
+    }
+}
+
+// ============================================
+// PÁGINA: ADMIN
+// ============================================
+
+function initAdmin() {
+    let currentUser = null;
+
+    try {
+        const storedUser = localStorage.getItem('arvet_user');
+        if (storedUser && storedUser !== "undefined") {
+            currentUser = JSON.parse(storedUser);
+        }
+    } catch (e) {
+        console.error("Error parseando usuario:", e);
+        currentUser = null;
+    }
+
+    // 🔒 Protección de sesión
+    if (!currentUser) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    // Datos de usuario
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const currentDateEl = document.getElementById('currentDate');
+
+    if (userNameEl) userNameEl.textContent = currentUser.nombre || '';
+    if (userRoleEl) userRoleEl.textContent = currentUser.rol || '';
+    if (currentDateEl) {
+        currentDateEl.textContent = new Date().toLocaleDateString('es-ES');
+    }
+
+    // Botón sitio público
+    const btn = document.getElementById('btnVerSitio');
+    if (btn && currentUser.slug) {
+        btn.addEventListener('click', function() {
+            window.location.href = `/${currentUser.slug}`;
+        });
+    } else if (btn && currentUser.equipoId) {
+        btn.addEventListener('click', async function() {
+            try {
+                const response = await fetchAPI('getEquipoBySlug', { slug: currentUser.equipoId });
+                if (response.success && response.data.slug) {
+                    window.location.href = `/${response.data.slug}`;
+                } else {
+                    window.location.href = `/${currentUser.equipoId}`;
+                }
+            } catch (e) {
+                window.location.href = `/${currentUser.equipoId}`;
+            }
+        });
+    }
+
+    // Navegación de secciones
+    window.showSection = function(sectionId) {
+        document.querySelectorAll('.section-content')
+            .forEach(el => el.classList.add('hidden'));
+        const section = document.getElementById(sectionId);
+        if (section) section.classList.remove('hidden');
+    }
+
+    // Inicializar funciones
+    cargarDashboard();
+    cargarJugadoresAdmin();
+    
+    // Llamar funciones de otros archivos si existen
+    if (typeof cargarPartidosAdmin === 'function') cargarPartidosAdmin();
+    if (typeof cargarCuotasAdmin === 'function') cargarCuotasAdmin();
+}
+
+async function cargarDashboard() {
+    const statJugadores = document.getElementById('statJugadores');
+    const statPartidos = document.getElementById('statPartidos');
+    const statRecaudacion = document.getElementById('statRecaudacion');
+    const statDeuda = document.getElementById('statDeuda');
+
+    if (statJugadores) statJugadores.textContent = '25';
+    if (statPartidos) statPartidos.textContent = '4';
+    if (statRecaudacion) statRecaudacion.textContent = '$450.000';
+    if (statDeuda) statDeuda.textContent = '$125.000';
+}
+
+async function cargarJugadoresAdmin() {
+    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+    
+    try {
+        const response = await fetchAPI('getJugadores', {
+            equipoId: currentUser.equipoId
+        });
+
+        if (response.success) {
+            const tbody = document.querySelector('#tablaJugadores tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = response.data.map(j => `
+                <tr>
+                    <td>${j.numeroCamiseta || '-'}</td>
+                    <td>${j.nombre} ${j.apellido || ''}</td>
+                    <td>${j.posicion || '-'}</td>
+                    <td>${j.email || '-'}</td>
+                    <td>
+                        <span class="badge badge-success">
+                            ${j.rol || 'Jugador'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-action btn-edit"
+                            onclick="editarJugador('${j.id}')">
+                            Editar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+window.nuevoJugador = function() {
+    alert('Función para crear nuevo jugador');
+}
+
+window.editarJugador = function(id) {
+    alert('Editar jugador: ' + id);
+}
+
+window.logout = function() {
+    if (confirm('¿Cerrar sesión?')) {
+        localStorage.removeItem('arvet_user');
+        localStorage.removeItem('arvet_login_time');
         window.location.href = 'login.html';
     }
-    return JSON.parse(user);
 }
 
-function logout() {
-    localStorage.removeItem('arvet_user');
-    window.location.href = 'index.html';
+// ============================================
+// MAPA (LEAFLET) - Para página equipo
+// ============================================
+
+let mapaCreado = false;
+let mapInstance = null;
+
+function inicializarMapa() {
+    console.log('=== inicializarMapa ===');
+    
+    if (mapaCreado && mapInstance) {
+        console.log('Actualizando mapa existente...');
+        if (window.equipoCoords) {
+            const lat = parseFloat(window.equipoCoords.lat);
+            const lng = parseFloat(window.equipoCoords.lng);
+            mapInstance.setView([lat, lng], 15);
+            
+            mapInstance.eachLayer(layer => {
+                if (layer instanceof L.Marker) mapInstance.removeLayer(layer);
+            });
+            
+            L.marker([lat, lng]).addTo(mapInstance)
+                .bindPopup("📍 Ubicación del equipo")
+                .openPopup();
+        }
+        return;
+    }
+    
+    const lat = window.equipoCoords ? parseFloat(window.equipoCoords.lat) : -34.6037;
+    const lng = window.equipoCoords ? parseFloat(window.equipoCoords.lng) : -58.3816;
+    const zoom = window.equipoCoords ? 15 : 13;
+    
+    console.log('Creando mapa en:', lat, lng);
+    
+    mapInstance = L.map('map').setView([lat, lng], zoom);
+    mapaCreado = true;
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance);
+    
+    L.marker([lat, lng]).addTo(mapInstance)
+        .bindPopup("📍 Ubicación del equipo")
+        .openPopup();
+        
+    console.log('✅ Mapa creado');
 }
