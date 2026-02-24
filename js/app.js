@@ -371,7 +371,7 @@ function checkExistingSession() {
 }
 
 // ============================================
-// PÁGINA: EQUIPO (PÚBLICO)
+// PÁGINA: EQUIPO (PÚBLICO) - CORREGIDO
 // ============================================
 
 function initEquipo() {
@@ -387,24 +387,30 @@ function initEquipo() {
     slug = urlParams.get('slug');
     console.log('Slug de query params:', slug);
     
-    // OPCIÓN 2: URL tipo /equipo332xx (formato pathname)
+    // OPCIÓN 2: URL tipo /equipo332xx (formato pathname /equipoSLUG)
     if (!slug) {
         const path = window.location.pathname;
         const segments = path.split('/').filter(s => s);
         const lastSegment = segments[segments.length - 1];
         
         console.log('Último segmento:', lastSegment);
-        slug = lastSegment.replace('.html', '');
-        console.log('Slug limpio:', slug);
+        
+        // Si empieza con "equipo", extraer el slug (equipoABC -> ABC)
+        if (lastSegment && lastSegment.toLowerCase().startsWith('equipo')) {
+            slug = lastSegment.substring(6); // Quita "equipo" del inicio
+            console.log('Slug extraído de pathname:', slug);
+        } else {
+            slug = lastSegment.replace('.html', '');
+        }
     }
     
     console.log('Slug final:', slug);
     
-    if (!slug || slug === '' || slug === 'equipo') {
+    if (!slug || slug === '') {
         console.error('❌ No se encontró slug válido');
         const header = document.getElementById('equipoHeader');
         if (header) {
-            header.innerHTML = '<div class="error">Error: No se pudo identificar el equipo</div>';
+            header.innerHTML = '<div class="error">Error: No se pudo identificar el equipo. URL inválida.</div>';
         }
         return;
     }
@@ -414,6 +420,10 @@ function initEquipo() {
     // Verificar que fetchAPI esté disponible
     if (typeof window.fetchAPI !== 'function') {
         console.error('❌ fetchAPI no está disponible');
+        const header = document.getElementById('equipoHeader');
+        if (header) {
+            header.innerHTML = '<div class="error">Error: Problema de carga de la aplicación</div>';
+        }
         return;
     }
     
