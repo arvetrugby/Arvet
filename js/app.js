@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Inicializando ADMIN');
             initAdmin();
             break;
+      case 'registro-jugador':
+            console.log('Inicializando REGISTRO JUGADOR');
+            initRegistroJugador();
+            break;
         default:
             console.log('Página no reconocida:', page);
     }
@@ -369,6 +373,142 @@ function checkExistingSession() {
         }
     }
 }
+
+
+// ============================================
+// PÁGINA: REGISTRO JUGADOR
+// ============================================
+
+function initRegistroJugador() {
+    console.log('=== INICIO REGISTRO JUGADOR ===');
+    
+    // Obtener equipoId de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const equipoId = urlParams.get('equipo');
+    
+    console.log('Equipo ID:', equipoId);
+    
+    if (!equipoId) {
+        mostrarMensaje('Error: No se especificó el equipo', 'error');
+        document.getElementById('formRegistroJugador').style.display = 'none';
+        return;
+    }
+    
+    // Guardar equipoId en el formulario
+    document.getElementById('equipoId').value = equipoId;
+    
+    // Cargar nombre del equipo para mostrar
+    cargarNombreEquipo(equipoId);
+    
+    // Manejar envío del formulario
+    const form = document.getElementById('formRegistroJugador');
+    const btn = document.getElementById('btnRegistro');
+    const btnText = document.getElementById('btnText');
+    const loading = document.getElementById('loading');
+    const msg = document.getElementById('msg');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validar contraseñas
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('passwordConfirm').value;
+        
+        if (password !== passwordConfirm) {
+            mostrarMensaje('Las contraseñas no coinciden', 'error');
+            return;
+        }
+        
+        // Mostrar loading
+        btn.disabled = true;
+        btnText.style.display = 'none';
+        loading.style.display = 'block';
+        msg.style.display = 'none';
+        
+        const data = {
+            nombre: document.getElementById('nombre').value.trim(),
+            apellido: document.getElementById('apellido').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            telefono: document.getElementById('telefono').value.trim(),
+            fechaNacimiento: document.getElementById('fechaNacimiento').value,
+            dni: document.getElementById('dni').value.trim(),
+            cuitCuil: document.getElementById('cuitCuil').value.trim(),
+            password: password,
+            equipoId: equipoId
+        };
+        
+        console.log('Enviando datos:', data);
+        
+        try {
+            const response = await fetch(
+                `${API_URL}?action=crearJugador` +
+                `&nombre=${encodeURIComponent(data.nombre)}` +
+                `&apellido=${encodeURIComponent(data.apellido)}` +
+                `&email=${encodeURIComponent(data.email)}` +
+                `&telefono=${encodeURIComponent(data.telefono)}` +
+                `&fechaNacimiento=${encodeURIComponent(data.fechaNacimiento)}` +
+                `&dni=${encodeURIComponent(data.dni)}` +
+                `&cuitCuil=${encodeURIComponent(data.cuitCuil)}` +
+                `&password=${encodeURIComponent(data.password)}` +
+                `&equipoId=${encodeURIComponent(data.equipoId)}`
+            );
+            
+            const result = await response.json();
+            console.log('Respuesta:', result);
+            
+            if (result.success) {
+                mostrarMensaje('✅ ' + result.message + ' Redirigiendo...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            } else {
+                mostrarMensaje('❌ ' + (result.error || 'Error al registrar'), 'error');
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                loading.style.display = 'none';
+            }
+            
+        } catch (err) {
+            console.error('Error:', err);
+            mostrarMensaje('❌ Error de conexión con el servidor', 'error');
+            btn.disabled = false;
+            btnText.style.display = 'inline';
+            loading.style.display = 'none';
+        }
+    });
+}
+
+async function cargarNombreEquipo(equipoId) {
+    try {
+        // Intentar obtener el nombre del equipo desde la API
+        const response = await fetchAPI('getEquipoById', { id: equipoId });
+        if (response.success) {
+            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + response.data.nombre;
+        } else {
+            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
+        }
+    } catch (e) {
+        document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
+    }
+}
+
+function mostrarMensaje(texto, tipo) {
+    const msg = document.getElementById('msg');
+    msg.textContent = texto;
+    msg.className = 'message ' + tipo;
+    msg.style.display = 'block';
+    
+    if (tipo === 'success') {
+        msg.style.background = '#dcfce7';
+        msg.style.color = '#166534';
+        msg.style.border = '1px solid #86efac';
+    } else {
+        msg.style.background = '#fee2e2';
+        msg.style.color = '#991b1b';
+        msg.style.border = '1px solid #fca5a5';
+    }
+}
+
 
 // ============================================
 // PÁGINA: EQUIPO (PÚBLICO)
