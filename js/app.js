@@ -1,5 +1,3 @@
-
-
 // ============================================
 // ARVET - APP PRINCIPAL (CONSOLIDADO)
 // ============================================
@@ -10,37 +8,48 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbw_qbsljjysOdYX46qv8I4o
 // UTILIDADES GLOBALES
 // ============================================
 
-async function fetchAPI(action, params = {}) {
+// Exponer funciones globalmente para asegurar disponibilidad
+window.API_URL = API_URL;
+
+window.fetchAPI = async function(action, params = {}) {
     const queryParams = new URLSearchParams({ action, ...params });
     const url = `${API_URL}?${queryParams}`;
     console.log('fetchAPI URL:', url);
-    const response = await fetch(url);
-    return await response.json();
-}
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log('fetchAPI respuesta:', data);
+        return data;
+    } catch (error) {
+        console.error('Error en fetchAPI:', error);
+        throw error;
+    }
+};
 
-async function postAPI(action, data) {
+window.postAPI = async function(action, data) {
     const response = await fetch(`${API_URL}?action=${action}`, {
         method: 'POST',
         body: JSON.stringify(data)
     });
     return await response.json();
-}
+};
 
-function formatDate(dateString) {
+window.formatDate = function(dateString) {
     const date = new Date(dateString);
     return {
         dia: date.getDate(),
         mes: date.toLocaleDateString('es-ES', { month: 'short' }),
         completa: date.toLocaleDateString('es-ES')
     };
-}
+};
 
-function formatCurrency(amount) {
+window.formatCurrency = function(amount) {
     return new Intl.NumberFormat('es-AR', {
         style: 'currency',
         currency: 'ARS'
     }).format(amount);
-}
+};
 
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL
@@ -56,27 +65,36 @@ function getCurrentPage() {
 // INICIALIZACIÓN PRINCIPAL
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== APP.JS CARGADO ===');
     const page = getCurrentPage();
-    console.log('Página actual:', page);
+    console.log('Página detectada:', page);
 
     // Router de páginas
     switch(page) {
         case 'index':
+        case '':
+            console.log('Inicializando INDEX');
             initIndex();
             break;
         case 'login':
+            console.log('Inicializando LOGIN');
             initLogin();
             break;
         case 'registro':
+            console.log('Inicializando REGISTRO');
             initRegistro();
             break;
         case 'equipo':
+            console.log('Inicializando EQUIPO');
             initEquipo();
             break;
         case 'admin':
+            console.log('Inicializando ADMIN');
             initAdmin();
             break;
+        default:
+            console.log('Página no reconocida:', page);
     }
 });
 
@@ -85,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 function initIndex() {
+    console.log('Ejecutando initIndex');
     if (document.getElementById('paisesGrid')) {
         cargarPaises();
     }
@@ -95,8 +114,10 @@ function initIndex() {
 
 async function cargarPaises() {
     const container = document.getElementById('paisesGrid');
+    if (!container) return;
+    
     try {
-        const response = await fetchAPI('getPaises');
+        const response = await window.fetchAPI('getPaises');
         if (response.success) {
             container.innerHTML = response.data.map(pais => `
                 <div class="pais-card" onclick="filtrarPorPais('${pais.id}')">
@@ -120,7 +141,7 @@ async function buscarEquipos() {
     container.innerHTML = '<div class="loading">Buscando...</div>';
     
     try {
-        const response = await fetchAPI('buscar', { termino });
+        const response = await window.fetchAPI('buscar', { termino });
         if (response.success && response.data.equipos.length > 0) {
             container.innerHTML = response.data.equipos.map(equipo => `
                 <div class="card" onclick="window.location.href='equipo.html?slug=${equipo.slug}'">
@@ -138,11 +159,13 @@ async function buscarEquipos() {
 
 async function cargarProximosPartidos() {
     const container = document.getElementById('partidosList');
+    if (!container) return;
+    
     try {
-        const response = await fetchAPI('getProximosPartidos');
+        const response = await window.fetchAPI('getProximosPartidos');
         if (response.success) {
             container.innerHTML = response.data.map(partido => {
-                const fecha = formatDate(partido.fecha);
+                const fecha = window.formatDate(partido.fecha);
                 return `
                     <div class="partido-card">
                         <div class="partido-info">
@@ -150,7 +173,7 @@ async function cargarProximosPartidos() {
                             <div class="partido-meta">
                                 <span>📍 ${partido.lugar}</span>
                                 <span>🕐 ${partido.hora}</span>
-                                <span>💵 ${formatCurrency(partido.precioJugador)}</span>
+                                <span>💵 ${window.formatCurrency(partido.precioJugador)}</span>
                             </div>
                         </div>
                         <div class="partido-fecha">
@@ -176,7 +199,10 @@ function initRegistro() {
     const loading = document.getElementById("loading");
     const msg = document.getElementById("msg");
 
-    if (!form) return;
+    if (!form) {
+        console.log('Formulario de registro no encontrado');
+        return;
+    }
 
     function showMessage(text, type) {
         msg.textContent = text;
@@ -244,7 +270,6 @@ function initRegistro() {
 // ============================================
 
 function initLogin() {
-    // Verificar sesión existente primero
     checkExistingSession();
 
     const form = document.getElementById('loginForm');
@@ -252,7 +277,10 @@ function initLogin() {
     const loadingDiv = document.getElementById('loading');
     const errorDiv = document.getElementById('errorMsg');
 
-    if (!form) return;
+    if (!form) {
+        console.log('Formulario de login no encontrado');
+        return;
+    }
 
     function showError(message) {
         errorDiv.textContent = message;
@@ -367,12 +395,21 @@ function initEquipo() {
     
     if (!slug || slug === '' || slug === 'equipo') {
         console.error('❌ No se encontró slug válido');
-        document.getElementById('equipoHeader').innerHTML = 
-            '<div class="error">Error: No se pudo identificar el equipo</div>';
+        const header = document.getElementById('equipoHeader');
+        if (header) {
+            header.innerHTML = '<div class="error">Error: No se pudo identificar el equipo</div>';
+        }
         return;
     }
     
     console.log('✅ Slug válido:', slug);
+    
+    // Verificar que fetchAPI esté disponible
+    if (typeof window.fetchAPI !== 'function') {
+        console.error('❌ fetchAPI no está disponible');
+        return;
+    }
+    
     cargarEquipo(slug);
 }
 
@@ -380,47 +417,65 @@ async function cargarEquipo(slug) {
     console.log('=== cargarEquipo ===');
     console.log('Llamando con slug:', slug);
     
+    const header = document.getElementById('equipoHeader');
+    const quienesSomos = document.getElementById('quienesSomosContent');
+    const comisionGrid = document.getElementById('comisionGrid');
+    const plantelGrid = document.getElementById('plantelGrid');
+    const partidosList = document.getElementById('partidosEquipoList');
+    
     try {
         console.log('Enviando a API: action=getEquipoBySlug, slug=' + slug);
-        const response = await fetchAPI('getEquipoBySlug', { slug: slug });
-        console.log('Respuesta:', response);
+        const response = await window.fetchAPI('getEquipoBySlug', { slug: slug });
+        console.log('Respuesta completa:', response);
 
         if (!response.success) {
             console.error('Error:', response.error);
-            document.getElementById('equipoHeader').innerHTML = 
-                `<div class="error">Error: ${response.error}</div>`;
+            if (header) {
+                header.innerHTML = `<div class="error">Error: ${response.error}</div>`;
+            }
             return;
         }
 
         const equipo = response.data;
-        console.log('Equipo:', equipo.nombre);
+        console.log('Equipo cargado:', equipo);
+        console.log('Nombre:', equipo.nombre);
         console.log('Coordenadas:', equipo.lat, equipo.lng);
 
-        // Actualizar UI
-        document.getElementById('equipoHeader').innerHTML = `
-            <h1>${equipo.nombre}</h1>
-            <p>${equipo.ciudad}, ${equipo.pais}</p>
-            <p>${equipo.descripcion || ''}</p>
-        `;
+        // Actualizar UI - Header
+        if (header) {
+            header.innerHTML = `
+                <h1>${equipo.nombre}</h1>
+                <p>${equipo.ciudad}, ${equipo.pais}</p>
+                <p>${equipo.descripcion || ''}</p>
+            `;
+        }
 
-        document.getElementById('quienesSomosContent').innerHTML = `
-            <p>${equipo.historia || 'Sin información disponible'}</p>
-            <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
-            <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
-        `;
+        // Actualizar Quienes Somos
+        if (quienesSomos) {
+            quienesSomos.innerHTML = `
+                <p>${equipo.historia || 'Sin información disponible'}</p>
+                <p><strong>Fundación:</strong> ${equipo.fechaFundacion || 'N/A'}</p>
+                <p><strong>Colores:</strong> ${equipo.colores || 'N/A'}</p>
+            `;
+        }
 
-        // Cargar datos adicionales
+        // Cargar datos adicionales si hay ID
         if (equipo.id) {
-            cargarJugadoresEquipo(equipo.id);
-            cargarPartidosEquipoPublico(equipo.id);
+            console.log('Cargando jugadores y partidos para equipo ID:', equipo.id);
+            if (comisionGrid && plantelGrid) {
+                await cargarJugadoresEquipo(equipo.id);
+            }
+            if (partidosList) {
+                await cargarPartidosEquipoPublico(equipo.id);
+            }
         }
 
         // Configurar mapa
         if (equipo.lat && equipo.lng) {
             console.log('✅ Tiene coordenadas:', equipo.lat, equipo.lng);
             window.equipoCoords = {
-                lat: equipo.lat,
-                lng: equipo.lng
+                lat: parseFloat(equipo.lat),
+                lng: parseFloat(equipo.lng)
             };
         } else {
             console.log('⚠️ Sin coordenadas, usando default');
@@ -430,51 +485,84 @@ async function cargarEquipo(slug) {
             };
         }
         
-        if (typeof inicializarMapa === 'function') {
+        // Inicializar mapa solo si existe el contenedor y Leaflet está cargado
+        const mapContainer = document.getElementById('map');
+        if (mapContainer && typeof L !== 'undefined') {
+            console.log('Inicializando mapa...');
             inicializarMapa();
+        } else {
+            console.log('Mapa no inicializado - contenedor:', !!mapContainer, 'Leaflet:', typeof L !== 'undefined');
         }
 
     } catch (error) {
         console.error('❌ Error en cargarEquipo:', error);
-        document.getElementById('equipoHeader').innerHTML = 
-            '<div class="error">Error de conexión</div>';
+        if (header) {
+            header.innerHTML = '<div class="error">Error de conexión</div>';
+        }
     }
 }
 
 async function cargarJugadoresEquipo(equipoId) {
+    console.log('Cargando jugadores para equipo:', equipoId);
+    
     try {
-        const response = await fetchAPI('getJugadores', { equipoId });
-        if (!response.success) return;
+        const response = await window.fetchAPI('getJugadores', { equipoId });
+        if (!response.success) {
+            console.log('No se pudieron cargar jugadores:', response.error);
+            return;
+        }
         
         const jugadores = response.data;
+        console.log('Jugadores cargados:', jugadores.length);
+        
         const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
         const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
         
-        document.getElementById('comisionGrid').innerHTML = comision.map(j => `
-            <div class="card">
-                <h3>${j.nombre} ${j.apellido}</h3>
-                <p class="badge badge-success">${j.rol}</p>
-            </div>
-        `).join('') || '<p>Sin comisión registrada</p>';
+        const comisionGrid = document.getElementById('comisionGrid');
+        const plantelGrid = document.getElementById('plantelGrid');
         
-        document.getElementById('plantelGrid').innerHTML = plantel.map(j => `
-            <div class="card">
-                <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
-                <p>${j.posicion || 'Jugador'}</p>
-            </div>
-        `).join('');
+        if (comisionGrid) {
+            comisionGrid.innerHTML = comision.map(j => `
+                <div class="card">
+                    <h3>${j.nombre} ${j.apellido}</h3>
+                    <p class="badge badge-success">${j.rol}</p>
+                </div>
+            `).join('') || '<p>Sin comisión registrada</p>';
+        }
+        
+        if (plantelGrid) {
+            plantelGrid.innerHTML = plantel.map(j => `
+                <div class="card">
+                    <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
+                    <p>${j.posicion || 'Jugador'}</p>
+                </div>
+            `).join('');
+        }
     } catch (error) {
         console.error('Error cargando jugadores:', error);
     }
 }
 
 async function cargarPartidosEquipoPublico(equipoId) {
+    console.log('Cargando partidos para equipo:', equipoId);
+    
     try {
-        const response = await fetchAPI('getPartidos', { equipoId });
-        if (!response.success) return;
+        const response = await window.fetchAPI('getPartidos', { equipoId });
+        if (!response.success) {
+            console.log('No se pudieron cargar partidos:', response.error);
+            return;
+        }
         
-        document.getElementById('partidosEquipoList').innerHTML = response.data.map(partido => {
-            const fecha = formatDate(partido.fecha);
+        const partidosList = document.getElementById('partidosEquipoList');
+        if (!partidosList) return;
+        
+        if (response.data.length === 0) {
+            partidosList.innerHTML = '<p>No hay partidos programados</p>';
+            return;
+        }
+        
+        partidosList.innerHTML = response.data.map(partido => {
+            const fecha = window.formatDate(partido.fecha);
             return `
                 <div class="partido-card">
                     <div class="partido-info">
@@ -501,12 +589,15 @@ async function cargarPartidosEquipoPublico(equipoId) {
 // ============================================
 
 function initAdmin() {
+    console.log('Iniciando Admin');
+    
     let currentUser = null;
 
     try {
         const storedUser = localStorage.getItem('arvet_user');
         if (storedUser && storedUser !== "undefined") {
             currentUser = JSON.parse(storedUser);
+            console.log('Usuario cargado:', currentUser);
         }
     } catch (e) {
         console.error("Error parseando usuario:", e);
@@ -515,6 +606,7 @@ function initAdmin() {
 
     // 🔒 Protección de sesión
     if (!currentUser) {
+        console.log('No hay usuario, redirigiendo a login');
         window.location.href = "login.html";
         return;
     }
@@ -532,23 +624,25 @@ function initAdmin() {
 
     // Botón sitio público
     const btn = document.getElementById('btnVerSitio');
-    if (btn && currentUser.slug) {
-        btn.addEventListener('click', function() {
-            window.location.href = `/${currentUser.slug}`;
-        });
-    } else if (btn && currentUser.equipoId) {
-        btn.addEventListener('click', async function() {
-            try {
-                const response = await fetchAPI('getEquipoBySlug', { slug: currentUser.equipoId });
-                if (response.success && response.data.slug) {
-                    window.location.href = `/${response.data.slug}`;
-                } else {
+    if (btn) {
+        if (currentUser.slug) {
+            btn.addEventListener('click', function() {
+                window.location.href = `/${currentUser.slug}`;
+            });
+        } else if (currentUser.equipoId) {
+            btn.addEventListener('click', async function() {
+                try {
+                    const response = await window.fetchAPI('getEquipoBySlug', { slug: currentUser.equipoId });
+                    if (response.success && response.data.slug) {
+                        window.location.href = `/${response.data.slug}`;
+                    } else {
+                        window.location.href = `/${currentUser.equipoId}`;
+                    }
+                } catch (e) {
                     window.location.href = `/${currentUser.equipoId}`;
                 }
-            } catch (e) {
-                window.location.href = `/${currentUser.equipoId}`;
-            }
-        });
+            });
+        }
     }
 
     // Navegación de secciones
@@ -583,8 +677,13 @@ async function cargarDashboard() {
 async function cargarJugadoresAdmin() {
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
     
+    if (!currentUser.equipoId) {
+        console.log('No hay equipoId en el usuario');
+        return;
+    }
+    
     try {
-        const response = await fetchAPI('getJugadores', {
+        const response = await window.fetchAPI('getJugadores', {
             equipoId: currentUser.equipoId
         });
 
@@ -614,7 +713,7 @@ async function cargarJugadoresAdmin() {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error('Error cargando jugadores admin:', error);
     }
 }
 
@@ -644,6 +743,18 @@ let mapInstance = null;
 function inicializarMapa() {
     console.log('=== inicializarMapa ===');
     
+    // Verificar que Leaflet esté cargado
+    if (typeof L === 'undefined') {
+        console.error('❌ Leaflet no está cargado');
+        return;
+    }
+    
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        console.log('❌ No existe contenedor #map');
+        return;
+    }
+    
     if (mapaCreado && mapInstance) {
         console.log('Actualizando mapa existente...');
         if (window.equipoCoords) {
@@ -668,16 +779,20 @@ function inicializarMapa() {
     
     console.log('Creando mapa en:', lat, lng);
     
-    mapInstance = L.map('map').setView([lat, lng], zoom);
-    mapaCreado = true;
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    L.marker([lat, lng]).addTo(mapInstance)
-        .bindPopup("📍 Ubicación del equipo")
-        .openPopup();
+    try {
+        mapInstance = L.map('map').setView([lat, lng], zoom);
+        mapaCreado = true;
         
-    console.log('✅ Mapa creado');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapInstance);
+        
+        L.marker([lat, lng]).addTo(mapInstance)
+            .bindPopup("📍 Ubicación del equipo")
+            .openPopup();
+            
+        console.log('✅ Mapa creado correctamente');
+    } catch (error) {
+        console.error('❌ Error creando mapa:', error);
+    }
 }
