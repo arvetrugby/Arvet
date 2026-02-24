@@ -58,7 +58,14 @@ window.formatCurrency = function(amount) {
 function getCurrentPage() {
     const path = window.location.pathname;
     const page = path.split('/').pop() || 'index.html';
-    return page.replace('.html', '');
+    const cleanPage = page.replace('.html', '');
+    
+    // Detectar páginas de equipo tipo /equipoXXX o /equipo-xxx
+    if (cleanPage.startsWith('equipo')) {
+        return 'equipo';
+    }
+    
+    return cleanPage;
 }
 
 // ============================================
