@@ -587,6 +587,7 @@ async function cargarEquipo(slug) {
         console.log('Equipo cargado:', equipo);
         console.log('Nombre:', equipo.nombre);
         console.log('Coordenadas:', equipo.lat, equipo.lng);
+        window.currentSlug = slug;
 
         // Actualizar UI - Header
         if (header) {
@@ -693,6 +694,9 @@ async function cargarJugadoresEquipo(equipoId) {
                 </div>
             `).join('');
         }
+        // Actualizar link del botón para unirse al equipo
+document.getElementById('btnUnirse').href = `registro-jugador.html?equipo=${window.currentSlug}`;
+        
     } catch (error) {
         console.error('Error cargando jugadores:', error);
     }
