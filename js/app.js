@@ -522,8 +522,15 @@ async function cargarJugadoresEquipo(equipoId) {
         const jugadores = response.data;
         console.log('Jugadores cargados:', jugadores.length);
         
+        // Comisión: roles administrativos (todos los que tienen rol y no son "Jugador" puro)
         const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
-        const plantel = jugadores.filter(j => !j.rol || j.rol === 'Jugador');
+        
+        // Plantel: jugadores puros + admins (todos excepto los que son solo rol sin datos de jugador)
+        const plantel = jugadores.filter(j => 
+            !j.rol ||                          // Sin rol = jugador
+            j.rol === 'Jugador' ||             // Rol Jugador explícito
+            (j.rol && j.rol !== 'Jugador')     // Cualquier admin también va al plantel
+        );
         
         const comisionGrid = document.getElementById('comisionGrid');
         const plantelGrid = document.getElementById('plantelGrid');
@@ -542,6 +549,7 @@ async function cargarJugadoresEquipo(equipoId) {
                 <div class="card">
                     <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
                     <p>${j.posicion || 'Jugador'}</p>
+                    ${j.rol && j.rol !== 'Jugador' ? `<small style="color: var(--primary); font-weight: 600;">🛡️ ${j.rol}</small>` : ''}
                 </div>
             `).join('');
         }
@@ -549,7 +557,6 @@ async function cargarJugadoresEquipo(equipoId) {
         console.error('Error cargando jugadores:', error);
     }
 }
-
 async function cargarPartidosEquipoPublico(equipoId) {
     console.log('Cargando partidos para equipo:', equipoId);
     
