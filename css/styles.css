@@ -125,12 +125,12 @@ body {
   overflow: hidden;
 }
    .hero::before {
-  content: "";
+ content: "";
   position: absolute;
   inset: 0;
   background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
-  opacity: 0.12;
-  mix-blend-mode: overlay;
+  opacity: 0.25;
+  mix-blend-mode: soft-light;
   pointer-events: none;
 }
    .hero::after {
