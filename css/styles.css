@@ -107,14 +107,11 @@ h1, h2, h3 {
     height: 100%;
 }
 
-/* Logo centrado absoluto */
-
 
 /* Logo imagen */
 .logo img {
-    height: 120px;
-  
-    margin-top: 20px;     /* lo baja un poco */
+    height: 110px;
+    margin-top: 70px;     
 }
 
 /* Links blancos */
