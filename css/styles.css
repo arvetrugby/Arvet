@@ -41,6 +41,7 @@ body {
     background: var(--light);
     color: var(--dark);
     line-height: 1.6;
+   padding-top: 70px;
 }
    .hero h1,
 .hero h2,
@@ -161,7 +162,7 @@ h1, h2, h3 {
   color: white;
   padding: 150px 0 100px;
   text-align: center;
-  margin-top: 70px;
+  
   overflow: hidden;
 }
    .hero::before {
@@ -676,11 +677,6 @@ tr:hover {
         left: 0;
         width: 100%;
         z-index: 1000;
-    }
-
-    /* Ajuste general para que no tape contenido */
-    body {
-        padding-top: 0px; /* igual a la altura de tu navbar */
     }
 
     /* Hero más chico en mobile */
