@@ -5,11 +5,18 @@
   <script>
     var path = window.location.pathname;
 
-    // Quitar "/Arvet/"
-    var slug = path.replace("/Arvet/", "");
+    // Solo actuar si estamos dentro de /Arvet/
+    if (path.startsWith("/Arvet/")) {
 
-    if (slug && slug !== "") {
-      window.location.replace("/Arvet/equipo.html?slug=" + slug);
+      // Extraer solo lo que viene después de /Arvet/
+      var slug = path.replace("/Arvet/", "");
+
+      if (slug && slug !== "" && slug !== "404.html") {
+        window.location.replace("/Arvet/equipo.html?slug=" + slug);
+      } else {
+        window.location.replace("/Arvet/");
+      }
+
     } else {
       window.location.replace("/Arvet/");
     }
