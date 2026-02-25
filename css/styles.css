@@ -101,12 +101,17 @@ h1, h2, h3 {
 }
 
 .navbar .container {
-    display: flex;
-    justify-content: center;   /* centra horizontal */
-    align-items: center;       /* centra vertical */
-    height: 100%;
     position: relative;
-    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Logo centrado absoluto */
+.logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Logo imagen */
