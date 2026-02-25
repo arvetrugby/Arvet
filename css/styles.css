@@ -90,9 +90,17 @@ body {
 /* ============================================
    HERO
    ============================================ */
-
 .hero {
-    background: var(--gradient);
+    background-image: 
+        var(--gradient),
+        url("https://i.ibb.co/BKvFdGwk/f40ee721-ee62-454a-898c-483934be96fa.png");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    background-blend-mode: multiply;
+
     color: white;
     padding: 150px 0 100px;
     text-align: center;
