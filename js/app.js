@@ -482,32 +482,35 @@ async function cargarNombreEquipo(equipoId) {
     const nombreEquipoDiv = document.getElementById('nombreEquipo');
     
     try {
-        // Intentar con getEquipoBySlug usando el ID (también es único)
-        const response = await fetchAPI('getEquipoBySlug', { slug: equipoId });
+        // Intentar obtener datos del equipo
+        const response = await fetchAPI('getEquipoById', { id: equipoId });
         
         if (response.success) {
-            // Mostrar nombre grande e ID chico abajo
+            // Mostrar nombre, slug e ID
             nombreEquipoDiv.innerHTML = `
-                <div style="font-size: 20px; font-weight: 700; color: var(--primary);">
+                <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
                     ${response.data.nombre}
                 </div>
-                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px; font-family: monospace;">
-                    ${equipoId}
+                <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;">
+                    Slug: ${response.data.slug}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; font-family: monospace;">
+                    ID: ${equipoId}
                 </div>
             `;
         } else {
-            // Si no encuentra, mostrar solo el ID
+            // Si no encuentra, mostrar solo ID
             nombreEquipoDiv.innerHTML = `
                 <div style="font-size: 11px; color: #94a3b8; font-family: monospace;">
-                    ${equipoId}
+                    ID: ${equipoId}
                 </div>
             `;
         }
     } catch (e) {
-        // Si falla, mostrar solo el ID
+        // Si falla, mostrar solo ID
         nombreEquipoDiv.innerHTML = `
             <div style="font-size: 11px; color: #94a3b8; font-family: monospace;">
-                ${equipoId}
+                ID: ${equipoId}
             </div>
         `;
     }
