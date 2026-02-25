@@ -799,29 +799,38 @@ function initAdmin() {
         currentDateEl.textContent = new Date().toLocaleDateString('es-ES');
     }
 
-    // Botón sitio público
-    const btn = document.getElementById('btnVerSitio');
-    if (btn) {
-        if (currentUser.slug) {
-            btn.addEventListener('click', function() {
-                window.location.href = `/${currentUser.slug}`;
-            });
-        } else if (currentUser.equipoId) {
-            btn.addEventListener('click', async function() {
-                try {
-                    const response = await window.fetchAPI('getEquipoBySlug', { slug: currentUser.equipoId });
-                    if (response.success && response.data.slug) {
-                        window.location.href = `/${response.data.slug}`;
-                    } else {
-                        window.location.href = `/${currentUser.equipoId}`;
-                    }
-                } catch (e) {
-                    window.location.href = `/${currentUser.equipoId}`;
-                }
-            });
-        }
-    }
+   // Botón sitio público
+const btn = document.getElementById('btnVerSitio');
 
+if (btn) {
+    // Detectar si estamos en GitHub Pages (repo /Arvet)
+    const BASE_PATH = window.location.pathname.includes('/Arvet') ? '/Arvet' : '';
+
+    if (currentUser.slug) {
+        btn.addEventListener('click', function() {
+            window.location.href = `${BASE_PATH}/${currentUser.slug}.html`;
+        });
+
+    } else if (currentUser.equipoId) {
+
+        btn.addEventListener('click', async function() {
+            try {
+                const response = await window.fetchAPI('getEquipoBySlug', { 
+                    slug: currentUser.equipoId 
+                });
+
+                if (response.success && response.data.slug) {
+                    window.location.href = `${BASE_PATH}/${response.data.slug}.html`;
+                } else {
+                    window.location.href = `${BASE_PATH}/${currentUser.equipoId}.html`;
+                }
+
+            } catch (e) {
+                window.location.href = `${BASE_PATH}/${currentUser.equipoId}.html`;
+            }
+        });
+    }
+}
     // Navegación de secciones
     window.showSection = function(sectionId) {
         document.querySelectorAll('.section-content')
