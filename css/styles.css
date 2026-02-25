@@ -101,22 +101,20 @@ h1, h2, h3 {
 }
 
 .navbar .container {
-    position: relative;
-    height: 100%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    height: 100%;
 }
 
 /* Logo centrado absoluto */
-.logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
+
 
 /* Logo imagen */
 .logo img {
     height: 120px;
+  
+    margin-top: 20px;     /* lo baja un poco */
 }
 
 /* Links blancos */
