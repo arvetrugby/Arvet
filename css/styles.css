@@ -91,13 +91,13 @@ body {
    HERO
    ============================================ */
 .hero {
-    background-image: 
+    background-image:
         var(--gradient),
-        url("/images/arvet-hero.webp");
+        url("../images/arvet-hero.webp");
+
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-
     background-blend-mode: multiply;
 
     color: white;
