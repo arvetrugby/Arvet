@@ -1,26 +1,40 @@
+
+
 /* ============================================
-   ARVET - ESTILOS GLOBALES PREMIUM
-============================================ */
+   ARVET - ESTILOS GLOBALES
+   ============================================ */
 
 :root {
-
   --arvet-blue-dark: #071f4a;
   --arvet-blue-mid: #0d3570;
 
   --primary: #6366f1;
   --primary-dark: #4f46e5;
   --secondary: #ec4899;
-
   --dark: #1e293b;
   --light: #f8fafc;
   --gray: #64748b;
-
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
+
+  --gradient:
+    linear-gradient(
+      135deg,
+      rgba(0, 20, 60, 0.85),
+      rgba(0, 40, 110, 0.75)
+    ),
+    linear-gradient(
+      rgba(255,255,255,0.05),
+      rgba(0,0,0,0.15)
+    );
 }
 
-/* RESET */
+/* SCROLL SUAVE GLOBAL */
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -32,14 +46,19 @@ body {
   background: var(--light);
   color: var(--dark);
   line-height: 1.6;
-  padding-top: 75px;
+  padding-top: 70px;
 }
+
+/* ============================================
+   TIPOGRAFÍA TITULOS
+   ============================================ */
 
 .hero h1,
 .hero h2,
 h1, h2, h3 {
   font-family: 'Georama', sans-serif;
   font-weight: 800;
+  font-stretch: 85%;
   letter-spacing: 1px;
 }
 
@@ -50,25 +69,44 @@ h1, h2, h3 {
 }
 
 /* ============================================
-   NAVBAR PREMIUM
-============================================ */
+   NAVBAR
+   ============================================ */
 
 .navbar {
   position: fixed;
   width: 100%;
   top: 0;
-  z-index: 1000;
-  height: 75px;
+  left: 0;
+  z-index: 9999;
+  height: 70px;
 
-  background: linear-gradient(
-    135deg,
-    rgba(7,31,74,0.96),
-    rgba(13,53,112,0.96)
+  background: rgba(7, 31, 74, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://img.freepik.com/vector-gratis/textura-pared-boceto_1409-10961.jpg?semt=ais_user_personalization&w=740&q=80");
+  opacity: 0.20;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.navbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0,0,0,0) 60%,
+    rgba(0,0,0,0.35) 100%
   );
-
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none;
 }
 
 .navbar .container {
@@ -78,21 +116,24 @@ h1, h2, h3 {
   height: 100%;
 }
 
-/* Logo sobresalido elegante */
+/* LOGO */
+
 .logo {
   position: relative;
-  height: 75px;
+  height: 70px;
   display: flex;
   align-items: center;
 }
 
 .logo img {
-  height: 115px;
+  height: 110px;
   position: absolute;
-  bottom: -28px;
+  top: 50%;
+  transform: translateY(-30%);
 }
 
-/* Links */
+/* LINKS */
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -110,43 +151,47 @@ h1, h2, h3 {
   opacity: 0.7;
 }
 
-/* Botón login */
 .btn-login {
   background: white;
-  color: var(--arvet-blue-dark) !important;
+  color: #071f4a !important;
   padding: 10px 25px;
   border-radius: 25px;
-  font-weight: 600;
 }
 
 /* ============================================
    HERO
-============================================ */
+   ============================================ */
 
 .hero {
   position: relative;
   background-image:
     linear-gradient(
       140deg,
-      rgba(7,31,74,0.92),
-      rgba(13,53,112,0.85)
+      rgba(7, 31, 74, 0.95) 0%,
+      rgba(13, 53, 112, 0.90) 60%,
+      rgba(5, 20, 55, 0.95) 100%
     ),
     url("../images/b32d250f-8409-400e-89f0-8034bf5b5fb5.png");
 
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+
   color: white;
-  padding: 160px 0 110px;
+  padding: 150px 0 100px;
   text-align: center;
+  overflow: hidden;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 2;
 }
 
 .hero h1 {
   font-size: 3rem;
-  text-shadow: 0 6px 20px rgba(0,0,0,0.6);
-}
-
-.hero p {
-  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  text-shadow: 0 4px 15px rgba(0,0,0,0.6);
 }
 
 .hero-buttons {
@@ -155,13 +200,15 @@ h1, h2, h3 {
   justify-content: center;
 }
 
-.btn-primary,
-.btn-secondary {
+/* BOTONES */
+
+.btn-primary, .btn-secondary {
   padding: 15px 40px;
   border-radius: 30px;
-  font-weight: 700;
-  transition: all 0.3s ease;
   text-decoration: none;
+  font-weight: 700;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: inline-block;
 }
 
 .btn-primary {
@@ -171,166 +218,105 @@ h1, h2, h3 {
 
 .btn-secondary {
   background: transparent;
-  border: 2px solid white;
   color: white;
+  border: 2px solid white;
 }
 
 .btn-primary:hover,
 .btn-secondary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* ============================================
-   BUSCADOR (CLARO)
-============================================ */
+   SECCIONES INSTITUCIONALES
+   Todas con misma base azul
+   ============================================ */
 
-.buscador-section {
-  padding: 70px 20px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-}
-
-.buscador-section h2 {
-  text-align: center;
-  font-size: 1.6rem;
-  margin-bottom: 30px;
-}
-
-.search-box {
-  display: flex;
-  max-width: 500px;
-  margin: 0 auto 30px;
-  gap: 10px;
-}
-
-.search-box input {
-  flex: 1;
-  padding: 13px 18px;
-  border-radius: 25px;
-  border: 2px solid #e2e8f0;
-  font-size: 15px;
-}
-
-.search-box button {
-  padding: 13px 20px;
-  border-radius: 25px;
-  font-size: 14px;
-}
-
-/* ============================================
-   PAÍSES (OSCURA INSTITUCIONAL)
-============================================ */
-
-.paises-section {
-  padding: 100px 0;
+.buscador-section,
+.paises-section,
+.partidos-section,
+.main-content {
+  position: relative;
+  padding: 80px 0;
   background: linear-gradient(
-    135deg,
-    var(--arvet-blue-dark),
-    var(--arvet-blue-mid)
+    140deg,
+    rgba(7, 31, 74, 0.92),
+    rgba(13, 53, 112, 0.85)
   );
   color: white;
 }
 
-.paises-section h2 {
-  text-align: center;
-  font-size: 2.4rem;
-  margin-bottom: 50px;
-  color: white;
+.paises-section {
+  background: linear-gradient(
+    140deg,
+    rgba(5, 20, 55, 0.95),
+    rgba(10, 40, 95, 0.90)
+  );
 }
-
-.paises-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px;
-}
-
-.pais-card {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  border-radius: 18px;
-  padding: 30px;
-  text-align: center;
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: all 0.3s ease;
-}
-
-.pais-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 45px rgba(0,0,0,0.4);
-}
-
-.pais-card h3 {
-  color: white;
-}
-
-/* ============================================
-   PARTIDOS (BLANCO LIMPIO)
-============================================ */
 
 .partidos-section {
-  padding: 100px 0;
-  background: #ffffff;
+  background: linear-gradient(
+    140deg,
+    rgba(10, 35, 80, 0.95),
+    rgba(15, 60, 120, 0.85)
+  );
 }
 
-.partidos-section h2 {
-  text-align: center;
-  font-size: 2.4rem;
-  margin-bottom: 50px;
-}
+/* Mantengo cards blancas para contraste */
 
-.partido-card {
-  background: #f8fafc;
-  border-radius: 18px;
-  padding: 25px;
-  border-left: 6px solid var(--primary);
-  transition: all 0.3s ease;
-}
-
-.partido-card:hover {
-  transform: translateX(8px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-}
-
-/* ============================================
-   CARDS GENERALES
-============================================ */
-
-.card {
+.pais-card,
+.partido-card,
+.card,
+.table-container,
+.stat-card {
   background: white;
-  border-radius: 18px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 45px rgba(0,0,0,0.15);
+  color: var(--dark);
 }
 
 /* ============================================
    RESPONSIVE
-============================================ */
+   ============================================ */
 
 @media (max-width: 768px) {
+
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
 
   .hero h1 {
     font-size: 2rem;
   }
 
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .navbar .container {
+    flex-direction: row;
+    gap: 10px;
+  }
+
   .nav-links {
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
   }
 
   .nav-links a {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
 
   .btn-login {
     padding: 6px 12px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .search-box {
@@ -343,9 +329,6 @@ h1, h2, h3 {
 
   .logo img {
     height: 85px;
-    bottom: -20px;
+    transform: translateY(-20%);
   }
 }
-
-
-
