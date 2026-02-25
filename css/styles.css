@@ -328,8 +328,8 @@ h1, h2, h3 {
   }
 
   .logo img {
-    height: 85px;
-    transform: translateY(-1%);
-     left: 5px;
+    height: 95px;
+    transform: translateY(-10%);
+     left: -15px;
   }
 }
