@@ -57,55 +57,84 @@ h1, h2, h3 {
     padding: 0 20px;
 }
 
+
+
 /* ============================================
-   NAVBAR
+   NAVBAR ARVET ESTILO INSTITUCIONAL
    ============================================ */
 
 .navbar {
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
+    height: 70px;
+    overflow: hidden;
+
+    background: linear-gradient(
+        135deg,
+        #071f4a 0%,
+        #0d3570 60%,
+        #051437 100%
+    );
+
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Textura */
+.navbar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("https://img.freepik.com/vector-gratis/textura-pared-boceto_1409-10961.jpg?semt=ais_user_personalization&w=740&q=80");
+    opacity: 0.80;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+}
+
+/* Oscurecimiento leve bordes */
+.navbar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle at center,
+        rgba(0,0,0,0) 60%,
+        rgba(0,0,0,0.35) 100%
+    );
+    pointer-events: none;
 }
 
 .navbar .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 70px;
+    height: 100%;
+    position: relative;
+    z-index: 2;
 }
 
-.logo {
-    font-size: 28px;
-    font-weight: 800;
-    background: var(--gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-decoration: none;
+/* Logo imagen */
+.logo img {
+    height: 50px;
 }
 
-.nav-links {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-}
-
+/* Links blancos */
 .nav-links a {
+    color: white;
     text-decoration: none;
-    color: var(--dark);
     font-weight: 600;
-    transition: color 0.3s;
+    transition: opacity 0.3s;
 }
 
 .nav-links a:hover {
-    color: var(--primary);
+    opacity: 0.7;
 }
 
+/* Botón login coherente */
 .btn-login {
-    background: var(--gradient);
-    color: white !important;
+    background: white;
+    color: #071f4a !important;
     padding: 10px 25px;
     border-radius: 25px;
 }
