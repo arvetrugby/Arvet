@@ -483,7 +483,7 @@ async function cargarNombreEquipo(equipoId) {
     
     try {
         // Intentar con getEquipoBySlug usando el ID (también es único)
-        const response = await fetchAPI('getEquipoBySlug', { slug: equipoId });
+        const response = await fetchAPI('getEquipoById', { id: equipoId });
         
         if (response.success) {
             // Mostrar nombre grande e ID chico abajo
