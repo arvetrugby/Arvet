@@ -120,6 +120,7 @@ h1, h2, h3 {
     text-decoration: none;
     font-weight: 600;
     transition: opacity 0.3s;
+   gap: 28px;
 }
 
 .nav-links a:hover {
