@@ -93,8 +93,7 @@ body {
 .hero {
     background-image: 
         var(--gradient),
-        url("https://i.ibb.co/BKvFdGwk/f40ee721-ee62-454a-898c-483934be96fa.png");
-
+        url("/images/arvet-hero.webp");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
