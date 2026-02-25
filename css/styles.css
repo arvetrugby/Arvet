@@ -680,7 +680,7 @@ tr:hover {
 
     /* Ajuste general para que no tape contenido */
     body {
-        padding-top: 70px; /* igual a la altura de tu navbar */
+        padding-top: 0px; /* igual a la altura de tu navbar */
     }
 
     /* Hero más chico en mobile */
