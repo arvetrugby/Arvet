@@ -128,8 +128,8 @@ body {
  content: "";
   position: absolute;
   inset: 0;
-  background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
-  opacity: 0.25;
+  background-image: url("https://www.transparenttextures.com/patterns/noise.png");
+  opacity: 0.51;
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
