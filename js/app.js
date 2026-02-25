@@ -808,7 +808,7 @@ if (btn) {
 
     if (currentUser.slug) {
         btn.addEventListener('click', function() {
-            window.location.href = `${BASE_PATH}/${currentUser.slug}.html`;
+            window.location.href = `${BASE_PATH}/${currentUser.slug}`;
         });
 
     } else if (currentUser.equipoId) {
@@ -820,13 +820,13 @@ if (btn) {
                 });
 
                 if (response.success && response.data.slug) {
-                    window.location.href = `${BASE_PATH}/${response.data.slug}.html`;
+                    window.location.href = `${BASE_PATH}/${response.data.slug}`;
                 } else {
-                    window.location.href = `${BASE_PATH}/${currentUser.equipoId}.html`;
+                    window.location.href = `${BASE_PATH}/${currentUser.equipoId}l`;
                 }
 
             } catch (e) {
-                window.location.href = `${BASE_PATH}/${currentUser.equipoId}.html`;
+                window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
             }
         });
     }
