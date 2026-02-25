@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script>
+    // Tomar el path completo
+    var path = window.location.pathname;
+
+    // Sacar la barra inicial
+    var slug = path.substring(1);
+
+    // Si hay algo después de la barra, redirigir
+    if (slug && slug !== "") {
+      window.location.replace("/equipo.html?slug=" + slug);
+    } else {
+      window.location.replace("/");
+    }
+  </script>
+</head>
+<body></body>
+</html>
