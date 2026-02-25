@@ -115,7 +115,7 @@ h1, h2, h3 {
 }
 
 /* Links blancos */
-   nav-links {
+   .nav-links {
     display: flex;
     align-items: center;
     gap: 28px; /* separación entre links */
