@@ -479,16 +479,37 @@ function initRegistroJugador() {
 }
 
 async function cargarNombreEquipo(equipoId) {
+    const nombreEquipoDiv = document.getElementById('nombreEquipo');
+    
     try {
         // Intentar obtener el nombre del equipo desde la API
         const response = await fetchAPI('getEquipoById', { id: equipoId });
+        
         if (response.success) {
-            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + response.data.nombre;
+            // Mostrar nombre grande e ID chico abajo
+            nombreEquipoDiv.innerHTML = `
+                <div style="font-size: 20px; font-weight: 700; color: var(--primary);">
+                    ${response.data.nombre}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px; font-family: monospace;">
+                    ${equipoId}
+                </div>
+            `;
         } else {
-            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
+            // Si no encuentra, mostrar solo el ID
+            nombreEquipoDiv.innerHTML = `
+                <div style="font-size: 11px; color: #94a3b8; font-family: monospace;">
+                    ${equipoId}
+                </div>
+            `;
         }
     } catch (e) {
-        document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
+        // Si falla, mostrar solo el ID
+        nombreEquipoDiv.innerHTML = `
+            <div style="font-size: 11px; color: #94a3b8; font-family: monospace;">
+                ${equipoId}
+            </div>
+        `;
     }
 }
 
