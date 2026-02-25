@@ -329,6 +329,7 @@ h1, h2, h3 {
 
   .logo img {
     height: 85px;
-    transform: translateY(-5%);
+    transform: translateY(-1%);
+     left: 5px;
   }
 }
