@@ -273,7 +273,54 @@ h1, h2, h3 {
   background: white;
   color: var(--dark);
 }
+/* ============================================
+   BUSCADOR ESTILO INSTITUCIONAL
+============================================ */
 
+.buscador-section h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  font-weight: 700;
+  color: white;
+}
+
+.search-box {
+  display: flex;
+  max-width: 550px;
+  margin: 0 auto 30px;
+  gap: 12px;
+  width: 100%;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 30px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+}
+
+.search-box button {
+  padding: 14px 25px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: var(--primary);
+  color: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.search-box button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -326,7 +373,6 @@ h1, h2, h3 {
   .search-box button {
     width: 100%;
   }
-
   .logo img {
     height: 85px;
     transform: translateY(-25%);
