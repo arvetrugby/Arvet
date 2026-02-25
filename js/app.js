@@ -482,8 +482,8 @@ async function cargarNombreEquipo(equipoId) {
     const nombreEquipoDiv = document.getElementById('nombreEquipo');
     
     try {
-        // Intentar obtener el nombre del equipo desde la API
-        const response = await fetchAPI('getEquipoById', { id: equipoId });
+        // Intentar con getEquipoBySlug usando el ID (también es único)
+        const response = await fetchAPI('getEquipoBySlug', { slug: equipoId });
         
         if (response.success) {
             // Mostrar nombre grande e ID chico abajo
@@ -512,7 +512,6 @@ async function cargarNombreEquipo(equipoId) {
         `;
     }
 }
-
 function mostrarMensaje(texto, tipo) {
     const msg = document.getElementById('msg');
     msg.textContent = texto;
