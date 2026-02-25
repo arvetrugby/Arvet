@@ -122,6 +122,10 @@ body {
   mix-blend-mode: overlay;
   pointer-events: none;
 }
+   .hero > * {
+  position: relative;
+  z-index: 2;
+}
 
 .hero h1 {
     font-size: 3.5rem;
