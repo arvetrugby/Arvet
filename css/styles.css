@@ -3,6 +3,8 @@
    ============================================ */
 
 :root {
+   --arvet-blue-1: #0b2a5c;
+  --arvet-blue-2: #123e7a;
     --primary: #6366f1;
     --primary-dark: #4f46e5;
     --secondary: #ec4899;
@@ -99,19 +101,26 @@ body {
    HERO
    ============================================ */
 .hero {
-    background-image:
-        var(--gradient),
-        url("../images/b32d250f-8409-400e-89f0-8034bf5b5fb5.png");
-
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-blend-mode: multiply;
-
-    color: white;
-    padding: 150px 0 100px;
-    text-align: center;
-    margin-top: 70px;
+  position: relative;
+  background: linear-gradient(
+      135deg,
+      var(--arvet-blue-1),
+      var(--arvet-blue-2)
+    );
+  color: white;
+  padding: 150px 0 100px;
+  text-align: center;
+  margin-top: 70px;
+  overflow: hidden;
+}
+   .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
 }
 
 .hero h1 {
