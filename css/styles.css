@@ -139,8 +139,8 @@ h1, h2, h3 {
  content: "";
   position: absolute;
   inset: 0;
-  background-image: url("https://www.transparenttextures.com/patterns/noise.png");
-  opacity: 0.51;
+  background-image: url("https://img.freepik.com/vector-gratis/textura-pared-boceto_1409-10961.jpg?semt=ais_user_personalization&w=740&q=80");
+  opacity: 0.20;
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
