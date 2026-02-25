@@ -140,7 +140,7 @@ h1, h2, h3 {
   position: absolute;
   inset: 0;
   background-image: url("https://img.freepik.com/vector-gratis/textura-pared-boceto_1409-10961.jpg?semt=ais_user_personalization&w=740&q=80");
-  opacity: 0.20;
+  opacity: 0.80;
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
