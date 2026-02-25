@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <script>
-    // Tomar el path completo
     var path = window.location.pathname;
 
-    // Sacar la barra inicial
-    var slug = path.substring(1);
+    // Quitar "/Arvet/"
+    var slug = path.replace("/Arvet/", "");
 
-    // Si hay algo después de la barra, redirigir
     if (slug && slug !== "") {
-      window.location.replace("/equipo.html?slug=" + slug);
+      window.location.replace("/Arvet/equipo.html?slug=" + slug);
     } else {
-      window.location.replace("/");
+      window.location.replace("/Arvet/");
     }
   </script>
 </head>
