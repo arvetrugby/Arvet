@@ -34,7 +34,8 @@
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Georama', sans-serif;
+  font-stretch: 85%;
     background: var(--light);
     color: var(--dark);
     line-height: 1.6;
