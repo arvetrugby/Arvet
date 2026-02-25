@@ -382,30 +382,63 @@ function checkExistingSession() {
 function initRegistroJugador() {
     console.log('=== INICIO REGISTRO JUGADOR ===');
     
-    // Obtener equipoId de la URL
+    // Obtener slug de la URL
     const urlParams = new URLSearchParams(window.location.search);
-    const equipoId = urlParams.get('equipo');
+    const slug = urlParams.get('equipo');
     
-    console.log('Equipo ID:', equipoId);
+    console.log('Slug del equipo:', slug);
     
-    if (!equipoId) {
+    if (!slug) {
         mostrarMensaje('Error: No se especificó el equipo', 'error');
-        document.getElementById('formRegistroJugador').style.display = 'none';
         return;
     }
     
-    // Guardar equipoId en el formulario
-    document.getElementById('equipoId').value = equipoId;
+    // Cargar datos del equipo
+    cargarDatosEquipo(slug);
+}
+
+async function cargarDatosEquipo(slug) {
+    const nombreEquipoDiv = document.getElementById('nombreEquipo');
+    const form = document.getElementById('formRegistroJugador');
     
-    // Cargar nombre del equipo para mostrar
-    cargarNombreEquipo(equipoId);
-    
-    // Manejar envío del formulario
+    try {
+        console.log('Cargando equipo con slug:', slug);
+        const response = await window.fetchAPI('getEquipoBySlug', { slug: slug });
+        console.log('Respuesta:', response);
+        
+        if (!response.success) {
+            nombreEquipoDiv.textContent = 'Error: Equipo no encontrado';
+            nombreEquipoDiv.style.color = 'red';
+            return;
+        }
+        
+        const equipo = response.data;
+        console.log('Equipo cargado:', equipo.nombre, 'ID:', equipo.id);
+        
+        // Mostrar nombre del equipo
+        nombreEquipoDiv.textContent = 'Equipo: ' + equipo.nombre;
+        
+        // Guardar equipoId en campo oculto
+        document.getElementById('equipoId').value = equipo.id;
+        
+        // Mostrar formulario
+        form.style.display = 'block';
+        
+        // Configurar envío del formulario
+        configurarFormulario();
+        
+    } catch (error) {
+        console.error('Error cargando equipo:', error);
+        nombreEquipoDiv.textContent = 'Error al cargar el equipo';
+        nombreEquipoDiv.style.color = 'red';
+    }
+}
+
+function configurarFormulario() {
     const form = document.getElementById('formRegistroJugador');
     const btn = document.getElementById('btnRegistro');
     const btnText = document.getElementById('btnText');
     const loading = document.getElementById('loading');
-    const msg = document.getElementById('msg');
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -423,7 +456,6 @@ function initRegistroJugador() {
         btn.disabled = true;
         btnText.style.display = 'none';
         loading.style.display = 'block';
-        msg.style.display = 'none';
         
         const data = {
             nombre: document.getElementById('nombre').value.trim(),
@@ -434,7 +466,7 @@ function initRegistroJugador() {
             dni: document.getElementById('dni').value.trim(),
             cuitCuil: document.getElementById('cuitCuil').value.trim(),
             password: password,
-            equipoId: equipoId
+            equipoId: document.getElementById('equipoId').value
         };
         
         console.log('Enviando datos:', data);
@@ -478,20 +510,6 @@ function initRegistroJugador() {
     });
 }
 
-async function cargarNombreEquipo(equipoId) {
-    try {
-        // Intentar obtener el nombre del equipo desde la API
-        const response = await fetchAPI('getEquipoById', { id: equipoId });
-        if (response.success) {
-            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + response.data.nombre;
-        } else {
-            document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
-        }
-    } catch (e) {
-        document.getElementById('nombreEquipo').textContent = 'Equipo: ' + equipoId;
-    }
-}
-
 function mostrarMensaje(texto, tipo) {
     const msg = document.getElementById('msg');
     msg.textContent = texto;
@@ -508,8 +526,6 @@ function mostrarMensaje(texto, tipo) {
         msg.style.border = '1px solid #fca5a5';
     }
 }
-
-
 // ============================================
 // PÁGINA: EQUIPO (PÚBLICO)
 // ============================================
