@@ -52,20 +52,29 @@ window.formatCurrency = function(amount) {
 };
 
 // ============================================
-// DETECTOR DE PÁGINA ACTUAL
+// DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
 // ============================================
 
 function getCurrentPage() {
     const path = window.location.pathname;
-    const page = path.split('/').pop() || 'index.html';
-    const cleanPage = page.replace('.html', '');
-    
-    // Detectar páginas de equipo tipo /equipoXXX o /equipo-xxx
-    if (cleanPage.startsWith('equipo')) {
+    const page = path.split('/').pop();
+
+    // Si estamos en equipo.html
+    if (page === 'equipo.html') {
         return 'equipo';
     }
-    
-    return cleanPage;
+
+    // Si estamos en admin.html
+    if (page === 'admin.html') {
+        return 'admin';
+    }
+
+    // Si estamos en index o raíz
+    if (!page || page === '' || page === 'index.html') {
+        return 'index';
+    }
+
+    return page.replace('.html', '');
 }
 
 // ============================================
@@ -545,16 +554,7 @@ function initEquipo() {
     slug = urlParams.get('slug');
     console.log('Slug de query params:', slug);
     
-    // OPCIÓN 2: URL tipo /equipo332xx (formato pathname)
-    if (!slug) {
-        const path = window.location.pathname;
-        const segments = path.split('/').filter(s => s);
-        const lastSegment = segments[segments.length - 1];
-        
-        console.log('Último segmento:', lastSegment);
-        slug = lastSegment.replace('.html', '');
-        console.log('Slug limpio:', slug);
-    }
+   
     
     console.log('Slug final:', slug);
     
