@@ -69,25 +69,20 @@ h1, h2, h3 {
     top: 0;
     z-index: 1000;
     height: 70px;
-    overflow: hidden;
 
-    background: linear-gradient(
-        135deg,
-        #071f4a 0%,
-        #0d3570 60%,
-        #051437 100%
-    );
+    background: rgba(7, 31, 74, 0.85); /* transparencia */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-
 /* Textura */
 .navbar::before {
     content: "";
     position: absolute;
     inset: 0;
     background-image: url("https://img.freepik.com/vector-gratis/textura-pared-boceto_1409-10961.jpg?semt=ais_user_personalization&w=740&q=80");
-    opacity: 0.80;
+    opacity: 0.50;
     mix-blend-mode: soft-light;
     pointer-events: none;
 }
