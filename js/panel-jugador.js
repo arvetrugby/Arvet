@@ -108,7 +108,7 @@ function mostrarMensaje(texto, tipo = "ok") {
 
     } catch (error) {
       console.error(error);
-      alert('Error de conexión');
+      mostrarMensaje('Error de conección', 'error');
     }
 
   });
@@ -125,7 +125,7 @@ function mostrarMensaje(texto, tipo = "ok") {
       const nuevaPass = document.getElementById('nuevaPassword').value.trim();
 
       if (!nuevaPass) {
-        alert("Ingresá una nueva contraseña");
+        mostrarMensaje('Ingresa nueva contraseña', 'ok');
         return;
       }
 
@@ -144,10 +144,10 @@ function mostrarMensaje(texto, tipo = "ok") {
         console.log("Respuesta updatePassword:", data);
 
         if (data.success) {
-          alert("Contraseña actualizada correctamente");
+          mostrarMensaje('Contraseña actualizada', 'ok');
           document.getElementById('nuevaPassword').value = "";
         } else {
-          alert("Error al actualizar contraseña");
+          mostrarMensaje('Error al querer actualizar nueva contraseña', 'error');
         }
 
       } catch (error) {
