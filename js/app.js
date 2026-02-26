@@ -841,10 +841,16 @@ function initAdmin() {
                     window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
                 }
             });
-        }
+               }
     }
 
-   
+    // Inicializar funciones
+    cargarDashboard();
+    cargarJugadoresAdmin();
+}
+
+// ============================================
+// DASHBOARD
 // ============================================
 
 async function cargarDashboard() {
@@ -881,7 +887,6 @@ async function cargarJugadoresAdmin() {
         console.log('Respuesta jugadores:', response);
 
         if (response.success) {
-            // BUSCAR EL CONTAINER NUEVO (no la tabla vieja)
             const container = document.getElementById('listaJugadores');
             
             if (!container) {
@@ -930,6 +935,9 @@ async function cargarJugadoresAdmin() {
         console.error('❌ Error cargando jugadores admin:', error);
     }
 }
+
+// ============================================
+// FUNCIONES GLOBALES
 // ============================================
 
 window.nuevoJugador = function() {
@@ -948,9 +956,35 @@ window.logout = function() {
     }
 }
 
+window.cambiarEstadoJugador = async function(id, nuevoEstado) {
+    const response = await window.fetchAPI('updateEstadoJugador', {
+        id: id,
+        estado: nuevoEstado
+    });
+
+    if (response.success) {
+        cargarJugadoresAdmin();
+    } else {
+        alert('Error: ' + response.error);
+    }
+}
+
+window.eliminarJugador = async function(id) {
+    if (!confirm('¿Seguro que querés eliminar este jugador?')) return;
+
+    const response = await window.fetchAPI('deleteJugador', {
+        id: id
+    });
+
+    if (response.success) {
+        cargarJugadoresAdmin();
+    } else {
+        alert('Error: ' + response.error);
+    }
+}
+
 // ============================================
-// ============================================
-// MAPA (LEAFLET) - Para página equipo
+// MAPA (LEAFLET)
 // ============================================
 
 let mapaCreado = false;
@@ -959,7 +993,6 @@ let mapInstance = null;
 function inicializarMapa() {
     console.log('=== inicializarMapa ===');
     
-    // Verificar que Leaflet esté cargado
     if (typeof L === 'undefined') {
         console.error('❌ Leaflet no está cargado');
         return;
@@ -1012,11 +1045,12 @@ function inicializarMapa() {
         console.error('❌ Error creando mapa:', error);
     }
 }
+
 // ============================================
-// ADMIN MOBILE - NAVEGACIÓN
+// ADMIN MOBILE - NAVEGACIÓN GLOBAL
 // ============================================
 
-function toggleMenu() {
+window.toggleMenu = function() {
     const nav = document.getElementById('adminNav');
     const overlay = document.querySelector('.nav-overlay');
     
@@ -1025,8 +1059,6 @@ function toggleMenu() {
         overlay.classList.toggle('active');
     }
 }
-
-// Al final de app.js, reemplazar ambas versiones por esta:
 
 window.showSection = function(sectionId) {
     console.log('showSection ejecutado:', sectionId);
@@ -1072,14 +1104,4 @@ window.showSection = function(sectionId) {
             item.classList.add('active');
         }
     });
-};
-
-window.toggleMenu = function() {
-    const nav = document.getElementById('adminNav');
-    const overlay = document.querySelector('.nav-overlay');
-    
-    if (nav && overlay) {
-        nav.classList.toggle('open');
-        overlay.classList.toggle('active');
-    }
 };
