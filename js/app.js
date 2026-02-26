@@ -879,10 +879,12 @@ async function cargarDashboard() {
 // ============================================
 
 async function cargarJugadoresAdmin() {
+    console.log('=== cargarJugadoresAdmin ===');
+    
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
     
     if (!currentUser.equipoId) {
-        console.log('No hay equipoId en el usuario');
+        console.log('❌ No hay equipoId');
         return;
     }
     
@@ -891,11 +893,14 @@ async function cargarJugadoresAdmin() {
             equipoId: currentUser.equipoId
         });
 
+        console.log('Respuesta jugadores:', response);
+
         if (response.success) {
-            // Usar el list-container del HTML nuevo (no la tabla vieja)
+            // BUSCAR EL CONTAINER NUEVO (no la tabla vieja)
             const container = document.getElementById('listaJugadores');
+            
             if (!container) {
-                console.log('No se encontró #listaJugadores');
+                console.error('❌ No existe #listaJugadores en el DOM');
                 return;
             }
 
@@ -908,11 +913,9 @@ async function cargarJugadoresAdmin() {
                 const estado = j.estado || 'Pendiente';
                 const isActivo = estado === 'Activo';
                 
-                // Color del badge según estado
                 const badgeClass = isActivo ? 'badge-success' : 'badge-warning';
                 const badgeText = isActivo ? 'Activo' : 'Pendiente';
 
-                // Botón de cambiar estado (toggle entre Activo/Pendiente)
                 const btnEstado = isActivo 
                     ? `<button class="btn-action btn-warning" onclick="cambiarEstadoJugador('${j.id}', 'Pendiente')">Pasar a Pendiente</button>`
                     : `<button class="btn-action btn-success" onclick="cambiarEstadoJugador('${j.id}', 'Activo')">Aprobar</button>`;
@@ -934,16 +937,12 @@ async function cargarJugadoresAdmin() {
                     </div>
                 `;
             }).join('');
-        } else {
-            console.error('Error en respuesta:', response.error);
+            
+            console.log('✅ Jugadores renderizados:', response.data.length);
         }
 
     } catch (error) {
-        console.error('Error cargando jugadores admin:', error);
-        const container = document.getElementById('listaJugadores');
-        if (container) {
-            container.innerHTML = '<p style="color: #ef4444; text-align: center;">Error al cargar jugadores</p>';
-        }
+        console.error('❌ Error cargando jugadores admin:', error);
     }
 }
 // ============================================
