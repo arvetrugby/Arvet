@@ -892,90 +892,60 @@ async function cargarJugadoresAdmin() {
         });
 
         if (response.success) {
-            const tbody = document.querySelector('#tablaJugadores tbody');
-            if (!tbody) return;
+            // Usar el list-container del HTML nuevo (no la tabla vieja)
+            const container = document.getElementById('listaJugadores');
+            if (!container) {
+                console.log('No se encontró #listaJugadores');
+                return;
+            }
 
-            tbody.innerHTML = response.data.map(j => {
+            if (response.data.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 40px;">No hay jugadores registrados</p>';
+                return;
+            }
 
+            container.innerHTML = response.data.map(j => {
                 const estado = j.estado || 'Pendiente';
+                const isActivo = estado === 'Activo';
+                
+                // Color del badge según estado
+                const badgeClass = isActivo ? 'badge-success' : 'badge-warning';
+                const badgeText = isActivo ? 'Activo' : 'Pendiente';
 
-                let botonEstado = '';
-
-                if (estado === 'Pendiente') {
-                    botonEstado = `
-                        <button class="btn-action btn-edit"
-                            onclick="cambiarEstadoJugador('${j.id}', 'Activo')">
-                            Aprobar
-                        </button>
-                    `;
-                } else if (estado === 'Activo') {
-                    botonEstado = `
-                        <button class="btn-action btn-edit"
-                            onclick="cambiarEstadoJugador('${j.id}', 'Pendiente')">
-                            Pasar a Pendiente
-                        </button>
-                    `;
-                }
+                // Botón de cambiar estado (toggle entre Activo/Pendiente)
+                const btnEstado = isActivo 
+                    ? `<button class="btn-action btn-warning" onclick="cambiarEstadoJugador('${j.id}', 'Pendiente')">Pasar a Pendiente</button>`
+                    : `<button class="btn-action btn-success" onclick="cambiarEstadoJugador('${j.id}', 'Activo')">Aprobar</button>`;
 
                 return `
-                    <tr>
-                        <td>${j.numeroCamiseta || '-'}</td>
-                        <td>${j.nombre} ${j.apellido || ''}</td>
-                        <td>${j.posicion || '-'}</td>
-                        <td>${j.email || '-'}</td>
-                        <td>
-                            <span class="badge ${estado === 'Activo' ? 'badge-success' : 'badge-warning'}">
-                                ${estado}
-                            </span>
-                        </td>
-                        <td>
-                            ${botonEstado}
-                            <button class="btn-action btn-delete"
-                                onclick="eliminarJugador('${j.id}')">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <h4>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido || ''}</h4>
+                            <p>
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                                ${j.posicion ? `• ${j.posicion}` : ''}
+                                ${j.email ? `• ${j.email}` : ''}
+                            </p>
+                        </div>
+                        <div class="list-item-actions">
+                            ${btnEstado}
+                            <button class="btn-action btn-delete" onclick="eliminarJugador('${j.id}')">Eliminar</button>
+                        </div>
+                    </div>
                 `;
             }).join('');
+        } else {
+            console.error('Error en respuesta:', response.error);
         }
 
     } catch (error) {
         console.error('Error cargando jugadores admin:', error);
+        const container = document.getElementById('listaJugadores');
+        if (container) {
+            container.innerHTML = '<p style="color: #ef4444; text-align: center;">Error al cargar jugadores</p>';
+        }
     }
 }
-
-// ============================================
-// FUNCIONES NUEVAS
-// ============================================
-
-async function cambiarEstadoJugador(id, nuevoEstado) {
-    const response = await window.fetchAPI('updateEstadoJugador', {
-        id: id,
-        estado: nuevoEstado
-    });
-
-    if (response.success) {
-        cargarJugadoresAdmin();
-    } else {
-        alert('Error: ' + response.error);
-    }
-}
-
-async function eliminarJugador(id) {
-    if (!confirm('¿Seguro que querés eliminar este jugador?')) return;
-
-    const response = await window.fetchAPI('deleteJugador', {
-        id: id
-    });
-
-    if (response.success) {
-        cargarJugadoresAdmin();
-    } else {
-        alert('Error: ' + response.error);
-    }
-}
-
 // ============================================
 
 window.nuevoJugador = function() {
@@ -1074,7 +1044,12 @@ function toggleMenu() {
 
 function showSection(sectionId) {
     // Cerrar menú
-    toggleMenu();
+    const nav = document.getElementById('adminNav');
+    const overlay = document.querySelector('.nav-overlay');
+    if (nav && nav.classList.contains('open')) {
+        nav.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+    }
     
     // Actualizar título
     const titles = {
@@ -1100,12 +1075,12 @@ function showSection(sectionId) {
         targetSection.classList.add('active');
     }
     
-    // Actualizar menú
+    // Actualizar menú - buscar el li que tiene el onclick con esta section
     document.querySelectorAll('.nav-menu li').forEach(item => {
         item.classList.remove('active');
+        // Si el onclick de este li incluye esta sectionId, marcarlo como activo
+        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${sectionId}'`)) {
+            item.classList.add('active');
+        }
     });
-    
-    if (event && event.target) {
-        event.target.closest('li').classList.add('active');
-    }
 }
