@@ -679,7 +679,7 @@ async function cargarJugadoresEquipo(equipoId) {
             return;
         }
         
-        const jugadores = response.data;
+        const jugadores = response.data.filter(j => j.estado === 'Activo');
         console.log('Jugadores cargados:', jugadores.length);
         
         // Comisión: roles administrativos (todos los que tienen rol y no son "Jugador" puro)
