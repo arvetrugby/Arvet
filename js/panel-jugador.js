@@ -28,7 +28,11 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('apellido').value = jugador.apellido || '';
       document.getElementById('email').value = jugador.email || '';
       document.getElementById('telefono').value = jugador.telefono || '';
-      document.getElementById('fechaNacimiento').value = jugador.fechaNacimiento || '';
+      if (jugador.fechaNacimiento) {
+    const fecha = new Date(jugador.fechaNacimiento);
+    const fechaFormateada = fecha.toISOString().split('T')[0];
+    document.getElementById('fechaNacimiento').value = fechaFormateada;
+}
       document.getElementById('dni').value = jugador.dni || '';
       document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
 
