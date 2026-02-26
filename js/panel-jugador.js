@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     );
 
     const data = await response.json();
-console.log("Respuesta servidor:", data);
+    console.log("Respuesta servidor:", data);
+
     if (data.success) {
 
       const jugador = data.data;
@@ -28,11 +29,13 @@ console.log("Respuesta servidor:", data);
       document.getElementById('apellido').value = jugador.apellido || '';
       document.getElementById('email').value = jugador.email || '';
       document.getElementById('telefono').value = jugador.telefono || '';
+
       if (jugador.fechaNacimiento) {
-    const fecha = new Date(jugador.fechaNacimiento);
-    const fechaFormateada = fecha.toISOString().split('T')[0];
-    document.getElementById('fechaNacimiento').value = fechaFormateada;
-}
+        const fecha = new Date(jugador.fechaNacimiento);
+        const fechaFormateada = fecha.toISOString().split('T')[0];
+        document.getElementById('fechaNacimiento').value = fechaFormateada;
+      }
+
       document.getElementById('dni').value = jugador.dni || '';
       document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
 
@@ -44,47 +47,48 @@ console.log("Respuesta servidor:", data);
     console.error(err);
   }
 
-});
+  // 👇 AHORA el listener va acá adentro
+  const form = document.getElementById('formPerfil');
 
-const form = document.getElementById('formPerfil');
-
-form.addEventListener('submit', async function(e) {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const user = JSON.parse(localStorage.getItem('arvet_user'));
-
     const datosActualizados = {
-        id: user.id,
-        nombre: document.getElementById('nombre').value.trim(),
-        apellido: document.getElementById('apellido').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        telefono: document.getElementById('telefono').value.trim(),
-        fechaNacimiento: document.getElementById('fechaNacimiento').value,
-        dni: document.getElementById('dni').value.trim(),
-        cuitCuil: document.getElementById('cuitCuil').value.trim()
+      id: user.id,
+      nombre: document.getElementById('nombre').value.trim(),
+      apellido: document.getElementById('apellido').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      telefono: document.getElementById('telefono').value.trim(),
+      fechaNacimiento: document.getElementById('fechaNacimiento').value,
+      dni: document.getElementById('dni').value.trim(),
+      cuitCuil: document.getElementById('cuitCuil').value.trim()
     };
 
     try {
 
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'updateJugador',
-                ...datosActualizados
-            })
-        });
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'updateJugador',
+          ...datosActualizados
+        })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
+      console.log("Respuesta update:", data);
 
-        if (data.success) {
-            alert('Perfil actualizado correctamente');
-        } else {
-            alert('Error al actualizar');
-        }
+      if (data.success) {
+        alert('Perfil actualizado correctamente');
+        location.reload(); // 👈 para ver los datos actualizados
+      } else {
+        alert('Error al actualizar');
+      }
 
     } catch (error) {
-        console.error(error);
-        alert('Error de conexión');
+      console.error(error);
+      alert('Error de conexión');
     }
+
+  });
 
 });
