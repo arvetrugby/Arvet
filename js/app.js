@@ -844,22 +844,7 @@ function initAdmin() {
         }
     }
 
-    // Navegación de secciones
-    window.showSection = function(sectionId) {
-        document.querySelectorAll('.section-content')
-            .forEach(el => el.classList.add('hidden'));
-        const section = document.getElementById(sectionId);
-        if (section) section.classList.remove('hidden');
-    }
-
-    // Inicializar funciones
-    cargarDashboard();
-    cargarJugadoresAdmin();
-    
-    if (typeof cargarPartidosAdmin === 'function') cargarPartidosAdmin();
-    if (typeof cargarCuotasAdmin === 'function') cargarCuotasAdmin();
-}
-
+   
 // ============================================
 
 async function cargarDashboard() {
@@ -1041,18 +1026,26 @@ function toggleMenu() {
     }
 }
 
-function showSection(sectionId) {
-    console.log('=== showSection llamado con:', sectionId); // ← DEBUG
+// Al final de app.js, reemplazar ambas versiones por esta:
+
+window.showSection = function(sectionId) {
+    console.log('showSection ejecutado:', sectionId);
     
-    // Cerrar menú
-    const nav = document.getElementById('adminNav');
-    const overlay = document.querySelector('.nav-overlay');
-    if (nav && nav.classList.contains('open')) {
-        nav.classList.remove('open');
-        if (overlay) overlay.classList.remove('active');
+    // Ocultar todas las secciones
+    document.querySelectorAll('.admin-section').forEach(s => {
+        s.classList.remove('active');
+    });
+    
+    // Mostrar la sección pedida
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.classList.add('active');
+        console.log('✅ Sección activada:', sectionId);
+    } else {
+        console.error('❌ No existe sección:', sectionId);
     }
     
-    // Actualizar título
+    // Actualizar título del header
     const titles = {
         'dashboard': 'Dashboard',
         'partidos': 'Partidos',
@@ -1060,36 +1053,33 @@ function showSection(sectionId) {
         'jugadores': 'Jugadores',
         'finanzas': 'Finanzas'
     };
-    
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) {
         pageTitle.textContent = titles[sectionId] || 'Admin';
     }
     
-    // Cambiar sección activa
-    const sections = document.querySelectorAll('.admin-section');
-    console.log('Total secciones encontradas:', sections.length); // ← DEBUG
+    // Cerrar menú hamburguesa
+    const nav = document.getElementById('adminNav');
+    const overlay = document.querySelector('.nav-overlay');
+    if (nav) nav.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
     
-    sections.forEach(section => {
-        section.classList.remove('active');
-        console.log('Removido active de:', section.id); // ← DEBUG
-    });
-    
-    const targetSection = document.getElementById(sectionId);
-    console.log('Target section encontrada:', !!targetSection); // ← DEBUG
-    
-    if (targetSection) {
-        targetSection.classList.add('active');
-        console.log('✅ Agregado active a:', sectionId); // ← DEBUG
-    } else {
-        console.error('❌ No se encontró la sección:', sectionId); // ← DEBUG
-    }
-    
-    // Actualizar menú
+    // Actualizar item activo en el menú
     document.querySelectorAll('.nav-menu li').forEach(item => {
         item.classList.remove('active');
-        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${sectionId}'`)) {
+        const onclick = item.getAttribute('onclick');
+        if (onclick && onclick.includes(`'${sectionId}'`)) {
             item.classList.add('active');
         }
     });
-}
+};
+
+window.toggleMenu = function() {
+    const nav = document.getElementById('adminNav');
+    const overlay = document.querySelector('.nav-overlay');
+    
+    if (nav && overlay) {
+        nav.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
+};
