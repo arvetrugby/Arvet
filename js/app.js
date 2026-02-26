@@ -1058,3 +1058,54 @@ function inicializarMapa() {
         console.error('❌ Error creando mapa:', error);
     }
 }
+// ============================================
+// ADMIN MOBILE - NAVEGACIÓN
+// ============================================
+
+function toggleMenu() {
+    const nav = document.getElementById('adminNav');
+    const overlay = document.querySelector('.nav-overlay');
+    
+    if (nav && overlay) {
+        nav.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
+}
+
+function showSection(sectionId) {
+    // Cerrar menú
+    toggleMenu();
+    
+    // Actualizar título
+    const titles = {
+        'dashboard': 'Dashboard',
+        'partidos': 'Partidos',
+        'cuotas': 'Cuotas',
+        'jugadores': 'Jugadores',
+        'finanzas': 'Finanzas'
+    };
+    
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.textContent = titles[sectionId] || 'Admin';
+    }
+    
+    // Cambiar sección activa
+    document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+    
+    // Actualizar menú
+    document.querySelectorAll('.nav-menu li').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    if (event && event.target) {
+        event.target.closest('li').classList.add('active');
+    }
+}
