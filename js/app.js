@@ -302,14 +302,16 @@ function initLogin() {
         return;
     }
 
-    function showError(message) {
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
+    function showError(message, persistente = false) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+
+    if (!persistente) {
         setTimeout(() => {
             errorDiv.style.display = 'none';
-        }, 5000);
+        }, 3000);
     }
-
+}
     function setLoading(loading) {
         if (loading) {
             btnLogin.disabled = true;
@@ -357,7 +359,7 @@ function initLogin() {
 
            } else {
 
-    if (data.mensajePersonalizado) {
+   if (data.mensajePersonalizado) {
         showError(data.mensajePersonalizado);
     } else {
         showError(data.error || 'Credenciales incorrectas');
