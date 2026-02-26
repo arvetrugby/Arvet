@@ -309,7 +309,7 @@ function initLogin() {
     if (!persistente) {
         setTimeout(() => {
             errorDiv.style.display = 'none';
-        }, 3000);
+        }, 7000);
     }
 }
     function setLoading(loading) {
