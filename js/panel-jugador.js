@@ -46,7 +46,25 @@ document.addEventListener('DOMContentLoaded', async function() {
   } catch (err) {
     console.error(err);
   }
+function mostrarMensaje(texto, tipo = "ok") {
 
+  const div = document.getElementById('mensajePerfil');
+
+  div.textContent = texto;
+  div.style.display = "block";
+
+  if (tipo === "ok") {
+    div.style.backgroundColor = "#d4edda";
+    div.style.color = "#155724";
+  } else {
+    div.style.backgroundColor = "#f8d7da";
+    div.style.color = "#721c24";
+  }
+
+  setTimeout(() => {
+    div.style.display = "none";
+  }, 4000);
+}
   // 👇 AHORA el listener va acá adentro
   const form = document.getElementById('formPerfil');
 
@@ -78,10 +96,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       console.log("Respuesta update:", data);
 
       if (data.success) {
-        alert('Perfil actualizado correctamente');
+        mostrarMensaje("Perfil actualizado correctamente", "ok");
         location.reload(); // 👈 para ver los datos actualizados
       } else {
-        alert('Error al actualizar');
+        mostrarMensaje("Error al actualizar", "error");
       }
 
     } catch (error) {
