@@ -762,8 +762,6 @@ async function cargarPartidosEquipoPublico(equipoId) {
 }
 
 // ============================================
-// PÁGINA: ADMIN
-// ============================================
 
 function initAdmin() {
     console.log('Iniciando Admin');
@@ -799,38 +797,38 @@ function initAdmin() {
         currentDateEl.textContent = new Date().toLocaleDateString('es-ES');
     }
 
-   // Botón sitio público
-const btn = document.getElementById('btnVerSitio');
+    // Botón sitio público
+    const btn = document.getElementById('btnVerSitio');
 
-if (btn) {
-    // Detectar si estamos en GitHub Pages (repo /Arvet)
-    const BASE_PATH = window.location.pathname.includes('/Arvet') ? '/Arvet' : '';
+    if (btn) {
+        const BASE_PATH = window.location.pathname.includes('/Arvet') ? '/Arvet' : '';
 
-    if (currentUser.slug) {
-        btn.addEventListener('click', function() {
-            window.location.href = `${BASE_PATH}/${currentUser.slug}`;
-        });
+        if (currentUser.slug) {
+            btn.addEventListener('click', function() {
+                window.location.href = `${BASE_PATH}/${currentUser.slug}`;
+            });
 
-    } else if (currentUser.equipoId) {
+        } else if (currentUser.equipoId) {
 
-        btn.addEventListener('click', async function() {
-            try {
-                const response = await window.fetchAPI('getEquipoBySlug', { 
-                    slug: currentUser.equipoId 
-                });
+            btn.addEventListener('click', async function() {
+                try {
+                    const response = await window.fetchAPI('getEquipoBySlug', { 
+                        slug: currentUser.equipoId 
+                    });
 
-                if (response.success && response.data.slug) {
-                    window.location.href = `${BASE_PATH}/${response.data.slug}`;
-                } else {
-                    window.location.href = `${BASE_PATH}/${currentUser.equipoId}l`;
+                    if (response.success && response.data.slug) {
+                        window.location.href = `${BASE_PATH}/${response.data.slug}`;
+                    } else {
+                        window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
+                    }
+
+                } catch (e) {
+                    window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
                 }
-
-            } catch (e) {
-                window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
-            }
-        });
+            });
+        }
     }
-}
+
     // Navegación de secciones
     window.showSection = function(sectionId) {
         document.querySelectorAll('.section-content')
@@ -843,10 +841,11 @@ if (btn) {
     cargarDashboard();
     cargarJugadoresAdmin();
     
-    // Llamar funciones de otros archivos si existen
     if (typeof cargarPartidosAdmin === 'function') cargarPartidosAdmin();
     if (typeof cargarCuotasAdmin === 'function') cargarCuotasAdmin();
 }
+
+// ============================================
 
 async function cargarDashboard() {
     const statJugadores = document.getElementById('statJugadores');
@@ -859,6 +858,10 @@ async function cargarDashboard() {
     if (statRecaudacion) statRecaudacion.textContent = '$450.000';
     if (statDeuda) statDeuda.textContent = '$125.000';
 }
+
+// ============================================
+// JUGADORES ADMIN CON APROBAR / PENDIENTE / ELIMINAR
+// ============================================
 
 async function cargarJugadoresAdmin() {
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
@@ -877,31 +880,88 @@ async function cargarJugadoresAdmin() {
             const tbody = document.querySelector('#tablaJugadores tbody');
             if (!tbody) return;
 
-            tbody.innerHTML = response.data.map(j => `
-                <tr>
-                    <td>${j.numeroCamiseta || '-'}</td>
-                    <td>${j.nombre} ${j.apellido || ''}</td>
-                    <td>${j.posicion || '-'}</td>
-                    <td>${j.email || '-'}</td>
-                    <td>
-                        <span class="badge badge-success">
-                            ${j.rol || 'Jugador'}
-                        </span>
-                    </td>
-                    <td>
+            tbody.innerHTML = response.data.map(j => {
+
+                const estado = j.estado || 'Pendiente';
+
+                let botonEstado = '';
+
+                if (estado === 'Pendiente') {
+                    botonEstado = `
                         <button class="btn-action btn-edit"
-                            onclick="editarJugador('${j.id}')">
-                            Editar
+                            onclick="cambiarEstadoJugador('${j.id}', 'Activo')">
+                            Aprobar
                         </button>
-                    </td>
-                </tr>
-            `).join('');
+                    `;
+                } else if (estado === 'Activo') {
+                    botonEstado = `
+                        <button class="btn-action btn-edit"
+                            onclick="cambiarEstadoJugador('${j.id}', 'Pendiente')">
+                            Pasar a Pendiente
+                        </button>
+                    `;
+                }
+
+                return `
+                    <tr>
+                        <td>${j.numeroCamiseta || '-'}</td>
+                        <td>${j.nombre} ${j.apellido || ''}</td>
+                        <td>${j.posicion || '-'}</td>
+                        <td>${j.email || '-'}</td>
+                        <td>
+                            <span class="badge ${estado === 'Activo' ? 'badge-success' : 'badge-warning'}">
+                                ${estado}
+                            </span>
+                        </td>
+                        <td>
+                            ${botonEstado}
+                            <button class="btn-action btn-delete"
+                                onclick="eliminarJugador('${j.id}')">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
     } catch (error) {
         console.error('Error cargando jugadores admin:', error);
     }
 }
+
+// ============================================
+// FUNCIONES NUEVAS
+// ============================================
+
+async function cambiarEstadoJugador(id, nuevoEstado) {
+    const response = await window.fetchAPI('updateEstadoJugador', {
+        id: id,
+        estado: nuevoEstado
+    });
+
+    if (response.success) {
+        cargarJugadoresAdmin();
+    } else {
+        alert('Error: ' + response.error);
+    }
+}
+
+async function eliminarJugador(id) {
+    if (!confirm('¿Seguro que querés eliminar este jugador?')) return;
+
+    const response = await window.fetchAPI('deleteJugador', {
+        id: id
+    });
+
+    if (response.success) {
+        cargarJugadoresAdmin();
+    } else {
+        alert('Error: ' + response.error);
+    }
+}
+
+// ============================================
 
 window.nuevoJugador = function() {
     alert('Función para crear nuevo jugador');
@@ -919,6 +979,7 @@ window.logout = function() {
     }
 }
 
+// ============================================
 // ============================================
 // MAPA (LEAFLET) - Para página equipo
 // ============================================
