@@ -355,10 +355,16 @@ function initLogin() {
                     window.location.href = 'index.html';
                 }
 
-            } else {
-                showError(data.error || 'Credenciales incorrectas');
-                setLoading(false);
-            }
+           } else {
+
+    if (data.mensajePersonalizado) {
+        showError(data.mensajePersonalizado);
+    } else {
+        showError(data.error || 'Credenciales incorrectas');
+    }
+
+    setLoading(false);
+}
 
         } catch (error) {
             console.error('Error de conexión:', error);
