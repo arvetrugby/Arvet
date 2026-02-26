@@ -17,7 +17,11 @@ function mostrarMensaje(texto, tipo = "ok") {
   if (!div) return;
 
   div.textContent = texto;
+
   div.style.display = "block";
+  div.style.opacity = "1";
+  div.style.transition = "opacity 0.5s ease";
+
   div.style.padding = "10px";
   div.style.marginBottom = "15px";
   div.style.borderRadius = "6px";
@@ -31,8 +35,13 @@ function mostrarMensaje(texto, tipo = "ok") {
   }
 
   setTimeout(() => {
-    div.style.display = "none";
-  }, 4000);
+    div.style.opacity = "0";
+
+    setTimeout(() => {
+      div.style.display = "none";
+    }, 500);
+
+  }, 5000); // ahora dura 5 segundos
 }
   try {
 
@@ -100,8 +109,17 @@ function mostrarMensaje(texto, tipo = "ok") {
       console.log("Respuesta update:", data);
 
       if (data.success) {
-        mostrarMensaje('Perfil actualizado correctamente', 'ok');
-        location.reload(); // 👈 para ver los datos actualizados
+  mostrarMensaje('Perfil actualizado correctamente', 'ok');
+
+  const updatedUser = {
+    ...user,
+    nombre: datosActualizados.nombre,
+    apellido: datosActualizados.apellido,
+    email: datosActualizados.email
+  };
+
+  localStorage.setItem('arvet_user', JSON.stringify(updatedUser));
+
       } else {
         mostrarMensaje('Error al actualizar', 'error');
       }
@@ -125,7 +143,7 @@ function mostrarMensaje(texto, tipo = "ok") {
       const nuevaPass = document.getElementById('nuevaPassword').value.trim();
 
       if (!nuevaPass) {
-        mostrarMensaje('Ingresa nueva contraseña', 'ok');
+        mostrarMensaje('Ingresa nueva contraseña', 'error');
         return;
       }
 
