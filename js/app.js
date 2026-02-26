@@ -391,7 +391,7 @@ function checkExistingSession() {
 function initRegistroJugador() {
     console.log('=== INICIO REGISTRO JUGADOR ===');
     // 🔥 Cerrar cualquier sesión activa
-    localStorage.removeItem('user');
+    localStorage.removeItem('arvet_user');
 
     // Obtener equipoId de la URL
     const urlParams = new URLSearchParams(window.location.search);
