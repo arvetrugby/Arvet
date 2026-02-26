@@ -390,7 +390,9 @@ function checkExistingSession() {
 
 function initRegistroJugador() {
     console.log('=== INICIO REGISTRO JUGADOR ===');
-    
+    // 🔥 Cerrar cualquier sesión activa
+    localStorage.removeItem('user');
+
     // Obtener equipoId de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const equipoId = urlParams.get('equipo');
