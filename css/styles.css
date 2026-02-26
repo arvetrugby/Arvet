@@ -379,3 +379,12 @@ h1, h2, h3 {
      left: -25px;
   }
 }
+/* TEST: Desactivar efectos de oscurecimiento */
+.navbar::before,
+.navbar::after {
+  display: none !important;
+}
+
+.hero {
+  background-blend-mode: normal !important;
+}
