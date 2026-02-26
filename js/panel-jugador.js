@@ -90,5 +90,62 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
   });
+  /*********************************
+   CAMBIAR CONTRASEÑA
+  *********************************/
 
+  const btnCambiarPass = document.getElementById('btnCambiarPass');
+
+  if (btnCambiarPass) {
+
+    btnCambiarPass.addEventListener('click', async function() {
+
+      const nuevaPass = document.getElementById('nuevaPassword').value.trim();
+
+      if (!nuevaPass) {
+        alert("Ingresá una nueva contraseña");
+        return;
+      }
+
+      try {
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'updatePassword',
+            id: user.id,
+            password: nuevaPass
+          })
+        });
+
+        const data = await response.json();
+        console.log("Respuesta updatePassword:", data);
+
+        if (data.success) {
+          alert("Contraseña actualizada correctamente");
+          document.getElementById('nuevaPassword').value = "";
+        } else {
+          alert("Error al actualizar contraseña");
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert("Error de conexión");
+      }
+
+    });
+
+  }
+  /*********************************
+   LOGOUT
+  *********************************/
+
+  const btnLogout = document.getElementById('btnLogout');
+
+  if (btnLogout) {
+    btnLogout.addEventListener('click', function() {
+      localStorage.removeItem('arvet_user');
+      window.location.href = 'login.html';
+    });
+  }
 });
