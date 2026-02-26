@@ -352,10 +352,12 @@ function initLogin() {
                 const rolesAdmin = ['Admin', 'Capitán', 'Manager'];
 
                 if (rolesAdmin.includes(user.rol)) {
-                    window.location.href = 'admin.html';
-                } else {
-                    window.location.href = 'index.html';
-                }
+               window.location.href = 'admin.html';
+               } else if (user.rol === 'Jugador') {
+               window.location.href = 'panel-jugador.html';
+               } else {
+                window.location.href = 'index.html';
+               }
 
            } else {
 
