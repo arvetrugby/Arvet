@@ -1,89 +1,56 @@
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', async function() {
 
   const user = JSON.parse(localStorage.getItem('arvet_user'));
 
-  if (!user || user.rol !== 'Jugador') {
+  if (!user) {
     window.location.href = 'login.html';
     return;
   }
 
-  /*********************************
-   MENSAJE VISUAL
-  *********************************/
-  function mostrarMensaje(texto, tipo = "ok") {
-
-    const div = document.getElementById('mensajePerfil');
-    if (!div) return;
-
-    div.textContent = texto;
-    div.style.display = "block";
-    div.style.padding = "10px";
-    div.style.marginBottom = "15px";
-    div.style.borderRadius = "6px";
-
-    if (tipo === "ok") {
-      div.style.backgroundColor = "#d4edda";
-      div.style.color = "#155724";
-    } else {
-      div.style.backgroundColor = "#f8d7da";
-      div.style.color = "#721c24";
-    }
-
-    setTimeout(() => {
-      div.style.display = "none";
-    }, 4000);
+  if (user.rol !== 'Jugador') {
+    window.location.href = 'login.html';
+    return;
   }
 
-  /*********************************
-   CARGAR DATOS DEL JUGADOR
-  *********************************/
-  async function cargarDatos() {
+  try {
 
-    try {
+    const response = await fetch(
+      `${API_URL}?action=getJugadorById&id=${user.id}`
+    );
 
-      const response = await fetch(
-        `${API_URL}?action=getJugadorById&id=${user.id}`
-      );
+    const data = await response.json();
+    console.log("Respuesta servidor:", data);
 
-      const data = await response.json();
+    if (data.success) {
 
-      if (data.success) {
+      const jugador = data.data;
 
-        const jugador = data.data;
+      document.getElementById('nombre').value = jugador.nombre || '';
+      document.getElementById('apellido').value = jugador.apellido || '';
+      document.getElementById('email').value = jugador.email || '';
+      document.getElementById('telefono').value = jugador.telefono || '';
 
-        document.getElementById('nombre').value = jugador.nombre || '';
-        document.getElementById('apellido').value = jugador.apellido || '';
-        document.getElementById('email').value = jugador.email || '';
-        document.getElementById('telefono').value = jugador.telefono || '';
-
-        if (jugador.fechaNacimiento) {
-          const fecha = new Date(jugador.fechaNacimiento);
-          const fechaFormateada = fecha.toISOString().split('T')[0];
-          document.getElementById('fechaNacimiento').value = fechaFormateada;
-        }
-
-        document.getElementById('dni').value = jugador.dni || '';
-        document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
-
-      } else {
-        mostrarMensaje("Error cargando perfil", "error");
+      if (jugador.fechaNacimiento) {
+        const fecha = new Date(jugador.fechaNacimiento);
+        const fechaFormateada = fecha.toISOString().split('T')[0];
+        document.getElementById('fechaNacimiento').value = fechaFormateada;
       }
 
-    } catch (err) {
-      console.error(err);
-      mostrarMensaje("Error de conexión", "error");
+      document.getElementById('dni').value = jugador.dni || '';
+      document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
+
+    } else {
+      alert('Error cargando perfil');
     }
+
+  } catch (err) {
+    console.error(err);
   }
 
-  await cargarDatos();
-
-  /*********************************
-   ACTUALIZAR PERFIL
-  *********************************/
+  // 👇 AHORA el listener va acá adentro
   const form = document.getElementById('formPerfil');
 
-  form.addEventListener('submit', async function (e) {
-
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const datosActualizados = {
@@ -101,7 +68,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'updateJugador',
           ...datosActualizados
@@ -109,86 +75,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
 
       const data = await response.json();
+      console.log("Respuesta update:", data);
 
       if (data.success) {
-
-        // Actualizar localStorage
-        const updatedUser = {
-          ...user,
-          nombre: datosActualizados.nombre,
-          apellido: datosActualizados.apellido,
-          email: datosActualizados.email
-        };
-
-        localStorage.setItem('arvet_user', JSON.stringify(updatedUser));
-
-        mostrarMensaje("Perfil actualizado correctamente", "ok");
-
+        alert('Perfil actualizado correctamente');
+        location.reload(); // 👈 para ver los datos actualizados
       } else {
-        mostrarMensaje("Error al actualizar perfil", "error");
+        alert('Error al actualizar');
       }
 
     } catch (error) {
       console.error(error);
-      mostrarMensaje("Error de conexión", "error");
+      alert('Error de conexión');
     }
 
   });
-
-  /*********************************
-   CAMBIAR CONTRASEÑA
-  *********************************/
-  const btnCambiarPass = document.getElementById('btnCambiarPass');
-
-  if (btnCambiarPass) {
-
-    btnCambiarPass.addEventListener('click', async function () {
-
-      const nuevaPass = document.getElementById('nuevaPassword').value.trim();
-
-      if (!nuevaPass) {
-        mostrarMensaje("Ingresá una nueva contraseña", "error");
-        return;
-      }
-
-      try {
-
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'updatePassword',
-            id: user.id,
-            password: nuevaPass
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          mostrarMensaje("Contraseña actualizada correctamente", "ok");
-          document.getElementById('nuevaPassword').value = "";
-        } else {
-          mostrarMensaje("Error al actualizar contraseña", "error");
-        }
-
-      } catch (err) {
-        mostrarMensaje("Error de conexión", "error");
-      }
-
-    });
-  }
-
-  /*********************************
-   LOGOUT
-  *********************************/
-  const btnLogout = document.getElementById('btnLogout');
-
-  if (btnLogout) {
-    btnLogout.addEventListener('click', function () {
-      localStorage.removeItem('arvet_user');
-      window.location.href = 'login.html';
-    });
-  }
 
 });
