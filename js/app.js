@@ -1042,6 +1042,8 @@ function toggleMenu() {
 }
 
 function showSection(sectionId) {
+    console.log('=== showSection llamado con:', sectionId); // ← DEBUG
+    
     // Cerrar menú
     const nav = document.getElementById('adminNav');
     const overlay = document.querySelector('.nav-overlay');
@@ -1065,19 +1067,27 @@ function showSection(sectionId) {
     }
     
     // Cambiar sección activa
-    document.querySelectorAll('.admin-section').forEach(section => {
+    const sections = document.querySelectorAll('.admin-section');
+    console.log('Total secciones encontradas:', sections.length); // ← DEBUG
+    
+    sections.forEach(section => {
         section.classList.remove('active');
+        console.log('Removido active de:', section.id); // ← DEBUG
     });
     
     const targetSection = document.getElementById(sectionId);
+    console.log('Target section encontrada:', !!targetSection); // ← DEBUG
+    
     if (targetSection) {
         targetSection.classList.add('active');
+        console.log('✅ Agregado active a:', sectionId); // ← DEBUG
+    } else {
+        console.error('❌ No se encontró la sección:', sectionId); // ← DEBUG
     }
     
-    // Actualizar menú - buscar el li que tiene el onclick con esta section
+    // Actualizar menú
     document.querySelectorAll('.nav-menu li').forEach(item => {
         item.classList.remove('active');
-        // Si el onclick de este li incluye esta sectionId, marcarlo como activo
         if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${sectionId}'`)) {
             item.classList.add('active');
         }
