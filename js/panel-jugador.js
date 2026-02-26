@@ -100,10 +100,10 @@ function mostrarMensaje(texto, tipo = "ok") {
       console.log("Respuesta update:", data);
 
       if (data.success) {
-        alert('Perfil actualizado correctamente');
+        mostrarMensaje('Perfil actualizado correctamente', 'ok');
         location.reload(); // 👈 para ver los datos actualizados
       } else {
-        alert('Error al actualizar');
+        mostrarMensaje('Error al actualizar', 'error');
       }
 
     } catch (error) {
