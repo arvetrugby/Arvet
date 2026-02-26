@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     );
 
     const data = await response.json();
-
+console.log("Respuesta servidor:", data);
     if (data.success) {
 
       const jugador = data.data;
