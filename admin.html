@@ -2,169 +2,149 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Administración - ARVET</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="admin-layout">
-        <!-- Sidebar -->
-        <!-- Reemplaza el sidebar de admin.html con esto: -->
+<body class="admin-body">
+    <!-- Header móvil -->
+    <header class="admin-header">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="user-info">
+            <span id="userName">Admin</span>
+        </div>
+    </header>
 
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <h2>ARVET</h2>
-        <p id="userName">Cargando...</p>
-        <small id="userRole" style="color: #94a3b8;">Rol</small>
-    </div>
-    
-    <ul class="sidebar-menu">
-        <li class="active" onclick="showSection('dashboard')">
-            <span>📊</span> Dashboard
-        </li>
-        <li onclick="showSection('partidos')">
-            <span>⚔️</span> Partidos
-        </li>
-        <li onclick="showSection('cuotas')">
-            <span>💰</span> Cuotas
-        </li>
-        <li onclick="showSection('jugadores')">
-            <span>👥</span> Jugadores
-        </li>
-        <li onclick="showSection('finanzas')">
-            <span>📈</span> Finanzas
-        </li>
+    <!-- Menú lateral -->
+    <nav class="admin-nav" id="adminNav">
+        <div class="nav-header">
+            <h2>ARVET</h2>
+            <p id="userRole">Rol</p>
+        </div>
         
-        <!-- Separador visual -->
-        <li style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
-            <button id="btnVerSitio" class="btn-full">
-    🌐 Ver Sitio Público
-</button>
-        </li>
+        <ul class="nav-menu">
+            <li class="active" onclick="showSection('dashboard')">
+                <span>📊</span> Dashboard
+            </li>
+            <li onclick="showSection('partidos')">
+                <span>⚔️</span> Partidos
+            </li>
+            <li onclick="showSection('cuotas')">
+                <span>💰</span> Cuotas
+            </li>
+            <li onclick="showSection('jugadores')">
+                <span>👥</span> Jugadores
+            </li>
+            <li onclick="showSection('finanzas')">
+                <span>📈</span> Finanzas
+            </li>
+        </ul>
         
-        <!-- 🔴 AQUÍ VA EL LOGOUT -->
-        <li onclick="logout()" style="color: #ef4444; cursor: pointer;">
-            <span>🚪</span> Cerrar Sesión
-        </li>
-    </ul>
-</aside>
+        <div class="nav-footer">
+            <button id="btnVerSitio" class="btn-secondary">
+                🌐 Ver Sitio Público
+            </button>
+            <button onclick="logout()" class="btn-logout">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </nav>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Dashboard -->
-            <div id="dashboard" class="section-content">
-                <div class="page-header">
-                    <h1>Dashboard</h1>
-                    <span id="currentDate"></span>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Jugadores Activos</h3>
+    <!-- Overlay para cerrar menú -->
+    <div class="nav-overlay" onclick="toggleMenu()"></div>
+
+    <!-- Contenido principal -->
+    <main class="admin-main">
+        <!-- Dashboard -->
+        <section id="dashboard" class="admin-section active">
+            <div class="section-header">
+                <h2>Resumen</h2>
+                <span id="currentDate"></span>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3>Jugadores</h3>
                         <div class="stat-value" id="statJugadores">0</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Partidos este mes</h3>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚔️</div>
+                    <div class="stat-info">
+                        <h3>Partidos</h3>
                         <div class="stat-value" id="statPartidos">0</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Recaudación mensual</h3>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <h3>Recaudación</h3>
                         <div class="stat-value" id="statRecaudacion">$0</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Deuda total</h3>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info">
+                        <h3>Deuda</h3>
                         <div class="stat-value text-danger" id="statDeuda">$0</div>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Partidos -->
-            <div id="partidos" class="section-content hidden">
-                <div class="page-header">
-                    <h1>Gestión de Partidos</h1>
-                    <button class="btn-primary" onclick="nuevoPartido()">+ Nuevo Partido</button>
-                </div>
-                <div class="table-container">
-                    <table id="tablaPartidos">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Rival</th>
-                                <th>Lugar</th>
-                                <th>Precio</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+        <!-- Partidos -->
+        <section id="partidos" class="admin-section">
+            <div class="section-header">
+                <h2>Partidos</h2>
+                <button class="btn-fab" onclick="nuevoPartido()">+</button>
             </div>
+            <div class="list-container" id="listaPartidos">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </section>
 
-            <!-- Cuotas -->
-            <div id="cuotas" class="section-content hidden">
-                <div class="page-header">
-                    <h1>Gestión de Cuotas</h1>
-                </div>
-                <div class="table-container">
-                    <table id="tablaCuotas">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Tipo</th>
-                                <th>Mes</th>
-                                <th>Monto</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+        <!-- Cuotas -->
+        <section id="cuotas" class="admin-section">
+            <div class="section-header">
+                <h2>Cuotas</h2>
             </div>
+            <div class="list-container" id="listaCuotas">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </section>
 
-            <!-- Jugadores -->
-            <div id="jugadores" class="section-content hidden">
-                <div class="page-header">
-                    <h1>Gestión de Jugadores</h1>
-                    <button class="btn-primary" onclick="nuevoJugador()">+ Nuevo Jugador</button>
-                </div>
-                <div class="table-container">
-                    <table id="tablaJugadores">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nombre</th>
-                                <th>Posición</th>
-                                <th>Email</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+        <!-- Jugadores -->
+        <section id="jugadores" class="admin-section">
+            <div class="section-header">
+                <h2>Jugadores</h2>
+                <button class="btn-fab" onclick="nuevoJugador()">+</button>
             </div>
+            <div class="list-container" id="listaJugadores">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </section>
 
-            <!-- Finanzas -->
-            <div id="finanzas" class="section-content hidden">
-                <div class="page-header">
-                    <h1>Resumen Financiero</h1>
-                </div>
-                <div id="finanzasContent">
-                    <p>Cargando datos financieros...</p>
-                </div>
+        <!-- Finanzas -->
+        <section id="finanzas" class="admin-section">
+            <div class="section-header">
+                <h2>Finanzas</h2>
             </div>
-        </main>
-    </div>
+            <div class="list-container" id="finanzasContent">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </section>
+    </main>
+
     <script src="js/app.js"></script>
     <script src="js/partidos.js"></script>
     <script src="js/cuotas.js"></script>
-
 </body>
 </html>
-    
-    
-   
-
