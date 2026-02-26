@@ -678,9 +678,11 @@ async function cargarJugadoresEquipo(equipoId) {
             console.log('No se pudieron cargar jugadores:', response.error);
             return;
         }
-        const jugadores = response.data.filter(j =>
-    j.estado && j.estado.trim() === 'Activo'
-);
+       const jugadores = Array.isArray(response.data)
+    ? response.data.filter(j =>
+        j.estado && j.estado.trim() === 'Activo'
+      )
+    : [];
        
         
         // Comisión: roles administrativos (todos los que tienen rol y no son "Jugador" puro)
