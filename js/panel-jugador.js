@@ -11,7 +11,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.location.href = 'login.html';
     return;
   }
+function mostrarMensaje(texto, tipo = "ok") {
 
+  const div = document.getElementById('mensajePerfil');
+  if (!div) return;
+
+  div.textContent = texto;
+  div.style.display = "block";
+  div.style.padding = "10px";
+  div.style.marginBottom = "15px";
+  div.style.borderRadius = "6px";
+
+  if (tipo === "ok") {
+    div.style.backgroundColor = "#d4edda";
+    div.style.color = "#155724";
+  } else {
+    div.style.backgroundColor = "#f8d7da";
+    div.style.color = "#721c24";
+  }
+
+  setTimeout(() => {
+    div.style.display = "none";
+  }, 4000);
+}
   try {
 
     const response = await fetch(
