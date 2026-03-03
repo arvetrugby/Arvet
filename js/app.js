@@ -839,12 +839,13 @@ function initAdmin() {
         currentUser = null;
     }
 
-    // 🔒 Protección de sesión
-    if (!currentUser) {
-        console.log('No hay usuario, redirigiendo a login');
-        window.location.href = "login.html";
-        return;
-    }
+   // 🔒 Protección de sesión REAL
+if (!currentUser || currentUser.rol !== "Admin") {
+    console.log('Acceso no autorizado');
+    localStorage.removeItem('admin_edit_jugador'); // limpia posibles residuos
+    window.location.href = "login.html";
+    return;
+}
 
     // Datos de usuario
     const userNameEl = document.getElementById('userName');
