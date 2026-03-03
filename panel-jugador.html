@@ -1,7 +1,14 @@
 <h2>Mi Perfil</h2>
 <button id="btnLogout">Cerrar sesión</button>
 <div id="mensajePerfil" style="display:none;"></div>
-
+<div style="margin-bottom:20px; text-align:center;">
+  <img id="avatarPreview"
+       src=""
+       style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid #ddd;">
+  <br><br>
+  <input type="file" id="inputAvatar" accept="image/*" style="display:none;">
+  <button type="button" id="btnCambiarAvatar">Cambiar foto</button>
+</div>
 <form id="formPerfil">
 
 <input type="text" id="nombre" placeholder="Nombre">
