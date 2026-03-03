@@ -1285,14 +1285,25 @@ function initConfigEquipo() {
 }
 
 // Inicializar cuando se muestra la sección
-const originalShowSection = window.showSection;
 window.showSection = function(sectionId) {
-    // Llamar función original si existe, o hacer el switch manual
-    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-    const target = document.getElementById(sectionId);
-    if (target) target.classList.add('active');
+    console.log('showSection ejecutado:', sectionId);
     
-    // Actualizar título
+    // Ocultar todas las secciones
+    document.querySelectorAll('.admin-section').forEach(s => {
+        s.classList.remove('active');
+    });
+    
+    // Mostrar la sección pedida
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.classList.add('active');
+        console.log('✅ Sección activada:', sectionId);
+    } else {
+        console.error('❌ No existe sección:', sectionId);
+        return;
+    }
+    
+    // Actualizar título del header
     const titles = {
         'dashboard': 'Dashboard',
         'partidos': 'Partidos',
@@ -1302,16 +1313,28 @@ window.showSection = function(sectionId) {
         'configuracion': 'Configuración'
     };
     const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) pageTitle.textContent = titles[sectionId] || 'Admin';
+    if (pageTitle) {
+        pageTitle.textContent = titles[sectionId] || 'Admin';
+    }
     
-    // Cerrar menú
+    // Cerrar menú hamburguesa
     const nav = document.getElementById('adminNav');
     const overlay = document.querySelector('.nav-overlay');
     if (nav) nav.classList.remove('open');
     if (overlay) overlay.classList.remove('active');
     
-    // 🔥 INICIALIZAR CONFIGURACIÓN
+    // Actualizar item activo en el menú
+    document.querySelectorAll('.nav-menu li').forEach(item => {
+        item.classList.remove('active');
+        const onclick = item.getAttribute('onclick');
+        if (onclick && onclick.includes(`'${sectionId}'`)) {
+            item.classList.add('active');
+        }
+    });
+    
+    // 🔥 INICIALIZAR CONFIGURACIÓN SI ES ESA SECCIÓN
     if (sectionId === 'configuracion') {
+        console.log('🔧 Inicializando configuración...');
         initConfigEquipo();
     }
 };
