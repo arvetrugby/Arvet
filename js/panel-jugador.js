@@ -300,10 +300,11 @@ if (btnSubirDocs) {
       const result = await response.json();
 
       if (result.success) {
-        mostrarMensaje("Documentación subida correctamente", "ok");
-      } else {
-        mostrarMensaje("Error al subir documentos", "error");
-      }
+  mostrarMensaje("Documentación subida correctamente", "ok");
+} else {
+  console.error(result.error);
+  mostrarMensaje("Error: " + result.error, "error");
+}
 
     } catch (error) {
       console.error(error);
