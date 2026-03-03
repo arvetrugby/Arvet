@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function() {
 
-  const user = JSON.parse(localStorage.getItem('arvet_user'));
+  const adminEditId = localStorage.getItem('admin_edit_jugador');
+let user = JSON.parse(localStorage.getItem('arvet_user'));
+
+let jugadorId = user?.id;
+
+// Si viene desde admin
+if (adminEditId) {
+  jugadorId = adminEditId;
+}
 
   if (!user || user.rol !== 'Jugador') {
     window.location.href = 'login.html';
@@ -46,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
 
     const response = await fetch(
-      `${API_URL}?action=getJugadorById&id=${user.id}`
+      `${API_URL}?action=getJugadorById&id=${jugadorId}`
     );
 
     const data = await response.json();
