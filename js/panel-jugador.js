@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         if (result.success) {
 
-          avatarUrlActual = result.data.url;
+          avatarUrlActual = result.data.thumb.url;
           avatarPreview.src = avatarUrlActual;
 
           mostrarMensaje("Imagen cargada correctamente", "ok");
