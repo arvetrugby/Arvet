@@ -839,13 +839,13 @@ function initAdmin() {
         currentUser = null;
     }
 
-   // 🔒 Protección de sesión REAL
-if (!currentUser || currentUser.rol !== "Admin") {
-    console.log('Acceso no autorizado');
-    localStorage.removeItem('admin_edit_jugador'); // limpia posibles residuos
-    window.location.href = "login.html";
-    return;
-}
+    // 🔒 Protección de sesión REAL
+    if (!currentUser || currentUser.rol !== "Admin") {
+        console.log('Acceso no autorizado');
+        localStorage.removeItem('admin_edit_jugador');
+        window.location.href = "login.html";
+        return;
+    }
 
     // Datos de usuario
     const userNameEl = document.getElementById('userName');
@@ -870,7 +870,6 @@ if (!currentUser || currentUser.rol !== "Admin") {
             });
 
         } else if (currentUser.equipoId) {
-
             btn.addEventListener('click', async function() {
                 try {
                     const response = await window.fetchAPI('getEquipoBySlug', { 
@@ -887,7 +886,7 @@ if (!currentUser || currentUser.rol !== "Admin") {
                     window.location.href = `${BASE_PATH}/${currentUser.equipoId}`;
                 }
             });
-               }
+        } 
     }
 
     // Inicializar funciones
