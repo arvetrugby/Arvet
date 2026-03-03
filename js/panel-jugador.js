@@ -92,7 +92,8 @@ function mostrarMensaje(texto, tipo = "ok") {
       telefono: document.getElementById('telefono').value.trim(),
       fechaNacimiento: document.getElementById('fechaNacimiento').value,
       dni: document.getElementById('dni').value.trim(),
-      cuitCuil: document.getElementById('cuitCuil').value.trim()
+      cuitCuil: document.getElementById('cuitCuil').value.trim(),
+      avatarUrl: avatarUrlActual
     };
 
     try {
