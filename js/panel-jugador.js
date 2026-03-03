@@ -262,23 +262,44 @@ if (btnSubirDocs) {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("action", "subirDocumentos");
-    formData.append("idJugador", user.id);
-    formData.append("apto", apto);
-    formData.append("estudios", estudios);
-    formData.append("deslinde", deslinde);
+    // Convertir a Base64
+    const toBase64 = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = error => reject(error);
+    });
+
+    const data = {
+      action: "subirDocumentos",
+      idJugador: user.id,
+      apto: {
+        name: apto.name,
+        type: apto.type,
+        data: await toBase64(apto)
+      },
+      estudios: {
+        name: estudios.name,
+        type: estudios.type,
+        data: await toBase64(estudios)
+      },
+      deslinde: {
+        name: deslinde.name,
+        type: deslinde.type,
+        data: await toBase64(deslinde)
+      }
+    };
 
     try {
 
       const response = await fetch(API_URL, {
         method: "POST",
-        body: formData
+        body: JSON.stringify(data)
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data.success) {
+      if (result.success) {
         mostrarMensaje("Documentación subida correctamente", "ok");
       } else {
         mostrarMensaje("Error al subir documentos", "error");
