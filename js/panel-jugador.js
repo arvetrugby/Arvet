@@ -78,7 +78,40 @@ document.addEventListener('DOMContentLoaded', async function() {
       } else {
         avatarImg.src = 'https://i.ibb.co/xxxxx/avatar-default.png';
       }
+      /*********************************
+ MOSTRAR DOCUMENTOS EXISTENTES
+*********************************/
 
+const aptoDiv = document.getElementById("aptoLink");
+const estudiosDiv = document.getElementById("estudiosLink");
+const deslindeDiv = document.getElementById("deslindeLink");
+
+if (jugador.apto) {
+  aptoDiv.innerHTML = `
+    <a href="${jugador.apto}" target="_blank">📄 Ver apto médico</a>
+    <button onclick="eliminarDocumento('apto')" class="btnEliminarDoc">❌</button>
+  `;
+} else {
+  aptoDiv.innerHTML = `<span style="color:red">No cargado</span>`;
+}
+
+if (jugador.estudios) {
+  estudiosDiv.innerHTML = `
+    <a href="${jugador.estudios}" target="_blank">📄 Ver estudios</a>
+    <button onclick="eliminarDocumento('estudios')" class="btnEliminarDoc">❌</button>
+  `;
+} else {
+  estudiosDiv.innerHTML = `<span style="color:red">No cargado</span>`;
+}
+
+if (jugador.deslinde) {
+  deslindeDiv.innerHTML = `
+    <a href="${jugador.deslinde}" target="_blank">📄 Ver deslinde</a>
+    <button onclick="eliminarDocumento('deslinde')" class="btnEliminarDoc">❌</button>
+  `;
+} else {
+  deslindeDiv.innerHTML = `<span style="color:red">No cargado</span>`;
+}
     } else {
       alert('Error cargando perfil');
     }
@@ -257,12 +290,11 @@ if (btnSubirDocs) {
     const estudios = document.getElementById("estudios").files[0];
     const deslinde = document.getElementById("deslinde").files[0];
 
-    if (!apto || !estudios || !deslinde) {
-      mostrarMensaje("Todos los documentos son obligatorios", "error");
+    if (!apto && !estudios && !deslinde) {
+      mostrarMensaje("Seleccioná al menos un documento", "error");
       return;
     }
 
-    // Convertir a Base64
     const toBase64 = file => new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -272,23 +304,32 @@ if (btnSubirDocs) {
 
     const data = {
       action: "subirDocumentos",
-      idJugador: user.id,
-      apto: {
+      idJugador: user.id
+    };
+
+    if (apto) {
+      data.apto = {
         name: apto.name,
         type: apto.type,
         data: await toBase64(apto)
-      },
-      estudios: {
+      };
+    }
+
+    if (estudios) {
+      data.estudios = {
         name: estudios.name,
         type: estudios.type,
         data: await toBase64(estudios)
-      },
-      deslinde: {
+      };
+    }
+
+    if (deslinde) {
+      data.deslinde = {
         name: deslinde.name,
         type: deslinde.type,
         data: await toBase64(deslinde)
-      }
-    };
+      };
+    }
 
     try {
 
@@ -300,11 +341,12 @@ if (btnSubirDocs) {
       const result = await response.json();
 
       if (result.success) {
-  mostrarMensaje("Documentación subida correctamente", "ok");
-} else {
-  console.error(result.error);
-  mostrarMensaje("Error: " + result.error, "error");
-}
+        mostrarMensaje("Documentación actualizada", "ok");
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        console.error(result.error);
+        mostrarMensaje("Error: " + result.error, "error");
+      }
 
     } catch (error) {
       console.error(error);
@@ -314,6 +356,38 @@ if (btnSubirDocs) {
   });
 
 }
+  /*********************************
+   ELIMINAR DOCUMENTO DRIVE
+  *********************************/
+  window.eliminarDocumento = async function(tipo) {
+
+  if (!confirm("¿Seguro que querés eliminar este documento?")) return;
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "eliminarDocumento",
+        idJugador: user.id,
+        tipo: tipo
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      mostrarMensaje("Documento eliminado", "ok");
+      location.reload();
+    } else {
+      mostrarMensaje("Error al eliminar", "error");
+    }
+
+  } catch (error) {
+    console.error(error);
+    mostrarMensaje("Error de conexión", "error");
+  }
+};
   /*********************************
    LOGOUT
   *********************************/
