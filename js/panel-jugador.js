@@ -130,6 +130,16 @@ function mostrarMensaje(texto, tipo = "ok") {
     }
 
   });
+/*********************************
+   AVATAR
+  *********************************/
+  const avatarImg = document.getElementById('avatarPreview');
+
+if (jugador.avatarUrl) {
+  avatarImg.src = jugador.avatarUrl;
+} else {
+  avatarImg.src = 'https://i.ibb.co/xxxxx/avatar-default.png'; // tu avatar default
+}
   /*********************************
    CAMBIAR CONTRASEÑA
   *********************************/
@@ -176,6 +186,57 @@ function mostrarMensaje(texto, tipo = "ok") {
     });
 
   }
+  /*********************************
+   CAMBIAR AVATAR
+  *********************************/
+let avatarUrlActual = null;
+
+const btnCambiarAvatar = document.getElementById('btnCambiarAvatar');
+const inputAvatar = document.getElementById('inputAvatar');
+const avatarPreview = document.getElementById('avatarPreview');
+
+if (btnCambiarAvatar) {
+
+  btnCambiarAvatar.addEventListener('click', () => {
+    inputAvatar.click();
+  });
+
+  inputAvatar.addEventListener('change', async function() {
+
+    const file = this.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+
+      const response = await fetch("https://api.imgbb.com/1/upload?key=TU_API_KEY", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+
+        avatarUrlActual = result.data.url;
+        avatarPreview.src = avatarUrlActual;
+
+        mostrarMensaje("Imagen cargada correctamente", "ok");
+
+      } else {
+        mostrarMensaje("Error subiendo imagen", "error");
+      }
+
+    } catch (err) {
+      console.error(err);
+      mostrarMensaje("Error de conexión con imgbb", "error");
+    }
+
+  });
+
+}
   /*********************************
    LOGOUT
   *********************************/
