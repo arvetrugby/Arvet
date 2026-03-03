@@ -16,7 +16,7 @@ const esAdminEditando = !!adminEditId;
   return;
 }
 
-const esAdminEditando = !!adminEditId;
+
 
 // Si NO es jugador y tampoco es admin editando → afuera
 if (user.rol !== 'Jugador' && !esAdminEditando) {
