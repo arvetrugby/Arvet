@@ -5,9 +5,7 @@ let user = JSON.parse(localStorage.getItem('arvet_user'));
 
 let jugadorId = user?.id;
 
-// Si viene desde admin
-if (esAdminEditando && user.rol === "Admin" && btnVolverAdmin)
-}
+
 const esAdminEditando = !!adminEditId;
   
   if (!user) {
