@@ -1041,23 +1041,48 @@ async function cargarJugadoresAdmin() {
                     ? `<button class="btn-action btn-warning" onclick="cambiarEstadoJugador('${j.id}', 'Pendiente')">Pasar a Pendiente</button>`
                     : `<button class="btn-action btn-success" onclick="cambiarEstadoJugador('${j.id}', 'Activo')">Aprobar</button>`;
 
-                return `
-                    <div class="list-item">
-                        <div class="list-item-info">
-                            <h4>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido || ''}</h4>
-                            <p>
-                                <span class="badge ${badgeClass}">${badgeText}</span>
-                                ${j.posicion ? `• ${j.posicion}` : ''}
-                                ${j.email ? `• ${j.email}` : ''}
-                            </p>
-                        </div>
-                        <div class="list-item-actions">
-    <button class="btn-action btn-primary" onclick="editarJugador('${j.id}')">Ver / Editar</button>
-    ${btnEstado}
-    <button class="btn-action btn-delete" onclick="eliminarJugador('${j.id}')">Eliminar</button>
-</div>
-                    </div>
-                `;
+               return `
+    <div class="list-item">
+        <div class="list-item-info">
+            <h4>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido || ''}</h4>
+            <p>
+                <span class="badge ${badgeClass}">${badgeText}</span>
+                ${j.posicion ? `• ${j.posicion}` : ''}
+                ${j.email ? `• ${j.email}` : ''}
+                ${j.rol && j.rol !== 'Jugador' ? `• <strong style="color: var(--primary);">${j.rol}</strong>` : ''}
+            </p>
+        </div>
+        <div class="list-item-actions">
+            <button class="btn-action btn-primary" onclick="editarJugador('${j.id}')">Ver / Editar</button>
+            ${btnEstado}
+            <button class="btn-action btn-delete" onclick="eliminarJugador('${j.id}')">Eliminar</button>
+            
+            <!-- Botones de Rol -->
+            <div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
+                <button class="btn-action ${j.rol === 'Jugador' ? 'btn-success' : 'btn-secondary'}" 
+                        onclick="cambiarRolJugador('${j.id}', 'Jugador')"
+                        style="font-size: 11px; padding: 4px 8px;">
+                    Jugador
+                </button>
+                <button class="btn-action ${j.rol === 'Capitán' ? 'btn-success' : 'btn-secondary'}" 
+                        onclick="cambiarRolJugador('${j.id}', 'Capitán')"
+                        style="font-size: 11px; padding: 4px 8px;">
+                    Capitán
+                </button>
+                <button class="btn-action ${j.rol === 'Manager' ? 'btn-success' : 'btn-secondary'}" 
+                        onclick="cambiarRolJugador('${j.id}', 'Manager')"
+                        style="font-size: 11px; padding: 4px 8px;">
+                    Manager
+                </button>
+                <button class="btn-action ${j.rol === 'Admin' ? 'btn-success' : 'btn-secondary'}" 
+                        onclick="cambiarRolJugador('${j.id}', 'Admin')"
+                        style="font-size: 11px; padding: 4px 8px;">
+                    Admin
+                </button>
+            </div>
+        </div>
+    </div>
+`;
             }).join('');
             
             console.log('✅ Jugadores renderizados:', response.data.length);
