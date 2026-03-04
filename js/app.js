@@ -924,13 +924,14 @@ function initAdmin() {
         currentUser = null;
     }
 
-    // 🔒 Protección de sesión REAL
-    if (!currentUser || currentUser.rol !== "Admin") {
-        console.log('Acceso no autorizado');
-        localStorage.removeItem('admin_edit_jugador');
-        window.location.href = "login.html";
-        return;
-    }
+  // 🔒 Protección de sesión - Admin, Capitán y Manager tienen acceso
+const rolesAdminPermitidos = ['Admin', 'Capitán', 'Manager'];
+if (!currentUser || !rolesAdminPermitidos.includes(currentUser.rol)) {
+    console.log('Acceso no autorizado - Rol:', currentUser?.rol);
+    localStorage.removeItem('admin_edit_jugador');
+    window.location.href = "login.html";
+    return;
+}
 
     // Datos de usuario
     const userNameEl = document.getElementById('userName');
