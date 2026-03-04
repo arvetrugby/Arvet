@@ -699,7 +699,7 @@ async function cargarEquipo(slug) {
                 await cargarPartidosEquipoPublico(equipo.id);
             }
             // 🔵 CARGAR GALERÍA
-            await cargarGaleriaEquipo(equipo.id);
+           cargarGaleriaEquipo(equipo.galeria);
         }
 
         // Configurar mapa...
@@ -725,8 +725,8 @@ async function cargarEquipo(slug) {
     }
 }
 
-// 🔵 NUEVA FUNCIÓN: Cargar Galería
-async function cargarGaleriaEquipo(equipoId) {
+// 🔵 Cargar Galería (desde datos ya cargados del equipo)
+function cargarGaleriaEquipo(galeria) {
     const container = document.getElementById('galeriaCarrusel');
     const dotsContainer = document.getElementById('galeriaDots');
     const sinGaleria = document.getElementById('sinGaleria');
@@ -735,63 +735,54 @@ async function cargarGaleriaEquipo(equipoId) {
     
     if (!container) return;
     
-    try {
-        const response = await window.fetchAPI('getGaleria', { equipoId });
-        
-        if (!response.success || !response.data || response.data.length === 0) {
-            container.style.display = 'none';
-            dotsContainer.style.display = 'none';
-            sinGaleria.style.display = 'block';
-            return;
-        }
-        
-        const imagenes = response.data;
-        console.log('Galería cargada:', imagenes.length, 'imágenes');
-        
-        // Generar HTML del carrusel
-        container.innerHTML = imagenes.map((img, index) => `
-            <div class="galeria-item" style="flex: 0 0 85%; scroll-snap-align: center; 
-                                              border-radius: 12px; overflow: hidden; 
-                                              box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <img src="${img.url}" alt="${img.descripcion || 'Foto del equipo'}" 
-                     style="width: 100%; height: 250px; object-fit: cover; display: block;">
-                ${img.descripcion ? `<p style="padding: 10px; margin: 0; background: white; font-size: 14px; color: #333;">${img.descripcion}</p>` : ''}
-            </div>
-        `).join('');
-        
-        // Generar dots indicadores
-        dotsContainer.innerHTML = imagenes.map((_, index) => `
+    // Si no hay galería o está vacía
+    if (!galeria || galeria.length === 0) {
+        container.style.display = 'none';
+        if (dotsContainer) dotsContainer.style.display = 'none';
+        if (sinGaleria) sinGaleria.style.display = 'block';
+        return;
+    }
+    
+    console.log('Galería cargada:', galeria.length, 'imágenes');
+    
+    // Generar HTML del carrusel
+    container.innerHTML = galeria.map((url, index) => `
+        <div class="galeria-item" style="flex: 0 0 85%; scroll-snap-align: center; 
+                                          border-radius: 12px; overflow: hidden; 
+                                          box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <img src="${url}" alt="Foto del equipo" 
+                 style="width: 100%; height: 250px; object-fit: cover; display: block;">
+        </div>
+    `).join('');
+    
+    // Generar dots indicadores
+    if (dotsContainer) {
+        dotsContainer.innerHTML = galeria.map((_, index) => `
             <span class="galeria-dot" onclick="irAGaleria(${index})" 
                   style="width: 10px; height: 10px; border-radius: 50%; 
                          background: ${index === 0 ? 'var(--primary, #3b82f6)' : '#cbd5e1'}; 
                          cursor: pointer; transition: all 0.3s;"></span>
         `).join('');
-        
-        // Mostrar botones de navegación en desktop
-        if (window.innerWidth > 768) {
-            btnPrev.style.display = 'block';
-            btnNext.style.display = 'block';
-        }
-        
-        // Listener para actualizar dots al scroll
-        container.addEventListener('scroll', () => {
-            const scrollLeft = container.scrollLeft;
-            const itemWidth = container.offsetWidth * 0.85 + 12; // 85% + gap
-            const activeIndex = Math.round(scrollLeft / itemWidth);
-            
-            document.querySelectorAll('.galeria-dot').forEach((dot, idx) => {
-                dot.style.background = idx === activeIndex ? 'var(--primary, #3b82f6)' : '#cbd5e1';
-                dot.style.transform = idx === activeIndex ? 'scale(1.2)' : 'scale(1)';
-            });
-        });
-        
-    } catch (error) {
-        console.error('Error cargando galería:', error);
-        container.style.display = 'none';
-        sinGaleria.style.display = 'block';
     }
+    
+    // Mostrar botones de navegación en desktop
+    if (window.innerWidth > 768) {
+        if (btnPrev) btnPrev.style.display = 'block';
+        if (btnNext) btnNext.style.display = 'block';
+    }
+    
+    // Listener para actualizar dots al scroll
+    container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const itemWidth = container.offsetWidth * 0.85 + 12;
+        const activeIndex = Math.round(scrollLeft / itemWidth);
+        
+        document.querySelectorAll('.galeria-dot').forEach((dot, idx) => {
+            dot.style.background = idx === activeIndex ? 'var(--primary, #3b82f6)' : '#cbd5e1';
+            dot.style.transform = idx === activeIndex ? 'scale(1.2)' : 'scale(1)';
+        });
+    });
 }
-
 // 🔵 FUNCIONES GLOBALES PARA GALERÍA
 window.moverGaleria = function(direccion) {
     const container = document.getElementById('galeriaCarrusel');
