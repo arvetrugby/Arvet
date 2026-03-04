@@ -1306,38 +1306,23 @@ function initConfigEquipo() {
     // GALERÍA (máximo 5 fotos)
     // ============================================
     
+    // Inicializar galería temporal en el objeto window para que sea global
+    window.galeriaTemporal = [];
+    
     const galeriaContainer = document.getElementById('galeriaAdminContainer');
     const btnAgregarFoto = document.getElementById('btnAgregarFoto');
     const inputGaleria = document.getElementById('inputGaleria');
     const btnGuardarGaleria = document.getElementById('btnGuardarGaleria');
     const galeriaMsg = document.getElementById('galeriaMsg');
     
-    let galeriaTemporal = []; // Array temporal de URLs
-    
-    // Cargar galería existente (mismo patrón que logo)
-    async function cargarGaleriaExistente() {
-        try {
-            const response = await fetch(`${API_URL}?action=getEquipoById&id=${currentUser.equipoId}`);
-            const data = await response.json();
-            
-            if (data.success && data.data.galeria) {
-                galeriaTemporal = data.data.galeria;
-                renderGaleriaAdmin();
-            }
-        } catch (err) {
-            console.log('No se pudo cargar galería existente');
-        }
-    }
-    cargarGaleriaExistente();
-    
-    // Renderizar fotos en el admin
-    function renderGaleriaAdmin() {
-        if (galeriaTemporal.length === 0) {
+    // Renderizar fotos en el admin (ahora es global)
+    window.renderGaleriaAdmin = function() {
+        if (window.galeriaTemporal.length === 0) {
             galeriaContainer.innerHTML = '<p style="color: #94a3b8; text-align: center; grid-column: 1/-1;">Sin fotos</p>';
             return;
         }
         
-        galeriaContainer.innerHTML = galeriaTemporal.map((url, index) => `
+        galeriaContainer.innerHTML = window.galeriaTemporal.map((url, index) => `
             <div style="position: relative; border-radius: 8px; overflow: hidden;">
                 <img src="${url}" style="width: 100%; height: 100px; object-fit: cover;">
                 <button onclick="eliminarFotoGaleria(${index})" 
@@ -1347,12 +1332,28 @@ function initConfigEquipo() {
             </div>
         `).join('');
         
-        galeriaMsg.textContent = `${galeriaTemporal.length}/5 fotos`;
+        galeriaMsg.textContent = `${window.galeriaTemporal.length}/5 fotos`;
+    };
+    
+    // Cargar galería existente (mismo patrón que logo)
+    async function cargarGaleriaExistente() {
+        try {
+            const response = await fetch(`${API_URL}?action=getEquipoById&id=${currentUser.equipoId}`);
+            const data = await response.json();
+            
+            if (data.success && data.data.galeria) {
+                window.galeriaTemporal = data.data.galeria;
+                window.renderGaleriaAdmin();
+            }
+        } catch (err) {
+            console.log('No se pudo cargar galería existente');
+        }
     }
+    cargarGaleriaExistente();
     
     // Agregar fotos (subir a ImgBB)
     btnAgregarFoto.addEventListener('click', () => {
-        const restantes = 5 - galeriaTemporal.length;
+        const restantes = 5 - window.galeriaTemporal.length;
         if (restantes <= 0) {
             showMsg('Máximo 5 fotos alcanzado', 'error');
             return;
@@ -1362,7 +1363,7 @@ function initConfigEquipo() {
     
     inputGaleria.addEventListener('change', async function() {
         const files = Array.from(this.files);
-        const restantes = 5 - galeriaTemporal.length;
+        const restantes = 5 - window.galeriaTemporal.length;
         
         if (files.length > restantes) {
             showMsg(`Solo podés agregar ${restantes} foto(s) más`, 'error');
@@ -1386,14 +1387,14 @@ function initConfigEquipo() {
                 const result = await response.json();
                 
                 if (result.success) {
-                    galeriaTemporal.push(result.data.url);
+                    window.galeriaTemporal.push(result.data.url);
                 }
             } catch (err) {
                 console.error('Error subiendo foto:', err);
             }
         }
         
-        renderGaleriaAdmin();
+        window.renderGaleriaAdmin();
         showMsg('✅ Fotos agregadas. Click en Guardar.', 'success');
     });
     
@@ -1407,7 +1408,7 @@ function initConfigEquipo() {
                 body: JSON.stringify({
                     action: 'updateEquipo',
                     id: currentUser.equipoId,
-                    galeria: galeriaTemporal
+                    galeria: window.galeriaTemporal
                 })
             });
             
@@ -1427,8 +1428,8 @@ function initConfigEquipo() {
 // Función global para eliminar foto (FUERA de initConfigEquipo)
 window.eliminarFotoGaleria = function(index) {
     if (!confirm('¿Eliminar esta foto?')) return;
-    galeriaTemporal.splice(index, 1);
-    renderGaleriaAdmin();
+    window.galeriaTemporal.splice(index, 1);
+    window.renderGaleriaAdmin();
 };
 
 // Inicializar cuando se muestra la sección
