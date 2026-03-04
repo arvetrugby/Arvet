@@ -51,6 +51,35 @@ window.formatCurrency = function(amount) {
     }).format(amount);
 };
 
+window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
+    if (!confirm(`¿Cambiar rol a "${nuevoRol}"?`)) return;
+    
+    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'asignarRolComision',
+                jugadorId: jugadorId,
+                rol: nuevoRol,
+                equipoId: currentUser.equipoId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Recargar lista de jugadores
+            cargarJugadoresAdmin();
+        } else {
+            alert('Error: ' + (result.error || 'No se pudo cambiar el rol'));
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error de conexión');
+    }
+};
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
 // ============================================
