@@ -194,11 +194,11 @@ async function buscarEquipos() {
         console.log(response);
         if (response.success && response.data.equipos.length > 0) {
             container.innerHTML = response.data.equipos.map(equipo => `
-                <div class="card" onclick="window.location.href='equipo.html?slug=${equipo.slug}'">
-                    <h3>${equipo.nombre}</h3>
-                    <p>Ver perfil del equipo →</p>
-                </div>
-            `).join('');
+    <div class="card" onclick="window.location.href='equipo.html?slug=${equipo.slug}'">
+        <h3>${equipo.nombre}</h3>
+        <p>${equipo.ciudad}, ${equipo.provincia}</p>
+    </div>
+`).join('');
         } else {
             container.innerHTML = '<p>No se encontraron equipos</p>';
         }
