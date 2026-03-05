@@ -1045,49 +1045,86 @@ height:180px;
 
 }
 /* ============================================
-   EQUIPOS BUSCADOR INDEX
+   BUSCADOR EQUIPOS - ARVET
    ============================================ */
+
 .results-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-gap:20px;
+display:flex;
+flex-direction:column;
+gap:12px;
 margin-top:20px;
 }
 
-.equipo-card{
+/* CARD RESULTADO */
+.equipo-card-busqueda{
+display:flex;
+align-items:center;
+gap:16px;
 background:white;
-padding:20px;
-border-radius:12px;
-text-align:center;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-transition:transform .2s;
+border-radius:14px;
+padding:14px 16px;
+cursor:pointer;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+transition:all .2s ease;
+border:1px solid rgba(0,0,0,0.05);
 }
 
-.equipo-card:hover{
-transform:translateY(-5px);
+.equipo-card-busqueda:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 24px rgba(0,0,0,0.12);
 }
 
+/* LOGO */
 .equipo-logo{
-width:80px;
-height:80px;
-object-fit:contain;
-margin-bottom:10px;
+width:60px;
+height:60px;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+flex-shrink:0;
 }
 
-.btn-ver{
-display:inline-block;
-margin-top:10px;
-background:#2563eb;
-color:white;
-padding:6px 12px;
-border-radius:6px;
-text-decoration:none;
+.equipo-logo img{
+width:42px;
+height:42px;
+object-fit:contain;
 }
+
+/* INFO */
+.equipo-info{
+display:flex;
+flex-direction:column;
+}
+
+.equipo-info h3{
+margin:0;
+font-size:17px;
+font-weight:700;
+color:#0f172a;
+}
+
+.equipo-info p{
+margin:2px 0;
+font-size:13px;
+color:#475569;
+}
+
+.equipo-info span{
+font-size:12px;
+color:#94a3b8;
+}
+
+/* ============================================
+   SLIDER EQUIPOS INDEX
+   ============================================ */
+
 .equipos-slider{
 display:flex;
 gap:16px;
 overflow-x:auto;
-padding:20px 0;
+padding:25px 0 10px 0;
 scroll-behavior:smooth;
 }
 
@@ -1095,7 +1132,23 @@ scroll-behavior:smooth;
 display:none;
 }
 
+/* CARD SLIDER */
 
+.equipo-card{
+min-width:160px;
+background:white;
+border-radius:16px;
+padding:18px;
+text-align:center;
+cursor:pointer;
+box-shadow:0 8px 22px rgba(0,0,0,0.08);
+transition:all .25s ease;
+}
+
+.equipo-card:hover{
+transform:translateY(-5px);
+box-shadow:0 14px 28px rgba(0,0,0,0.12);
+}
 
 .equipo-card img{
 width:60px;
@@ -1103,86 +1156,15 @@ height:60px;
 object-fit:contain;
 margin-bottom:10px;
 }
-.equipo-card h3 {
-  font-size: 16px;
-  margin: 0;
-}
 
-.equipo-card p {
-  font-size: 13px;
-  opacity: 0.8;
-}
-.equipo-card-busqueda{
-display:flex;
-align-items:center;
-gap:15px;
-background:#fff;
-border-radius:12px;
-padding:12px;
-margin-bottom:10px;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-transition:0.2s;
-}
-
-.equipo-card-busqueda:hover{
-transform:translateY(-3px);
-}
-
-
-
-.equipo-logo img{
-max-width:45px;
-max-height:45px;
-}
-
-.equipo-info h3{
+.equipo-card h3{
+font-size:15px;
 margin:0;
-font-size:16px;
+color:#0f172a;
 }
 
-.equipo-info p{
-margin:2px 0;
-font-size:13px;
-color:#666;
-}
-
-.equipo-info span{
+.equipo-card p{
 font-size:12px;
-color:#999;
-}
-.team-result{
-display:flex;
-align-items:center;
-gap:15px;
-padding:15px;
-border-radius:10px;
-margin-bottom:10px;
-color:white;
-cursor:pointer;
-transition:0.2s;
-}
-
-.team-result:hover{
-transform:scale(1.02);
-}
-
-.team-logo{
-width:55px;
-height:55px;
-object-fit:contain;
-background:white;
-border-radius:50%;
-padding:5px;
-}
-
-.team-info h3{
-margin:0;
-font-size:18px;
-}
-
-.team-info p{
-margin:0;
-font-size:13px;
-opacity:0.8;
+color:#64748b;
+margin-top:3px;
 }
