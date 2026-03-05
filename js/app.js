@@ -698,7 +698,8 @@ async function cargarEquipo(slug) {
         if (header) {
             header.innerHTML = `
                 <p>${equipo.nombre}</p>
-                <p>${equipo.ciudad} | ${equipo.provincia}</p> | ${equipo.pais}</p> 
+                <p>${equipo.ciudad} | ${equipo.provincia}</p>
+                <p>${equipo.pais}</p> 
                 <p>${equipo.descripcion || ''}</p>
             `;
         }
