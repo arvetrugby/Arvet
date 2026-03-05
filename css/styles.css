@@ -1047,6 +1047,42 @@ height:180px;
 /* ============================================
    EQUIPOS BUSCADOR INDEX
    ============================================ */
+.results-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.equipo-card{
+background:white;
+padding:20px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+transition:transform .2s;
+}
+
+.equipo-card:hover{
+transform:translateY(-5px);
+}
+
+.equipo-logo{
+width:80px;
+height:80px;
+object-fit:contain;
+margin-bottom:10px;
+}
+
+.btn-ver{
+display:inline-block;
+margin-top:10px;
+background:#2563eb;
+color:white;
+padding:6px 12px;
+border-radius:6px;
+text-decoration:none;
+}
 .equipos-slider{
 display:flex;
 gap:16px;
@@ -1059,19 +1095,7 @@ scroll-behavior:smooth;
 display:none;
 }
 
-.equipo-card{
-min-width:180px;
-border-radius:12px;
-padding:15px;
-color:white;
-cursor:pointer;
-flex-shrink:0;
-transition:transform .2s;
-}
 
-.equipo-card:hover{
-transform:scale(1.05);
-}
 
 .equipo-card img{
 width:60px;
@@ -1105,14 +1129,7 @@ transition:0.2s;
 transform:translateY(-3px);
 }
 
-.equipo-logo{
-width:60px;
-height:60px;
-border-radius:10px;
-display:flex;
-align-items:center;
-justify-content:center;
-}
+
 
 .equipo-logo img{
 max-width:45px;
