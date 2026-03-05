@@ -808,13 +808,16 @@ function cargarGaleriaEquipo(galeria) {
     // Generar HTML del carrusel
     container.innerHTML = galeria.map((url, index) => {
 
-const rotacion = (Math.random()*10 - 5).toFixed(2);
+    const rotacion = (Math.random() * 10 - 5).toFixed(2);
 
-return `
-<div class="galeria-item" style="transform:rotate(${rotacion}deg)">
-    <img src="${url}" loading="lazy" onclick="verFoto('${url}')">
-</div>
-`;
+    return `
+        <div class="galeria-item" style="transform: rotate(${rotacion}deg);">
+            <img src="${url}" 
+                 alt="Foto del equipo"
+                 loading="lazy"
+                 onclick="verFoto('${url}')">
+        </div>
+    `;
 
 }).join('');
         <div class="galeria-item" style="flex: 0 0 85%; scroll-snap-align: center; 
@@ -978,19 +981,7 @@ async function cargarPartidosEquipoPublico(equipoId) {
         console.error('Error cargando partidos:', error);
     }
 }
-window.verFoto = function(url){
 
-const visor = document.getElementById("visorFoto");
-const img = document.getElementById("visorImg");
-
-img.src = url;
-visor.style.display="flex";
-
-}
-
-document.getElementById("visorFoto").onclick = function(){
-this.style.display="none";
-}
 // ============================================
 
 function initAdmin() {
@@ -1721,3 +1712,16 @@ window.showSection = function(sectionId) {
         }
     }
 };
+window.verFoto = function(url){
+
+const visor = document.getElementById("visorFoto");
+const img = document.getElementById("visorImg");
+
+img.src = url;
+visor.style.display="flex";
+
+}
+
+document.getElementById("visorFoto").onclick = function(){
+this.style.display="none";
+}
