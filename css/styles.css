@@ -896,37 +896,44 @@ h1, h2, h3 {
    GALERÍA - Alto fijo 250px, ancho adaptable
    ============================================ */
 
-#galeriaCarrusel {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    gap: 12px;
-    padding: 20px 0;
-    scrollbar-width: none;
+ #galeriaCarrusel{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    justify-content:center;
+    overflow:visible;
+}
+
+.galeria-item{
+    height:200px;
+    width:auto;
+    position:relative;
+}
+
+.galeria-item img{
+    height:200px;
+    width:auto;
+    border-radius:10px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.25);
+    cursor:pointer;
+    transition:transform .25s;
+}
+
+.galeria-item img:hover{
+    transform:scale(1.05) rotate(0deg);
+    z-index:5;
+}
+    
+    .galeria-item {
+        max-width: 300px;
+    }
 }
 
 #galeriaCarrusel::-webkit-scrollbar {
     display: none;
 }
 
-.galeria-item {
-    flex: 0 0 auto;
-    scroll-snap-align: center;
-    height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.galeria-item img {
-    height: 250px;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    display: block;
-}
 /* ============================================
    RESPONSIVE - Mobile
    ============================================ */
@@ -954,8 +961,5 @@ h1, h2, h3 {
     #plantelGrid > div {
         height: 240px;
     }
-    
-    .galeria-item {
-        max-width: 300px;
-    }
-}
+
+  
