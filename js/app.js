@@ -252,6 +252,49 @@ async function buscarEquipos() {
 
     }
 }
+
+async function cargarEquiposInicio(){
+
+    const slider = document.getElementById("equiposSlider");
+
+    if(!slider) return;
+
+    slider.innerHTML = '<div class="loading">Cargando equipos...</div>';
+
+    try{
+
+        const response = await window.fetchAPI("getEquipos");
+
+        if(response.success){
+
+            slider.innerHTML = response.data.map(e => `
+
+<div class="equipo-card-slider"
+     onclick="window.location.href='equipo.html?slug=${e.slug}'">
+
+    <div class="equipo-logo"
+         style="background:${e.colorPrimario || '#334155'}">
+
+        <img src="${e.logoUrl || ''}" alt="${e.nombre}">
+
+    </div>
+
+    <p>${e.nombre}</p>
+
+</div>
+
+            `).join('');
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+        slider.innerHTML = '<p>Error cargando equipos</p>';
+
+    }
+
+}
 async function cargarProximosPartidos() {
     const container = document.getElementById('partidosList');
     if (!container) return;
