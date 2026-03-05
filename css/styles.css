@@ -828,68 +828,115 @@ h1, h2, h3 {
 
 
 
-
 /* ============================================
-   COMISIÓN DIRECTIVA - 3 por fila
+   COMISIÓN DIRECTIVA
    ============================================ */
 
 #comisionGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 24px;
 }
 
 #comisionGrid .card,
 #comisionGrid > div {
-    height: 320px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 20px;
+    text-align: center;
+    padding: 25px 20px;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
 }
 
-/* La foto redonda la maneja el JS, solo aseguro tamaño consistente */
+#comisionGrid .card:hover,
+#comisionGrid > div:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
 #comisionGrid img {
     width: 120px;
     height: 120px;
+    border-radius: 50%;
     object-fit: cover;
     margin-bottom: 15px;
 }
 
+
 /* ============================================
-   PLANTEL - 4 por fila
+   PLANTEL
    ============================================ */
 
 #plantelGrid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 22px;
 }
 
 #plantelGrid .card,
 #plantelGrid > div {
-    height: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 15px;
+    text-align: center;
+    padding: 18px 15px;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+#plantelGrid .card:hover,
+#plantelGrid > div:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
 
 #plantelGrid img {
-    width: 100px;
-    height: 100px;
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
     object-fit: cover;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+}
+
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+/* Tablets */
+@media (max-width: 1024px) {
+
+    #comisionGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #plantelGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+
+    #comisionGrid {
+        grid-template-columns: 1fr;
+    }
+
+    #plantelGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #plantelGrid img {
+        width: 85px;
+        height: 85px;
+    }
+
 }
 
 /* ============================================
