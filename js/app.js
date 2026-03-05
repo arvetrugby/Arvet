@@ -901,8 +901,7 @@ async function cargarJugadoresEquipo(equipoId) {
         if (comisionGrid) {
             comisionGrid.innerHTML = comision.map(j => `
                 <div class="card" style="text-align: center;">
-                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
-                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}>
                     <h3>${j.nombre} ${j.apellido}</h3>
                     <p class="badge badge-success">${j.rol}</p>
                 </div>
@@ -914,7 +913,7 @@ async function cargarJugadoresEquipo(equipoId) {
             plantelGrid.innerHTML = plantel.map(j => `
                 <div class="card" style="text-align: center;">
                     <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
-                         style="width: 120px; height: 120px; border-radius: 5%; object-fit: cover; margin-bottom: 10px;">
+                         style=" object-fit: cover;">
                     <h3> ${j.nombre} ${j.apellido}</h3>
                     
                     ${j.rol && j.rol !== 'Jugador' ? `<small style="color: var(--primary); font-weight: 600;">🛡️ ${j.rol}</small>` : ''}
