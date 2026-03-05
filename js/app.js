@@ -1086,6 +1086,7 @@ async function cargarJugadoresAdmin() {
         console.log('Respuesta jugadores:', response);
 
         if (response.success) {
+            localStorage.setItem('jugadores_cache', JSON.stringify(response.data));
             const container = document.getElementById('listaJugadores');
             
             if (!container) {
@@ -1160,7 +1161,24 @@ async function cargarJugadoresAdmin() {
         console.error('❌ Error cargando jugadores admin:', error);
     }
 }
+// ============================================
+// EDITAR JUGADOR DESDE ADMIN
+// ============================================
 
+function editarJugador(id) {
+
+    const jugadores = JSON.parse(localStorage.getItem('jugadores_cache') || '[]');
+
+    const jugador = jugadores.find(j => j.id == id);
+
+    if (jugador) {
+        localStorage.setItem('admin_edit_jugador', JSON.stringify(jugador));
+    } else {
+        localStorage.setItem('admin_edit_jugador', id);
+    }
+
+    window.location.href = "jugador.html";
+}
 // ============================================
 // FUNCIONES GLOBALES
 // ============================================
@@ -1447,6 +1465,7 @@ btnGuardarColor.addEventListener('click', async function() {
         showMsg('❌ Error de conexión', 'error');
     }
 });
+    
     // ============================================
     // GALERÍA (máximo 5 fotos)
     // ============================================
