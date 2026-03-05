@@ -978,7 +978,19 @@ async function cargarPartidosEquipoPublico(equipoId) {
         console.error('Error cargando partidos:', error);
     }
 }
+window.verFoto = function(url){
 
+const visor = document.getElementById("visorFoto");
+const img = document.getElementById("visorImg");
+
+img.src = url;
+visor.style.display="flex";
+
+}
+
+document.getElementById("visorFoto").onclick = function(){
+this.style.display="none";
+}
 // ============================================
 
 function initAdmin() {
