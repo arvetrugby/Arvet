@@ -60,6 +60,7 @@ h1, h2, h3 {
   font-weight: 800;
   font-stretch: 85%;
   letter-spacing: 1px;
+    line-height:1.2;
 }
 
 .container {
