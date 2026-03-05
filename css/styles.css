@@ -1088,3 +1088,38 @@ margin-bottom:10px;
   font-size: 13px;
   opacity: 0.8;
 }
+.team-result{
+display:flex;
+align-items:center;
+gap:15px;
+padding:15px;
+border-radius:10px;
+margin-bottom:10px;
+color:white;
+cursor:pointer;
+transition:0.2s;
+}
+
+.team-result:hover{
+transform:scale(1.02);
+}
+
+.team-logo{
+width:55px;
+height:55px;
+object-fit:contain;
+background:white;
+border-radius:50%;
+padding:5px;
+}
+
+.team-info h3{
+margin:0;
+font-size:18px;
+}
+
+.team-info p{
+margin:0;
+font-size:13px;
+opacity:0.8;
+}
