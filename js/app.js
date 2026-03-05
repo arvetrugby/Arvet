@@ -906,7 +906,7 @@ async function cargarJugadoresEquipo(equipoId) {
             plantelGrid.innerHTML = plantel.map(j => `
                 <div class="card" style="text-align: center;">
                     <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
-                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
+                         style="width: 120px; height: 120px; border-radius: 5%; object-fit: cover; margin-bottom: 10px;">
                     <h3>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido}</h3>
                     <p>${j.posicion || 'Jugador'}</p>
                     ${j.rol && j.rol !== 'Jugador' ? `<small style="color: var(--primary); font-weight: 600;">🛡️ ${j.rol}</small>` : ''}
