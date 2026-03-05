@@ -901,7 +901,8 @@ async function cargarJugadoresEquipo(equipoId) {
         if (comisionGrid) {
             comisionGrid.innerHTML = comision.map(j => `
                 <div class="card" style="text-align: center;">
-                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}>
+                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
+                         style=" object-fit: cover;">
                     <h3>${j.nombre} ${j.apellido}</h3>
                     <p class="badge badge-success">${j.rol}</p>
                 </div>
