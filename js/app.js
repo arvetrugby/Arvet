@@ -219,10 +219,7 @@ async function buscarEquipos() {
     <div class="equipo-logo"
          style="background:${e.colorPrimario || '#334155'}">
 
-        <img 
-            src="${e.logoUrl || 'images/default-team.png'}"
-            alt="${e.nombre}"
-        >
+        <img class="equipo-logo-img" src="${e.logoUrl ? e.logoUrl : 'images/default-team.png'}" alt="${e.nombre}">
 
     </div>
 
