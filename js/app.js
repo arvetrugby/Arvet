@@ -697,8 +697,8 @@ async function cargarEquipo(slug) {
         // Actualizar UI - Header
         if (header) {
             header.innerHTML = `
-                <h1>${equipo.nombre}</h1>
-                <p>${equipo.ciudad}, ${equipo.pais}</p>
+                <p>${equipo.nombre}</p>
+                <p>${equipo.ciudad}, ${equipo.pais}</p>, ${equipo.provincia}</p>
                 <p>${equipo.descripcion || ''}</p>
             `;
         }
