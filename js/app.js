@@ -191,6 +191,7 @@ async function buscarEquipos() {
     
     try {
         const response = await window.fetchAPI('buscar', { termino });
+        console.log(response);
         if (response.success && response.data.equipos.length > 0) {
             container.innerHTML = response.data.equipos.map(equipo => `
                 <div class="card" onclick="window.location.href='equipo.html?slug=${equipo.slug}'">
