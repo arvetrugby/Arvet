@@ -1669,60 +1669,7 @@ window.eliminarFotoGaleria = function(index) {
     window.renderGaleriaAdmin();
 };
 
-// Inicializar cuando se muestra la sección
-window.showSection = function(sectionId) {
-    console.log('showSection ejecutado:', sectionId);
-    
-    // Ocultar todas las secciones
-    document.querySelectorAll('.admin-section').forEach(s => {
-        s.classList.remove('active');
-    });
-    
-    // Mostrar la sección pedida
-    const target = document.getElementById(sectionId);
-    if (target) {
-        target.classList.add('active');
-        console.log('✅ Sección activada:', sectionId);
-    } else {
-        console.error('❌ No existe sección:', sectionId);
-        return;
-    }
-    
-    // Actualizar título del header
-    const titles = {
-        'dashboard': 'Dashboard',
-        'partidos': 'Partidos',
-        'cuotas': 'Cuotas',
-        'jugadores': 'Jugadores',
-        'finanzas': 'Finanzas',
-        'configuracion': 'Configuración'
-    };
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-        pageTitle.textContent = titles[sectionId] || 'Admin';
-    }
-    
-    // Cerrar menú hamburguesa
-    const nav = document.getElementById('adminNav');
-    const overlay = document.querySelector('.nav-overlay');
-    if (nav) nav.classList.remove('open');
-    if (overlay) overlay.classList.remove('active');
-    
-    // Actualizar item activo en el menú
-    document.querySelectorAll('.nav-menu li').forEach(item => {
-        item.classList.remove('active');
-        const onclick = item.getAttribute('onclick');
-        if (onclick && onclick.includes(`'${sectionId}'`)) {
-            item.classList.add('active');
-        }
-    });
-    
-    // 🔥 INICIALIZAR CONFIGURACIÓN SI ES ESA SECCIÓN
-    if (sectionId === 'configuracion') {
-        console.log('🔧 Inicializando configuración...');
-        initConfigEquipo();
-    }
-};
+
 
 // ============================================
 // ADMIN MOBILE - NAVEGACIÓN GLOBAL
@@ -1806,6 +1753,10 @@ visor.style.display="flex";
 
 }
 
-document.getElementById("visorFoto").onclick = function(){
-this.style.display="none";
+const visor = document.getElementById("visorFoto");
+
+if (visor) {
+    visor.onclick = function(){
+        this.style.display="none";
+    }
 }
