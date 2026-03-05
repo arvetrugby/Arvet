@@ -195,7 +195,7 @@ async function cargarPaises() {
 
 async function buscarEquipos() {
 
-    const termino = document.getElementById('searchInput').value;
+    const termino = document.getElementById('searchInput').value.trim();
     const container = document.getElementById('searchResults');
 
     if (!termino) {
@@ -209,7 +209,7 @@ async function buscarEquipos() {
 
         const response = await window.fetchAPI('buscar', { termino });
 
-        if (response.success && response.data.equipos.length > 0) {
+        if (response.success && response.data.equipos && response.data.equipos.length > 0) {
 
             container.innerHTML = response.data.equipos.map(e => `
 
@@ -217,9 +217,12 @@ async function buscarEquipos() {
      onclick="window.location.href='equipo.html?slug=${e.slug}'">
 
     <div class="equipo-logo"
-         style="background:${e.colorPrimario || '#444'}">
+         style="background:${e.colorPrimario || '#334155'}">
 
-        <img src="${e.logoUrl || 'images/default-team.png'}">
+        <img 
+            src="${e.logoUrl || 'images/default-team.png'}"
+            alt="${e.nombre}"
+        >
 
     </div>
 
@@ -230,7 +233,7 @@ async function buscarEquipos() {
         <p>${e.pais || ''}</p>
 
         <span>
-        ${e.provincia || ''} - ${e.ciudad || ''}
+        ${(e.provincia || '')} ${(e.ciudad ? ' - ' + e.ciudad : '')}
         </span>
 
     </div>
