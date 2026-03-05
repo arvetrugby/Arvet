@@ -252,7 +252,7 @@ if (jugador.deslinde) {
 
         if (result.success) {
 
-          avatarUrlActual = result.data.thumb.url;
+          avatarUrlActual = result.data.medium.url;
           avatarPreview.src = avatarUrlActual;
 
           mostrarMensaje("Imagen cargada correctamente", "ok");
