@@ -827,36 +827,136 @@ h1, h2, h3 {
 }
 
 
-/* Carrusel Galería - Mobile First */
+
+
+/* ============================================
+   COMISIÓN DIRECTIVA - 3 por fila
+   ============================================ */
+
+#comisionGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+#comisionGrid .card,
+#comisionGrid > div {
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* La foto redonda la maneja el JS, solo aseguro tamaño consistente */
+#comisionGrid img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+/* ============================================
+   PLANTEL - 4 por fila
+   ============================================ */
+
+#plantelGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+#plantelGrid .card,
+#plantelGrid > div {
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+#plantelGrid img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-bottom: 12px;
+}
+
+/* ============================================
+   GALERÍA - Alto fijo 250px, ancho adaptable
+   ============================================ */
+
+#galeriaCarrusel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding: 20px 0;
+    scrollbar-width: none;
+}
+
 #galeriaCarrusel::-webkit-scrollbar {
     display: none;
 }
 
 .galeria-item {
-    transition: transform 0.3s ease;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    height: 250px;
+    width: auto;
+    max-width: 400px;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.galeria-item:active {
-    transform: scale(0.98);
+.galeria-item img {
+    height: 250px;
+    width: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-/* Responsive */
-@media (min-width: 768px) {
-    .galeria-item {
-        flex: 0 0 300px !important;
+/* ============================================
+   RESPONSIVE - Mobile
+   ============================================ */
+
+@media (max-width: 1024px) {
+    #comisionGrid {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .galeria-item img {
-        height: 200px !important;
+    #plantelGrid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Admin Galería Grid */
-.galeria-admin-item {
-    transition: all 0.3s ease;
-}
-
-.galeria-admin-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+@media (max-width: 600px) {
+    #comisionGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    #plantelGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    #plantelGrid > div {
+        height: 240px;
+    }
+    
+    .galeria-item {
+        max-width: 300px;
+    }
 }
