@@ -923,12 +923,10 @@ h1, h2, h3 {
 .galeria-item img {
     height: 250px;
     width: auto;
-    max-width: 80vw;
+    max-width: 100%;
     object-fit: contain;
     display: block;
-    border-radius: 8px;
 }
-
 /* ============================================
    RESPONSIVE - Mobile
    ============================================ */
