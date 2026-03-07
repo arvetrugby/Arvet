@@ -196,5 +196,39 @@ Solicitar unirme al equipo
 </section>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/app.js"></script>
+    <script>
+
+const portadaLogo = document.getElementById("equipoLogo");
+const navbarEquipoLogo = document.getElementById("navbarEquipoLogo");
+const navbarLogo = document.getElementById("navbarLogo");
+
+function copiarLogo(){
+
+if(portadaLogo.src){
+navbarEquipoLogo.src = portadaLogo.src;
+}
+
+}
+
+const observer = new MutationObserver(copiarLogo);
+observer.observe(portadaLogo,{attributes:true});
+
+window.addEventListener("scroll",()=>{
+
+if(window.scrollY > 120){
+
+navbarEquipoLogo.classList.add("visible");
+navbarLogo.classList.add("hide");
+
+}else{
+
+navbarEquipoLogo.classList.remove("visible");
+navbarLogo.classList.remove("hide");
+
+}
+
+});
+
+</script>
     </body>
 </html>
