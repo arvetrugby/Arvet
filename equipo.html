@@ -16,7 +16,6 @@
 display:flex;
 justify-content:center;
 margin-top:20px;
-transition:all .45s ease;
 }
 
 #equipoLogo{
@@ -25,28 +24,10 @@ height:250px;
 object-fit:contain;
 padding:10px;
 box-shadow:0 4px 12px rgba(0,0,0,0.15);
-transition:all .45s ease;
+transition:transform .1s linear;
+transform-origin:center;
 }
 
-/* estado al hacer scroll */
-
-.logo-small{
-
-position:fixed;
-top:10px;
-left:20px;
-z-index:2000;
-
-}
-
-.logo-small #equipoLogo{
-
-width:40px;
-height:40px;
-padding:0;
-box-shadow:none;
-
-}
      #navbarEquipoLogo{
 height:45px;
 width:auto;
@@ -233,21 +214,30 @@ Solicitar unirme al equipo
 </section>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/app.js"></script>
-    <script>
+  <script>
 
-const logoContainer = document.getElementById("equipoLogoContainer");
+const logo = document.getElementById("equipoLogo");
 
 window.addEventListener("scroll",()=>{
 
-if(window.scrollY > 120){
+let scroll = window.scrollY;
 
-logoContainer.classList.add("logo-small");
+/*
+distancia de scroll donde ocurre el efecto
+puedes cambiar 300 para hacerlo más largo
+*/
 
-}else{
+let maxScroll = 300;
 
-logoContainer.classList.remove("logo-small");
+let scale = 1 - (scroll / maxScroll);
 
+/* límite mínimo del logo */
+
+if(scale < 0.18){
+scale = 0.18;
 }
+
+logo.style.transform = `scale(${scale})`;
 
 });
 
