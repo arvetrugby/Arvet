@@ -8,15 +8,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Georama:wdth,wght@75..100,400;75..100,600;75..100,700;75..100,800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-     
+
+    <style>
+     #navbarEquipoLogo{
+height:38px;
+width:auto;
+object-fit:contain;
+opacity:0;
+transform:translateY(-10px) scale(.8);
+transition:all .35s ease;
+}
+
+#navbarEquipoLogo.visible{
+opacity:1;
+transform:translateY(0) scale(1);
+}
+
+.navbar #navbarLogo.hide{
+opacity:0;
+}
+        </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-           <a href="index.html" class="logo">
+           a href="index.html" class="logo">
     <img id="navbarLogo" src="images/ARVET.png" alt="ARVET">
 </a>
+
+<img id="navbarEquipoLogo" src="" alt="Equipo">
             <div class="nav-links">
                 <a href="#portada">Inicio</a>
                 <a href="#quienes-somos">Nosotros</a>
