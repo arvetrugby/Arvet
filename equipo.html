@@ -10,30 +10,33 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
-        .logo-portada{
+       /* contenedor portada */
+
+.logo-portada{
 display:flex;
 justify-content:center;
-margin-top:20px;
+margin-top:40px;
 }
+
+/* logo grande */
 
 #equipoLogo{
 
-width:250px;
-height:250px;
+width:260px;
+height:260px;
 object-fit:contain;
 
-padding:10px;
-box-shadow:0 4px 12px rgba(0,0,0,0.15);
+padding:12px;
+background:white;
 
-position:relative;
-z-index:5;
+border-radius:16px;
 
-transition:
-transform .15s linear,
-top .35s ease,
-left .35s ease,
-width .35s ease,
-height .35s ease;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+
+transition:transform .45s cubic-bezier(.4,0,.2,1);
+
+z-index:10;
+
 }
 
 /* estado cuando llega al navbar */
@@ -42,7 +45,7 @@ height .35s ease;
 
 position:fixed;
 
-top:10px;
+top:8px;
 left:20px;
 
 width:60px;
@@ -50,16 +53,16 @@ height:60px;
 
 padding:0;
 box-shadow:none;
+border-radius:0;
 
 z-index:2000;
 
 }
 
-     
+/* animación suave */
 
-
-        #navbarLogo{
-transition:opacity .3s ease;
+#navbarLogo{
+transition:opacity .35s ease;
 }
         </style>
 </head>
@@ -67,11 +70,12 @@ transition:opacity .3s ease;
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-           <a href="index.html" class="logo">
-    <img id="navbarLogo" src="images/ARVET.png" alt="ARVET">
-</a>
+            <a href="index.html" class="logo">
+      <img id="navbarLogo" src="images/ARVET.png" alt="ARVET">
+    </a>
 
-<img id="navbarEquipoLogo" src="" alt="Equipo">
+
+
             <div class="nav-links">
                 <a href="#portada">Inicio</a>
                 <a href="#quienes-somos">Nosotros</a>
@@ -88,9 +92,9 @@ transition:opacity .3s ease;
     <div class="container">
          <!-- Logo del equipo -->
         <div id="equipoLogoContainer" class="logo-portada">
-            <img id="equipoLogo" src="" alt="Logo del equipo" 
-                 style="width: 250px; height: 250px; object-fit: contain;  
-                         padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;">
+            <div class="logo-portada">
+  <img id="equipoLogo" src="" alt="Logo equipo">
+</div>
         </div>
         <div id="equipoHeader">
             <div class="loading">Cargando equipo...</div>
@@ -239,32 +243,34 @@ let fixed = false;
 window.addEventListener("scroll", () => {
 
 const scroll = window.scrollY;
-const trigger = 220;
+const trigger = 260;
 
-/* reducción suave */
+/* reducción progresiva */
 
-let scale = 1 - (scroll / 400);
+let scale = 1 - scroll / 500;
 
-if(scale < 0.25) scale = 0.25;
+if(scale < 0.35) scale = 0.35;
 
 logo.style.transform = `scale(${scale})`;
 
-/* cuando llega al navbar */
+/* llegar al navbar */
 
 if(scroll > trigger && !fixed){
 
 logo.classList.add("logo-navbar");
+
 navbarLogo.style.opacity = "0";
 
 fixed = true;
 
 }
 
-/* volver a portada */
+/* volver arriba */
 
 if(scroll <= trigger && fixed){
 
 logo.classList.remove("logo-navbar");
+
 navbarLogo.style.opacity = "1";
 
 fixed = false;
