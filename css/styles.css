@@ -1351,8 +1351,10 @@ height:180px;
     display:flex;
     gap:20px;
     overflow-x:auto;
+    overflow-y:hidden;
     scroll-snap-type:x mandatory;
     padding:10px 0;
+    scroll-behavior:smooth;
 }
 
 .paises-slider::-webkit-scrollbar{
@@ -1361,6 +1363,7 @@ height:180px;
 
 .pais-card{
     flex:0 0 calc(25% - 15px);
+    min-width:250px;
     background:#1e293b;
     border-radius:12px;
     padding:20px;
