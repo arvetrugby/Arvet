@@ -211,7 +211,7 @@ pointer-events:auto;
         <div class="container">
            <a href="index.html" class="logo">
       <img id="navbarLogoArvet" src="images/ARVET.png" alt="ARVET">
-      <img id="navbarLogoEquipo" src="" alt="Equipo">
+      <img id="navbarLogoEquipo">
     </a>
 
 
@@ -235,7 +235,7 @@ pointer-events:auto;
          <!-- Logo del equipo -->
         <div id="equipoLogoContainer" class="logo-portada">
             <div class="logo-portada">
-  <img id="equipoLogo" src="" alt="Logo equipo">
+ <img id="equipoLogo">
 </div>
         </div>
         <div id="equipoHeader">
@@ -377,6 +377,21 @@ Solicitar unirme al equipo
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/app.js"></script>
     <script>
+
+        const equipoLogo = document.getElementById("equipoLogo");
+const navbarLogoEquipo = document.getElementById("navbarLogoEquipo");
+
+equipoLogo.src = data.logo;
+navbarLogoEquipo.src = data.logo;
+
+/* cuando cargue */
+
+equipoLogo.onload = () => {
+
+equipoLogo.classList.add("loaded");
+navbarLogoEquipo.classList.add("loaded");
+
+};
 const equipoLogo = document.getElementById("equipoLogo");
 const navbarLogoEquipo = document.getElementById("navbarLogoEquipo");
 const navbarLogoArvet = document.getElementById("navbarLogoArvet");
