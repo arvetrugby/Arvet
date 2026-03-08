@@ -234,47 +234,68 @@ h1, h2, h3 {
 
 /* ============================================
    SECCIONES INSTITUCIONALES
-   Todas con misma base azul
+   Fondo azul profesional + secciones full screen
    ============================================ */
 
 .buscador-section,
 .paises-section,
 .partidos-section,
 .main-content {
+
+  /* pantalla completa */
+  min-height: 100vh;
+
+  /* centrado elegante */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* separación interna */
+  padding: 80px 20px;
+
+  /* fondo */
   background: linear-gradient(
     140deg,
     rgba(10, 35, 80, 0.95),
     rgba(15, 60, 120, 0.85)
   );
-   color: white;  
-}
-.paises-section{
-  background: linear-gradient(
-    140deg,
-    rgba(10, 35, 80, 0.95),
-    rgba(15, 60, 120, 0.85)
-  );
-   color: white;
+
+  color: white;
+
+  /* división suave entre secciones */
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.partidos-section {
-  background: linear-gradient(
-    140deg,
-    rgba(10, 35, 80, 0.95),
-    rgba(15, 60, 120, 0.85)
-  );
-   color: white;
-}
-
-/* Mantengo cards blancas para contraste */
+/* ============================================
+   Cards y contenedores
+   Mantengo transparencia para estilo moderno
+   ============================================ */
 
 .pais-card,
 .partido-card,
 .card,
 .table-container,
 .stat-card {
-  background: transparent ;
-  
+  background: transparent;
+}
+
+/* ============================================
+   SCROLL SNAP (efecto landing page moderno)
+   ============================================ */
+
+html{
+  scroll-behavior: smooth;
+}
+
+body{
+  scroll-snap-type: y mandatory;
+}
+
+.buscador-section,
+.paises-section,
+.partidos-section,
+.main-content{
+  scroll-snap-align: start;
 }
 /* ============================================
    BUSCADOR ESTILO INSTITUCIONAL
