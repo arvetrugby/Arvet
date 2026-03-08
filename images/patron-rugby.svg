@@ -1,21 +1,63 @@
-<div class="wave-background">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
 
-<svg viewBox="0 0 1440 400" preserveAspectRatio="none">
-  
 <style>
+
+body{
+  margin:0;
+  font-family:Arial;
+}
+
+.main-content{
+  position:relative;
+  height:400px;
+  overflow:hidden;
+  color:white;
+}
+
+.wave-background{
+  position:absolute;
+  inset:0;
+  z-index:0;
+}
+
+.wave-background svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.contenido{
+  position:relative;
+  z-index:2;
+  padding:60px;
+}
+
 .wave1{ animation: waveMove1 18s linear infinite; }
 .wave2{ animation: waveMove2 25s linear infinite; }
 
 @keyframes waveMove1{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-300px); }
+  from{ transform: translateX(0); }
+  to{ transform: translateX(-300px); }
 }
 
 @keyframes waveMove2{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-600px); }
+  from{ transform: translateX(0); }
+  to{ transform: translateX(-600px); }
 }
+
 </style>
+</head>
+
+<body>
+
+<section class="main-content">
+
+<div class="wave-background">
+
+<svg viewBox="0 0 1440 400" preserveAspectRatio="none">
 
 <rect width="100%" height="100%" fill="#0b1f44"/>
 
@@ -41,13 +83,27 @@ V400 H0 Z"/>
 
 </div>
 
+<div class="contenido">
+<h1>Sección importante</h1>
+<p>Contenido encima del fondo animado</p>
+</div>
+
+</section>
+
 <script>
+
 const waves = document.querySelectorAll('.wave-background path');
 
 window.addEventListener('mousemove', e => {
   const speed = e.clientX / window.innerWidth;
+
   waves.forEach((w,i)=>{
     w.style.transform = `translateX(${-speed*50*(i+1)}px)`;
   });
+
 });
+
 </script>
+
+</body>
+</html>
