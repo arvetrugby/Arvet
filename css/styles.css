@@ -251,26 +251,22 @@ h1, h2, h3 {
   background-position: center;
   background-repeat: no-repeat;
    color: white;
+   filter: grayscale(100%) contrast(1.2);
   
 }
 .paises-section{
-  position: relative;
-   color: white;
-  background: linear-gradient(rgba(34, 61, 72, 0.6), rgba(34, 61, 72, 0.6));
-}
+  color: white;
 
-.paises-section::before{
-  content:"";
-  position:absolute;
-  inset:0;
+  background-image:
+    linear-gradient(rgba(34,61,72,0.6), rgba(34,61,72,0.6)),
+    url("../images/fondopaises.png");
 
-  background-image: url("../images/fondopaises.png");
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
 
   filter: grayscale(100%) contrast(1.2);
-  z-index:-1;
-} 
+}
  
 
 .partidos-section {
