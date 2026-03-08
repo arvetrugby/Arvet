@@ -244,9 +244,8 @@ h1, h2, h3 {
 .main-content {
   background: url("../images/patron-rugby.svg");
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-}
+background-size: cover;
+background-position: center;
 .paises-section {
   background: linear-gradient(
     140deg,
