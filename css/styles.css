@@ -1139,8 +1139,8 @@ height:180px;
 /* CARD SLIDER */
 .equipo-card-slider{
     flex:0 0 auto;
-    width:500px;
-   Height:300px;
+    width:300px;
+   Height:500px;
 
     background: #ffffff99;
     backdrop-filter:blur(12px);
@@ -1407,8 +1407,8 @@ height:180px;
 }
 
 .equipo-card-slider{
-     width:500px;
-   Height:300px;
+     width:300px;
+   Height:500px;
     padding:20px 10px;
 }
 
