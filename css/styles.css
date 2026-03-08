@@ -231,10 +231,9 @@ h1, h2, h3 {
   transform: translateY(-3px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-
 /* ============================================
    SECCIONES INSTITUCIONALES
-   Fondo azul profesional + secciones full screen
+   Todas con misma base azul
    ============================================ */
 
 .buscador-section,
@@ -242,18 +241,12 @@ h1, h2, h3 {
 .partidos-section,
 .main-content {
 
-  /* pantalla completa */
+  /* ocupa pantalla pero respeta contenido */
   min-height: 100vh;
-
-  /* centrado elegante */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 
   /* separación interna */
   padding: 80px 20px;
 
-  /* fondo */
   background: linear-gradient(
     140deg,
     rgba(10, 35, 80, 0.95),
@@ -262,13 +255,12 @@ h1, h2, h3 {
 
   color: white;
 
-  /* división suave entre secciones */
+  /* separación visual entre secciones */
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ============================================
-   Cards y contenedores
-   Mantengo transparencia para estilo moderno
+   CARDS
    ============================================ */
 
 .pais-card,
@@ -277,25 +269,6 @@ h1, h2, h3 {
 .table-container,
 .stat-card {
   background: transparent;
-}
-
-/* ============================================
-   SCROLL SNAP (efecto landing page moderno)
-   ============================================ */
-
-html{
-  scroll-behavior: smooth;
-}
-
-body{
-  scroll-snap-type: y mandatory;
-}
-
-.buscador-section,
-.paises-section,
-.partidos-section,
-.main-content{
-  scroll-snap-align: start;
 }
 /* ============================================
    BUSCADOR ESTILO INSTITUCIONAL
