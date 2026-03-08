@@ -276,7 +276,9 @@ h1, h2, h3 {
 .card,
 .table-container,
 .stat-card {
-  background: white;
+  background: white url("/img/patron-rugby.svg");
+  background-repeat: repeat;
+  background-size: 200px;
   color: var(--dark);
 }
 /* ============================================
