@@ -251,6 +251,9 @@ h1, h2, h3 {
   );
   color: white;
    background: url("../images/fondodecancha.png");
+   background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   
 }
 
