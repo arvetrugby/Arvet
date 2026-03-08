@@ -1140,7 +1140,7 @@ height:180px;
     min-height:220px;
     align-items:flex-start;
 
-    background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+    background:linear-gradient(135deg,#f8fafc99 0%,#f1f5f999 100%);
     border-radius:22px;
     margin-top:20px;
     position:relative;
@@ -1156,7 +1156,7 @@ height:180px;
     flex:0 0 auto;
     width:160px;
 
-    background:rgba(255,255,255,0.75);
+    background: #f1f5f999;
     backdrop-filter:blur(12px);
 
     border-radius:24px;
