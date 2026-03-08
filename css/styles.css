@@ -244,10 +244,13 @@ h1, h2, h3 {
 .main-content {
   position: relative;
   padding: 80px 0;
- background: white url("/images/patron-rugby.svg");
-  background-repeat: repeat;
-  background-size: 200px;
-  color: var(--dark);
+background-color: white;
+  background-image: url("data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
+  <line x1='0' y1='50' x2='200' y2='50' stroke='gray' stroke-opacity='0.08' stroke-width='2'/>
+  <line x1='0' y1='150' x2='200' y2='150' stroke='gray' stroke-opacity='0.08' stroke-width='2'/>
+  </svg>");
+
 }
 
 .paises-section {
