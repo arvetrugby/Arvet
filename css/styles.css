@@ -1187,7 +1187,7 @@ height:180px;
     left:0;
     right:0;
     height:45%;
-    background:linear-gradient(180deg,rgba(255,255,255,0.85),transparent);
+    background:linear-gradient(180deg,#f8fafc99,transparent);
     pointer-events:none;
 }
 
