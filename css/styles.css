@@ -1117,7 +1117,7 @@ height:180px;
 .equipos-slider{
     display:flex;
     flex-wrap:nowrap;
-    gap:10px;
+    gap:25px;
     overflow-x:auto;
     overflow-y:hidden;
     padding:0px 0px;
