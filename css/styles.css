@@ -1158,15 +1158,37 @@ background:
     border:1px solid rgba(255,255,255,0.6);
 
     box-shadow:
-        0 6px 10px rgba(0,0,0,0.05),
-        0 18px 25px rgba(0,0,0,0.08),
-        inset 0 1px 0 rgba(255,255,255,0.7);
+    0 6px 10px rgba(0,0,0,0.05),
+    0 18px 25px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    0 0 18px rgba(255,215,0,0.15);
 
     transition:all .35s cubic-bezier(.4,0,.2,1);
     position:relative;
     overflow:hidden;
 }
+.equipo-card-slider:hover{
+    transform:translateY(-8px) scale(1.03);
 
+    box-shadow:
+        0 22px 35px rgba(0,0,0,0.12),
+        0 10px 15px rgba(0,0,0,0.06),
+        0 0 30px rgba(255,215,0,0.35);
+}
+.equipo-card-slider .gold-particles{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+
+    background:
+    radial-gradient(circle at 25% 80%, rgba(255,215,0,.35) 0px, transparent 3px),
+    radial-gradient(circle at 45% 85%, rgba(255,215,0,.25) 0px, transparent 2px),
+    radial-gradient(circle at 60% 78%, rgba(255,215,0,.35) 0px, transparent 3px),
+    radial-gradient(circle at 75% 88%, rgba(255,215,0,.25) 0px, transparent 2px);
+
+    mix-blend-mode:screen;
+    opacity:.6;
+}
 /* brillo superior */
 .equipo-card-slider::before{
     content:'';
@@ -1183,25 +1205,25 @@ background:
 .equipo-card-slider::after{
     content:'';
     position:absolute;
-    bottom:0;
-    left:20%;
-    right:20%;
-    height:3px;
-    background:linear-gradient(90deg,transparent,var(--equipo-color,#3b82f6),transparent);
-    border-radius:3px;
-    opacity:0;
-    transition:.3s;
-}
+    bottom:-10px;
+    left:10%;
+    right:10%;
+    height:40px;
 
-.equipo-card-slider:hover{
-    transform:translateY(-8px) scale(1.03);
-    box-shadow:
-        0 22px 35px rgba(0,0,0,0.12),
-        0 10px 15px rgba(0,0,0,0.06);
-}
+    background:radial-gradient(
+        ellipse at center,
+        rgba(255,215,0,0.6) 0%,
+        rgba(255,215,0,0.25) 40%,
+        transparent 75%
+    );
 
+    filter:blur(8px);
+    opacity:.45;
+    transition:.35s;
+}
 .equipo-card-slider:hover::after{
-    opacity:1;
+    opacity:.9;
+    transform:scale(1.15);
 }
 
 
