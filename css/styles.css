@@ -1237,28 +1237,47 @@ content:"";
     z-index:4;
 
     background:
-    radial-gradient(circle at 25% 120%, rgba(255,215,0,.8) 0px, transparent 4px),
-    radial-gradient(circle at 45% 20%, rgba(255,215,0,.7) 0px, transparent 3px),
-    radial-gradient(circle at 60% 17%, rgba(255,215,0,.8) 0px, transparent 4px),
-    radial-gradient(circle at 75% 6%, rgba(255,215,0,.7) 0px, transparent 3px);
-
+    radial-gradient(circle at 10% 30%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 15% 55%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 22% 10%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 35% 60%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 40% 35%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 55% 50%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 65% 40%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 70% 65%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 82% 45%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 90% 30%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 12% 75%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 33% 82%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 58% 88%, rgba(255,215,0,.7) 0px, transparent 3px),
+radial-gradient(circle at 77% 78%, rgba(255,215,0,.8) 0px, transparent 4px),
+radial-gradient(circle at 92% 70%, rgba(255,215,0,.7) 0px, transparent 3px),
     mix-blend-mode:screen;
 
     animation:particlesUp 6s linear infinite;
    }
 @keyframes particlesUp{
 
-    0%{
-        transform:translateY(0);
-        opacity:.7;
+    %{
+        transform:translateY(60px); /* empiezan debajo del card */
+        opacity:0;
+    }
+
+    15%{
+        opacity:.6;
     }
 
     50%{
-        opacity:1;
+        transform:translateY(-10px);
+        opacity:.9;
+    }
+
+    85%{
+        opacity:.5;
     }
 
     100%{
-        transform:translateY(-40px);
+        transform:translateY(-120px); /* terminan bien arriba */
         opacity:0;
     }
 
