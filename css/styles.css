@@ -1277,29 +1277,37 @@ margin-left: 15px;
 
 /* NOMBRE EQUIPO */
 
-/* UBICACIÓN - en línea, arriba del nombre */
 .equipo-ubicacion {
+    position: absolute;
+    bottom: 32px; /* ajustá según necesites */
+    left: 50%;
+    transform: translateX(-50%);
+    
     font-size: 11px;
     font-weight: 600;
-    color: #0f172a; /* negro */
+    color: #0f172a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0 0 6px 0;
+    margin: 0;
     padding: 4px 10px;
-    background: #f8fafc; /* fondo gris muy claro tipo orla */
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 20px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    max-width: 90%;
 }
 
-/* NOMBRE - abajo, destacado */
 .equipo-nombre {
+    position: absolute;
+    bottom: 8px; /* debajo de ubicacion */
+    left: 50%;
+    transform: translateX(-50%);
+    
     font-size: 15px;
     font-weight: 800;
-    color: #0f172a; /* negro */
+    color: #0f172a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0;
@@ -1307,9 +1315,8 @@ margin-left: 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    max-width: 90%;
 }
-
 
 /* ============================================
    PAISES SLIDER - MISMO ESTILO QUE EQUIPOS
