@@ -301,6 +301,7 @@ async function cargarEquiposInicio(){
     try{
 
         const response = await window.fetchAPI("getEquipos");
+        console.log("Datos de getEquipos:", response.data);
 
         if(response.success){
 
