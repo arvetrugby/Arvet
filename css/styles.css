@@ -1196,53 +1196,70 @@ border:1px solid rgba(255,215,0,.6);
     pointer-events:none;
     z-index:3;
 
-    background:
+   
 
+    background:
     radial-gradient(circle at 20% 75%, rgba(255,215,0,.7) 0px, transparent 54px),
     radial-gradient(circle at 80% 75%, rgba(255,215,0,.6) 0px, transparent 64px),
-    radial-gradient(circle at 50% 78%, rgba(255,215,0,.7) 0px, transparent 54px),
-
-    radial-gradient(circle at 25% 120%, rgba(255,215,0,.8) 0px, transparent 4px),
-    radial-gradient(circle at 45% 20%, rgba(255,215,0,.7) 0px, transparent 3px),
-    radial-gradient(circle at 60% 17%, rgba(255,215,0,.8) 0px, transparent 4px),
-    radial-gradient(circle at 75% 6%, rgba(255,215,0,.7) 0px, transparent 3px);
+    radial-gradient(circle at 50% 78%, rgba(255,215,0,.7) 0px, transparent 54px);
 
     background-repeat:no-repeat;
 
     mix-blend-mode:screen;
     opacity:.6;
 
-    animation:particlesMove 6s linear infinite;
+    animation:stadiumLights 4s ease-in-out infinite;;
 }
 
-@keyframes particlesMove{
+@keyframes stadiumLights{
 
     0%{
-        transform:translateY(0);
-        background-size:
-        100% 100%, 100% 100%, 100% 100%,
-        100% 100%, 100% 100%, 100% 100%, 100% 100%;
+        transform:scale(1);
         opacity:.6;
     }
 
     50%{
-        transform:translateY(-6px);
-
-        background-size:
-        110% 110%, 110% 110%, 110% 110%,  /* luces grandes se agrandan */
-        100% 100%, 100% 100%, 100% 100%, 100% 100%;
-
-        opacity:.9;
+        transform:scale(1.08);
+        opacity:1;
     }
 
     100%{
-        transform:translateY(0);
-
-        background-size:
-        100% 100%, 100% 100%, 100% 100%,
-        100% 100%, 100% 100%, 100% 100%, 100% 100%;
-
+        transform:scale(1);
         opacity:.6;
+    }
+
+}
+.equipo-card-slider .gold-particles2{
+content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:4;
+
+    background:
+    radial-gradient(circle at 25% 120%, rgba(255,215,0,.8) 0px, transparent 4px),
+    radial-gradient(circle at 45% 20%, rgba(255,215,0,.7) 0px, transparent 3px),
+    radial-gradient(circle at 60% 17%, rgba(255,215,0,.8) 0px, transparent 4px),
+    radial-gradient(circle at 75% 6%, rgba(255,215,0,.7) 0px, transparent 3px);
+
+    mix-blend-mode:screen;
+
+    animation:particlesUp 6s linear infinite;
+   }
+@keyframes particlesUp{
+
+    0%{
+        transform:translateY(0);
+        opacity:.7;
+    }
+
+    50%{
+        opacity:1;
+    }
+
+    100%{
+        transform:translateY(-40px);
+        opacity:0;
     }
 
 }
