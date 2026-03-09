@@ -386,50 +386,66 @@
             margin: 0 auto;
         }
     }
-/* ocultar cards inicialmente */
-.features-grid .feature-card{
-opacity:0;
-transform:translateY(12px);
-pointer-events:none;
-transition:opacity .35s ease, transform .35s ease;
+/* CONTAINER: inicia colapsado */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  
+  /* La magia: altura controlada */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  
+  /* Transición suave de todo */
+  transition: max-height 0.5s ease, opacity 0.35s ease, padding 0.3s ease;
+  
+  /* Sin padding inicial */
+  padding: 0;
+  margin: 0;
 }
 
-/* cuando se abre */
-.features-grid.open .feature-card{
-opacity:1;
-transform:translateY(0);
-pointer-events:auto;
+/* CUANDO ESTÁ ABIERTO: se expande */
+.features-grid.open {
+  max-height: 1000px; /* Ajusta según tu contenido, o usa un valor muy alto */
+  opacity: 1;
+  padding: 20px 0;
 }
 
-/* boton container */
-.features-toggle{
-text-align:center;
-margin-top:30px;
+/* Las cards ya no necesitan animación individual */
+.features-grid .feature-card {
+  /* Reset de tu código anterior */
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
-/* boton */
-#toggleFeatures{
-background:#2563eb;
-color:white;
-border:none;
-padding:12px 28px;
-border-radius:8px;
-cursor:pointer;
-font-weight:600;
-transition:all .25s ease;
+/* Botón sin cambios */
+.features-toggle {
+  text-align: center;
+  margin-top: 30px;
 }
 
-/* hover animacion */
-#toggleFeatures:hover{
-transform:translateY(-2px);
-box-shadow:0 8px 20px rgba(0,0,0,0.15);
-background:#1d4ed8;
+#toggleFeatures {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
 }
 
-/* click */
-#toggleFeatures:active{
-transform:translateY(0);
-box-shadow:0 3px 10px rgba(0,0,0,0.15);
+#toggleFeatures:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background: #1d4ed8;
+}
+
+#toggleFeatures:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 </style>
 </head>
@@ -577,7 +593,9 @@ box-shadow:0 3px 10px rgba(0,0,0,0.15);
                 </div>
             </div>
             <div class="features-toggle">
-<button id="toggleFeatures">Ver más</button>
+  <button id="toggleFeatures" onclick="document.getElementById('featuresGrid').classList.toggle('open')">
+    Ver más
+  </button>
 </div>
         </div>
     </section>
@@ -655,19 +673,21 @@ window.addEventListener('load', actualizarStatsBar);
         </script>
     <script>
 
-const grid = document.querySelector(".features-grid");
-const button = document.getElementById("toggleFeatures");
+.features-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
 
-button.addEventListener("click", () => {
+.features-grid.open {
+  display: grid;
+  animation: fadeIn 0.3s ease;
+}
 
-grid.classList.toggle("open");
-
-button.textContent =
-grid.classList.contains("open")
-? "Ver menos"
-: "Ver más";
-
-});
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 </script>
 </body>
