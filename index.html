@@ -134,7 +134,6 @@
         align-items: center;
     }
     
-    
     .hero {
         padding: 0px 0 !important; 
     }
@@ -324,11 +323,26 @@
         max-width: 600px;
         margin: 0 auto;
     }
+    
+    /* ===== FEATURES GRID CON EXPANSIÓN ===== */
     .features-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 30px;
+        
+        /* Inicia colapsado */
+        max-height: 320px; /* Muestra solo 1 fila aprox */
+        overflow: hidden;
+        opacity: 1;
+        
+        transition: max-height 0.6s ease, padding 0.3s ease, margin 0.3s ease;
     }
+
+    /* CUANDO ESTÁ ABIERTO */
+    .features-grid.open {
+        max-height: 1200px; /* Suficiente para mostrar todo */
+    }
+
     .feature-card {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -364,6 +378,35 @@
         font-size: 0.95rem;
     }
 
+    /* ===== BOTÓN TOGGLE ===== */
+    .features-toggle {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    #toggleFeatures {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.25s ease;
+    }
+
+    #toggleFeatures:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        background: #1d4ed8;
+    }
+
+    #toggleFeatures:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 968px) {
         .hero-container {
@@ -385,68 +428,13 @@
             max-width: 400px;
             margin: 0 auto;
         }
+        .features-grid {
+            max-height: 640px; /* 2 filas en móvil */
+        }
+        .features-grid.open {
+            max-height: 2000px;
+        }
     }
-/* CONTAINER: inicia colapsado */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  
-  /* La magia: altura controlada */
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  
-  /* Transición suave de todo */
-  transition: max-height 0.5s ease, opacity 0.35s ease, padding 0.3s ease;
-  
-  /* Sin padding inicial */
-  padding: 0;
-  margin: 0;
-}
-
-/* CUANDO ESTÁ ABIERTO: se expande */
-.features-grid.open {
-  max-height: 1000px; /* Ajusta según tu contenido, o usa un valor muy alto */
-  opacity: 1;
-  padding: 20px 0;
-}
-
-/* Las cards ya no necesitan animación individual */
-.features-grid .feature-card {
-  /* Reset de tu código anterior */
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-/* Botón sin cambios */
-.features-toggle {
-  text-align: center;
-  margin-top: 30px;
-}
-
-#toggleFeatures {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.25s ease;
-}
-
-#toggleFeatures:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  background: #1d4ed8;
-}
-
-#toggleFeatures:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-}
 </style>
 </head>
 <body>
@@ -470,7 +458,6 @@
         <div class="hero-container">
             <div class="hero-content">
                 <div class="hero-badge">
-                    
                     <span>100% Gratuito para equipos</span>
                 </div>
                 <h1>
@@ -508,42 +495,42 @@
                     <div class="preview-features">
                         <div class="preview-feature">
                             <div class="feature-icon">
-<svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-<path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.93 9h-3.01a15.6 15.6 0 00-1.38-5.01A8.02 8.02 0 0119.93 11zM12 4c1.5 1.83 2.44 4.18 2.73 7H9.27C9.56 8.18 10.5 5.83 12 4zM4.07 13h3.01c.28 1.79.8 3.46 1.52 4.88A8.01 8.01 0 014.07 13zm3.01-2H4.07a8.01 8.01 0 014.52-4.88A15.6 15.6 0 007.08 11zm4.92 9c-1.5-1.83-2.44-4.18-2.73-7h5.46c-.29 2.82-1.23 5.17-2.73 7zm3.4-2.12A15.6 15.6 0 0016.92 13h3.01a8.01 8.01 0 01-4.53 4.88z"/>
-</svg>
-</div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                    <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm7.93 9h-3.01a15.6 15.6 0 00-1.38-5.01A8.02 8.02 0 0119.93 11zM12 4c1.5 1.83 2.44 4.18 2.73 7H9.27C9.56 8.18 10.5 5.83 12 4zM4.07 13h3.01c.28 1.79.8 3.46 1.52 4.88A8.01 8.01 0 014.07 13zm3.01-2H4.07a8.01 8.01 0 014.52-4.88A15.6 15.6 0 007.08 11zm4.92 9c-1.5-1.83-2.44-4.18-2.73-7h5.46c-.29 2.82-1.23 5.17-2.73 7zm3.4-2.12A15.6 15.6 0 0016.92 13h3.01a8.01 8.01 0 01-4.53 4.88z"/>
+                                </svg>
+                            </div>
                             <span>Página web propia: arvetrugby.com/tigresrc</span>
                         </div>
                         <div class="preview-feature">
                             <div class="feature-icon">
-<svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.98 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-</svg>
-</div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.98 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                </svg>
+                            </div>
                             <span>Plantel completo con fotos y datos</span>
                         </div>
                         <div class="preview-feature">
                             <div class="feature-icon">
-<svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-<path d="M2 4h20v16H2V4zm2 4v2h16V8H4zm0 4v4h6v-4H4z"/>
-</svg>
-</div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                    <path d="M2 4h20v16H2V4zm2 4v2h16V8H4zm0 4v4h6v-4H4z"/>
+                                </svg>
+                            </div>
                             <span>Cobros de cuotas o gastos grupales</span>
                         </div>
                         <div class="preview-feature">
                             <div class="feature-icon">
-<svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-<path d="M12 2c2 0 4 1 5 3s1 4 0 6-3 3-5 3-4-1-5-3-1-4 0-6 3-3 5-3zm0 12c3 0 8 2 8 5v3H4v-3c0-3 5-5 8-5z"/>
-</svg>
-</div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                    <path d="M12 2c2 0 4 1 5 3s1 4 0 6-3 3-5 3-4-1-5-3-1-4 0-6 3-3 5-3zm0 12c3 0 8 2 8 5v3H4v-3c0-3 5-5 8-5z"/>
+                                </svg>
+                            </div>
                             <span>Encuentros automáticos con otros equipos</span>
                         </div>
                         <div class="preview-feature">
                             <div class="feature-icon">
-<svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-<path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-</svg>
-</div>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                    <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                            </div>
                             <span>Comunicación directa WhatsApp</span>
                         </div>
                     </div>
@@ -558,9 +545,10 @@
         <div class="features-container">
             <div class="section-header">
                 <h2>Conocé todo lo que necesita tu equipo</h2>
-                
             </div>
-            <div class="features-grid">
+            
+            <!-- EL GRID CON ID CORRECTO -->
+            <div class="features-grid" id="featuresGrid">
                 <div class="feature-card">
                     <div class="feature-card-icon">🎨</div>
                     <h3>Landing Personalizada</h3>
@@ -592,11 +580,13 @@
                     <p>La plataforma es gratuita para equipos y jugadores. Sin suscripciones, sin comisiones, sin sorpresas.</p>
                 </div>
             </div>
+            
+            <!-- BOTÓN CON ONCLICK CORRECTO -->
             <div class="features-toggle">
-  <button id="toggleFeatures" onclick="document.getElementById('featuresGrid').classList.toggle('open')">
-    Ver más
-  </button>
-</div>
+                <button id="toggleFeatures" onclick="document.getElementById('featuresGrid').classList.toggle('open'); this.textContent = this.textContent === 'Ver más' ? 'Ver menos' : 'Ver más'">
+                    Ver más
+                </button>
+            </div>
         </div>
     </section>
 
@@ -608,10 +598,7 @@
                 <input type="text" id="searchInput" placeholder="Buscar: Nombre del equipo, ciudad...">
             </div>
             <div id="searchResults" class="results-grid"></div>
-           
-            <div class="equipos-slider" id="equiposSlider">
-            </div>
-
+            <div class="equipos-slider" id="equiposSlider"></div>
         </div>
     </section>
 
@@ -654,43 +641,24 @@
                 document.getElementById('loadingScreen').classList.add('loading-hidden');
             }, 2000);
         });
+
+        // Contar equipos y países automáticamente
+        function actualizarStatsBar() {
+            const equipos = document.querySelectorAll('.equipo-card').length;
+            const paises = document.querySelectorAll('.pais-card').length;
+            
+            const statsBar = document.querySelector('.stats-bar');
+            if (statsBar) {
+                statsBar.innerHTML = `🏉 <strong>${equipos} equipos</strong> activos en <strong>${paises} países</strong> de Latinoamérica`;
+            }
+        }
+
+        // Ejecutar cuando cargue
+        window.addEventListener('load', actualizarStatsBar);
     </script>
     <script src="js/app.js"></script>
-    <script>
-    // Contar equipos y países automáticamente
-function actualizarStatsBar() {
-    const equipos = document.querySelectorAll('.equipo-card').length;
-    const paises = document.querySelectorAll('.pais-card').length;
-    
-    const statsBar = document.querySelector('.stats-bar');
-    if (statsBar) {
-        statsBar.innerHTML = `🏉 <strong>${equipos} equipos</strong> activos en <strong>${paises} países</strong> de Latinoamérica`;
-    }
-}
-
-// Ejecutar cuando cargue
-window.addEventListener('load', actualizarStatsBar);
-        </script>
-    <script>
-
-.features-grid {
-  display: none;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.features-grid.open {
-  display: grid;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-</script>
 </body>
 </html>
+
 
 
