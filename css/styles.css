@@ -1140,40 +1140,44 @@ height:180px;
 .equipo-card-slider{
     flex:0 0 auto;
     width:300px;
-   Height:500px;
-background:
-        url("../images/fondocards.png");
+    height:500px;
 
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-   
+    background:url("../images/fondocards.png");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+
     backdrop-filter:blur(12px);
 
     border-radius:10px;
-    padding:0px 0px;
+    padding:0;
     text-align:center;
     cursor:pointer;
 
-    border:1px solid rgba(255,255,255,0.6);
+    border:2px solid rgba(255,215,0,.7);
 
     box-shadow:
-    0 6px 10px rgba(0,0,0,0.05),
-    0 18px 25px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    0 0 25px rgba(255,215,0,.15);
+        0 0 8px rgba(255,215,0,.6),
+        0 0 18px rgba(255,215,0,.45),
+        0 0 35px rgba(255,215,0,.25),
+        0 6px 10px rgba(0,0,0,0.05),
+        0 18px 25px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.7);
 
     transition:all .35s cubic-bezier(.4,0,.2,1);
     position:relative;
     overflow:hidden;
 }
 .equipo-card-slider:hover{
+
     transform:translateY(-8px) scale(1.03);
 
     box-shadow:
+        0 0 12px rgba(255,215,0,.9),
+        0 0 30px rgba(255,215,0,.7),
+        0 0 60px rgba(255,215,0,.45),
         0 22px 35px rgba(0,0,0,0.12),
-        0 10px 15px rgba(0,0,0,0.06),
-        0 0 30px rgba(255,215,0,0.35);
+        0 10px 15px rgba(0,0,0,0.06);
 }
 .equipo-card-slider .gold-particles{
     position:absolute;
