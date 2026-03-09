@@ -1208,6 +1208,25 @@ border:1px solid rgba(255,215,0,.6);
 
     mix-blend-mode:screen;
     opacity:.6;
+   animation:particlesMove 6s linear infinite;
+}
+
+@keyframes particlesMove{
+
+    0%{
+        transform:translateY(0px);
+        opacity:.6;
+    }
+
+    50%{
+        transform:translateY(-6px);
+        opacity:.9;
+    }
+
+    100%{
+        transform:translateY(0px);
+        opacity:.6;
+    }
 }
 /* brillo superior */
 .equipo-card-slider::before{
