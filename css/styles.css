@@ -1309,18 +1309,6 @@ margin-left: 15px;
     text-overflow: ellipsis;
     max-width: 100%;
 }
-/* CIUDAD BUSQUEDA*/
-
-.equipo-card-slider .equipo-ciudad{
-    font-size:11px;
-    color:#64748b;
-    margin-top:6px;
-    font-weight:500;
-}
-
-.equipo-card-slider .equipo-ciudad::before{
-    content:'📍 ';
-}
 
 
 /* ============================================
