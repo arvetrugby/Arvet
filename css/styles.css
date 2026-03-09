@@ -1277,28 +1277,54 @@ margin-left: 15px;
 
 /* NOMBRE EQUIPO */
 
-.equipo-card-slider p{
+/* TODOS LOS P */
+.equipo-card-slider > p {
     position: absolute;
-    bottom: 12px;        /* distancia desde abajo */
     left: 50%;
-    transform: translateX(-50%); /* centrado horizontal */
-    
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
+    transform: translateX(-50%);
+    width: 90%;
     margin: 0;
-    
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    
-    /* ancho máximo para el ellipsis */
-    max-width: 90%;
-    text-align: center;
 }
 
+/* PAIS - más arriba (4to en HTML, 1ro en visual) */
+.equipo-card-slider > p:nth-of-type(4) {
+    bottom: 56px;
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-/* CIUDAD */
+/* PROVINCIA - segundo */
+.equipo-card-slider > p:nth-of-type(3) {
+    bottom: 42px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* CIUDAD - tercero */
+.equipo-card-slider > p:nth-of-type(2) {
+    bottom: 28px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.equipo-card-slider > p:nth-of-type(2)::before {
+    content: '📍 ';
+}
+
+/* NOMBRE - más abajo (1ro en HTML, último en visual) */
+.equipo-card-slider > p:nth-of-type(1) {
+    bottom: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+/* CIUDAD BUSQUEDA*/
 
 .equipo-card-slider .equipo-ciudad{
     font-size:11px;
