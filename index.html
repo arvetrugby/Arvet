@@ -386,22 +386,28 @@
             margin: 0 auto;
         }
     }
-    /* ocultar features extras */
-.features-grid .feature-card:nth-child(n+4){
-display:none;
+/* ocultar cards inicialmente */
+.features-grid .feature-card{
+opacity:0;
+transform:translateY(12px);
+pointer-events:none;
+transition:opacity .35s ease, transform .35s ease;
 }
 
 /* cuando se abre */
 .features-grid.open .feature-card{
-display:block;
+opacity:1;
+transform:translateY(0);
+pointer-events:auto;
 }
 
-/* boton */
+/* boton container */
 .features-toggle{
 text-align:center;
 margin-top:30px;
 }
 
+/* boton */
 #toggleFeatures{
 background:#2563eb;
 color:white;
@@ -410,26 +416,20 @@ padding:12px 28px;
 border-radius:8px;
 cursor:pointer;
 font-weight:600;
-}
-    .feature-card{
-transition:all .4s ease;
-}
-   .features-grid .feature-card{
-display:none;
+transition:all .25s ease;
 }
 
-.features-grid.open .feature-card{
-display:block;
-}
-    .feature-card{
-opacity:0;
-transform:translateY(10px);
-transition:all .3s ease;
+/* hover animacion */
+#toggleFeatures:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 20px rgba(0,0,0,0.15);
+background:#1d4ed8;
 }
 
-.features-grid.open .feature-card{
-opacity:1;
+/* click */
+#toggleFeatures:active{
 transform:translateY(0);
+box-shadow:0 3px 10px rgba(0,0,0,0.15);
 }
 </style>
 </head>
@@ -441,8 +441,8 @@ transform:translateY(0);
                 <img src="images/ARVET.png" alt="ARVET">
             </a>
             <div class="nav-links">
-                <a href="#paises">Países</a>
                 <a href="#buscador">Buscar</a>
+                <a href="#paises">Países</a>
                 <a href="#partidos">Partidos</a>
                 <a href="login.html" class="btn-login">Login</a>
             </div>
@@ -541,7 +541,7 @@ transform:translateY(0);
     <section class="features-section" id="como-funciona">
         <div class="features-container">
             <div class="section-header">
-                <h2>Todo lo que necesita tu equipo</h2>
+                <h2>Conocé todo lo que necesita tu equipo</h2>
                 
             </div>
             <div class="features-grid">
