@@ -317,6 +317,9 @@ async function cargarEquiposInicio(){
     </div>
 
     <p>${e.nombre}</p>
+    <p>${e.localidad}</p>
+    <p>${e.provincia}</p>
+    <p>${e.pais}</p>
 
 </div>
 
