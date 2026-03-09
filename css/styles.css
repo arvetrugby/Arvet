@@ -1156,7 +1156,7 @@ height:180px;
     flex:0 0 auto;
     width:240px;
     height:400px;
-
+margin-left: 15px;
     background:url("../images/fondocards.png");
     background-size:cover;
     background-position:center;
@@ -1454,6 +1454,7 @@ height:180px;
      width:240px;
    Height:400px;
     padding:0px 0px;
+   margin-left: 15px;
 }
 
 .pais-card{
