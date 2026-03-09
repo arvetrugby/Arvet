@@ -1139,7 +1139,7 @@ height:180px;
 /* CARD SLIDER */
 .equipo-card-slider{
     flex:0 0 auto;
-    width:200px;
+    width:240px;
     height:400px;
 
     background:url("../images/fondocards.png");
@@ -1237,7 +1237,7 @@ height:180px;
 /* LOGO BURBUJA */
 
 .equipo-card-slider .equipo-logo{
-    width:200px;
+    width:240px;
     height:400px;
    
     margin:0;
@@ -1436,7 +1436,7 @@ height:180px;
 }
 
 .equipo-card-slider{
-     width:200px;
+     width:240px;
    Height:400px;
     padding:0px 0px;
 }
@@ -1446,10 +1446,15 @@ height:180px;
 }
 
 .equipo-card-slider .equipo-logo{
-    width:200px;
+    width:240px;
     height:400px;
 }
-
+.equipo-card-slider .equipo-logo img{
+    width:150px;
+    height:150px;
+   margin-bottom: 80px;
+    object-fit:contain;
+}
 .pais-logo{
     width:150px;
     height:150px;
