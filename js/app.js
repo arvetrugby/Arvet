@@ -316,11 +316,12 @@ async function cargarEquiposInicio(){
         <img src="${e.logoUrl || ''}" alt="${e.nombre}">
 
     </div>
-
-    <p>${e.nombre}</p>
-    <p>${e.ciudad || ''}</p>
-                <p>${e.provincia || ''}</p>
-                <p>${e.pais || ''}</p>
+<!-- Ubicación en una línea -->
+    <p class="equipo-ubicacion">
+        ${e.ciudad ? e.ciudad + ' - ' : ''}${e.provincia ? e.provincia + ' - ' : ''}${e.pais || ''}
+    </p>
+    <p class="equipo-nombre">${e.nombre}</p>
+    
 
 </div>
 
