@@ -436,6 +436,7 @@ function initRegistro() {
             ciudadId: document.getElementById('ciudadId').value.trim(),
             direccion: document.getElementById('direccion').value.trim(),
             adminNombre: document.getElementById('adminNombre').value.trim(),
+            adminApellido: document.getElementById('adminApellido').value.trim(), 
             email: document.getElementById('email').value.trim(),
             password: document.getElementById('password').value
         };
@@ -449,6 +450,7 @@ function initRegistro() {
                 `&ciudadId=${encodeURIComponent(data.ciudadId)}` +
                 `&direccion=${encodeURIComponent(data.direccion)}` +
                 `&adminNombre=${encodeURIComponent(data.adminNombre)}` +
+                `&adminApellido=${encodeURIComponent(data.adminApellido)}` +
                 `&email=${encodeURIComponent(data.email)}` +
                 `&password=${encodeURIComponent(data.password)}`
             );
