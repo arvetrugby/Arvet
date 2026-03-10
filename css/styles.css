@@ -1651,7 +1651,7 @@ border:1px solid rgba(255,215,0,.6);
 /* Cantidad de equipos */
 .pais-card-slider .pais-equipos {
     position: absolute;
-    bottom: 30px;
+    bottom: 320px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
