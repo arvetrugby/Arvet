@@ -241,9 +241,7 @@ h1, h2, h3 {
 .partidos-section,
 .main-content {
 
-  /* ocupa pantalla pero respeta contenido */
-  min-height: 100vh;
-
+  
   /* separación interna */
   padding: 20px 0px;
 
