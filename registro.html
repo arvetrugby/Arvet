@@ -48,7 +48,11 @@ input:focus{
 button{
     width:100%;
     padding:15px;
-    background:linear-gradient(135deg,#6366f1 0%,#ec4899 100%);
+    background: linear-gradient(
+        140deg,
+        rgba(10, 35, 80, 0.95),
+        rgba(15, 60, 120, 0.85)
+    );
     color:white;
     border:none;
     border-radius:12px;
@@ -72,7 +76,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <body>
 
 <div class="box">
-<h2>🏆 Crear Equipo</h2>
+<h2>Crear Equipo</h2>
 <p class="subtitle">Comienza a gestionar tu club en ARVET</p>
 
 <div id="msg" class="message"></div>
@@ -82,6 +86,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <div class="form-group">
 <input type="text" id="nombre" placeholder="Nombre del equipo" required>
 </div>
+    
 
 <div class="form-group">
 <input type="text" id="paisId" placeholder="Pais ID" required>
@@ -98,9 +103,11 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <input type="text" id="direccion" placeholder="Dirección (calle y número)" required>
 </div>
 <div class="form-group">
-<input type="text" id="adminNombre" placeholder="Tu nombre y Apellido" required>
+<input type="text" id="adminNombre" placeholder="Tu nombre" required>
 </div>
-
+<div class="form-group">
+    <input type="text" id="apellido" name="apellido" required="" placeholder="Tu apellido">
+</div>
 <div class="form-group">
 <input type="email" id="email" placeholder="Email admin" required>
 </div>
