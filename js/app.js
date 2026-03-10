@@ -290,51 +290,44 @@ async function buscarEquipos() {
 }
 
 async function cargarEquiposInicio(){
-
     const slider = document.getElementById("equiposSlider");
-
     if(!slider) return;
 
     slider.innerHTML = '<div class="loading">Cargando equipos...</div>';
 
     try{
-
         const response = await window.fetchAPI("getEquipos");
         console.log("Datos de getEquipos:", response.data);
 
         if(response.success){
-
             slider.innerHTML = response.data.map(e => `
-
-<div class="equipo-card-slider"
-     onclick="window.location.href='equipo.html?slug=${e.slug}'">
-<div class="gold-particles"></div><div class="gold-particles2"></div><div class="gold-particles3"></div>
-    <div class="equipo-logo"
-         style="background:${e.colorPrimario || '#334155'}">
-
-        <img src="${e.logoUrl || ''}" alt="${e.nombre}">
-
-    </div>
-<!-- Ubicación en una línea -->
-    <p class="equipo-ubicacion">
-        ${e.ciudad ? e.ciudad + ' - ' : ''}${e.provincia ? e.provincia + ' - ' : ''}${e.pais || ''}
-    </p>
-    <p class="equipo-nombre">${e.nombre}</p>
-    
-
-</div>
-
+                <div class="equipo-card-slider"
+                     onclick="window.location.href='equipo.html?slug=${e.slug}'">
+                    <div class="gold-particles"></div>
+                    <div class="gold-particles2"></div>
+                    <div class="gold-particles3"></div>
+                    <div class="equipo-logo"
+                         style="background:${e.colorPrimario || '#334155'}">
+                        <img src="${e.logoUrl || ''}" alt="${e.nombre}">
+                    </div>
+                    <p class="equipo-ubicacion">
+                        ${e.ciudad ? e.ciudad + ' - ' : ''}${e.provincia ? e.provincia + ' - ' : ''}${e.pais || ''}
+                    </p>
+                    <p class="equipo-nombre">${e.nombre}</p>
+                    
+                    <!-- Badge de jugadores -->
+                    <div class="jugadores-badge">
+                        <span class="jugadores-icono">👤</span>
+                        <span class="jugadores-numero">${e.cantidadJugadores || 0}</span>
+                        <span class="jugadores-texto">jugadores</span>
+                    </div>
+                </div>
             `).join('');
-
         }
-
-    }catch(error){
-
+    } catch(error){
         console.error(error);
         slider.innerHTML = '<p>Error cargando equipos</p>';
-
     }
-
 }
 async function cargarProximosPartidos() {
     const container = document.getElementById('partidosList');
