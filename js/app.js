@@ -403,6 +403,10 @@ function activarDragEquipos(){
 // ============================================
 
 function initRegistro() {
+    cargarPaisesSelect();
+    initAutocompleteDireccion();
+    
+    
     const form = document.getElementById("formRegistro");
     const btn = document.getElementById("btnCrear");
     const loading = document.getElementById("loading");
@@ -429,6 +433,12 @@ function initRegistro() {
         setLoading(true);
         msg.style.display = "none";
 
+        if (!document.getElementById('lat').value) {
+        showMessage('⚠️ Por favor seleccioná una dirección de la lista de sugerencias', 'error');
+        setLoading(false);
+        return;
+        }
+    
         const data = {
             nombre: document.getElementById('nombre').value.trim(),
             paisId: document.getElementById('paisId').value.trim(),
@@ -1847,5 +1857,138 @@ const visor = document.getElementById("visorFoto");
 if (visor) {
     visor.onclick = function(){
         this.style.display="none";
+    }
+}
+// ============================================
+// AUTOCOMPLETE DIRECCIONES - NUEVO
+// ============================================
+
+let mapaPreview = null;
+let marcadorPreview = null;
+
+function initAutocompleteDireccion() {
+    const inputBusqueda = document.getElementById('direccionBusqueda');
+    const listaSugerencias = document.getElementById('sugerenciasDireccion');
+    const inputPais = document.getElementById('paisId');
+    
+    if (!inputBusqueda) return;
+    
+    let timeoutId;
+    
+    inputBusqueda.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const query = this.value.trim();
+        const pais = inputPais ? inputPais.value : '';
+        
+        if (query.length < 3) {
+            listaSugerencias.style.display = 'none';
+            return;
+        }
+        
+        timeoutId = setTimeout(() => {
+            buscarDireccionesNominatim(query, pais, listaSugerencias);
+        }, 300);
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!inputBusqueda.contains(e.target) && !listaSugerencias.contains(e.target)) {
+            listaSugerencias.style.display = 'none';
+        }
+    });
+}
+
+async function buscarDireccionesNominatim(query, pais, container) {
+    try {
+        let searchQuery = query;
+        if (pais) {
+            searchQuery = `${query}, ${pais}`;
+        }
+        
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.innerHTML = data.map(item => {
+            const displayName = item.display_name.replace(/'/g, "&apos;");
+            const addressStr = JSON.stringify(item.address).replace(/'/g, "&apos;");
+            return `
+                <div class="sugerencia-item" 
+                     onclick="seleccionarDireccion('${displayName}', ${item.lat}, ${item.lon}, '${addressStr}')">
+                    <div class="titulo">${item.name || item.display_name.split(',')[0]}</div>
+                    <div class="subtitulo">${item.display_name}</div>
+                </div>
+            `;
+        }).join('');
+        
+        container.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error buscando dirección:', error);
+    }
+}
+
+function seleccionarDireccion(direccion, lat, lng, addressStr) {
+    const address = JSON.parse(addressStr);
+    
+    document.getElementById('direccion').value = direccion;
+    document.getElementById('lat').value = lat;
+    document.getElementById('lng').value = lng;
+    
+    const ciudad = address.city || address.town || address.village || address.locality || '';
+    const provincia = address.state || address.province || address.region || '';
+    
+    document.getElementById('ciudadId').value = ciudad;
+    document.getElementById('provinciaId').value = provincia;
+    
+    document.getElementById('direccionBusqueda').value = direccion.split(',')[0];
+    document.getElementById('sugerenciasDireccion').style.display = 'none';
+    document.getElementById('direccionConfirmada').textContent = `📍 ${direccion}`;
+    
+    mostrarMapaPreview(lat, lng);
+}
+
+function mostrarMapaPreview(lat, lng) {
+    const container = document.getElementById('mapPreview');
+    container.style.display = 'block';
+    
+    if (!mapaPreview) {
+        mapaPreview = L.map('mapPreview').setView([lat, lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapaPreview);
+    } else {
+        mapaPreview.setView([lat, lng], 16);
+    }
+    
+    if (marcadorPreview) {
+        mapaPreview.removeLayer(marcadorPreview);
+    }
+    
+    marcadorPreview = L.marker([lat, lng]).addTo(mapaPreview)
+        .bindPopup("📍 Ubicación confirmada")
+        .openPopup();
+}
+
+// Cargar países en select
+async function cargarPaisesSelect() {
+    const select = document.getElementById('paisId');
+    if (!select) return;
+    
+    try {
+        const response = await window.fetchAPI('getPaises');
+        if (response.success) {
+            select.innerHTML = '<option value="">Seleccioná un país...</option>' +
+                response.data.map(p => `
+                    <option value="${p.nombre}">${p.nombre}</option>
+                `).join('');
+        }
+    } catch (error) {
+        console.error('Error cargando países:', error);
     }
 }
