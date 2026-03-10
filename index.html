@@ -441,6 +441,45 @@
     height: 32px;
     stroke: #38bdf8;
 }
+
+    .equipos-slider,
+.paises-slider {
+    
+    /* Scrollbar visible solo en desktop */
+    scrollbar-width: thin;
+    scrollbar-color: #007bff #f1f1f1;
+}
+
+/* Webkit scrollbar */
+.equipos-slider::-webkit-scrollbar,
+.paises-slider::-webkit-scrollbar {
+    height: 8px;
+}
+
+.equipos-slider::-webkit-scrollbar-track,
+.paises-slider::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.equipos-slider::-webkit-scrollbar-thumb,
+.paises-slider::-webkit-scrollbar-thumb {
+    background: #007bff;
+    border-radius: 4px;
+}
+
+/* En móvil: scrollbar nativo del sistema */
+@media (max-width: 768px) {
+    .equipos-slider,
+    .paises-slider {
+        scrollbar-width: none;
+    }
+    
+    .equipos-slider::-webkit-scrollbar,
+    .paises-slider::-webkit-scrollbar {
+        display: none;
+    }
+}
 </style>
 </head>
 <body>
