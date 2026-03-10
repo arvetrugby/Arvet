@@ -216,12 +216,15 @@ async function cargarPaises() {
     const response = await window.fetchAPI('getPaises');
     if (response.success) {
       container.innerHTML = response.data.map(pais => `
-        <div class="pais-card" onclick="filtrarPorPais('${pais.id}')">
+        <div class="pais-card-slider" onclick="filtrarPorPais('${pais.id}')">
+          <div class="gold-particles"></div>
+          <div class="gold-particles2"></div>
+          <div class="gold-particles3"></div>
           <div class="pais-logo">
             <img src="${pais.logoUrl}" alt="${pais.nombre}">
           </div>
-          <h3>${pais.nombre}</h3>
-          <p>${pais.cantidadEquipos} equipos</p>
+          <div class="pais-ubicacion">${pais.cantidadEquipos} equipos</div>
+          <div class="pais-nombre">${pais.nombre}</div>
         </div>
       `).join('');
     }
