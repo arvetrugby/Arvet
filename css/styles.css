@@ -1768,7 +1768,7 @@ border:1px solid rgba(255,215,0,.6);
     }
 }
 
- /* =========================
+/* =========================
    POPUP MAPA EQUIPO
    ========================= */
 
@@ -1783,6 +1783,8 @@ height:36px;
 object-fit:contain;
 margin-bottom:6px;
 }
+
+
 /* ============================================
    MARKER MAPA PERSONALIZADO
    ============================================ */
@@ -1792,7 +1794,8 @@ background:none;
 border:none;
 }
 
-/* pin */
+/* pin principal */
+
 .markerPin{
 width:44px;
 height:44px;
@@ -1801,25 +1804,42 @@ display:flex;
 align-items:center;
 justify-content:center;
 position:relative;
-box-shadow:0 6px 14px rgba(0,0,0,0.35);
+
 border:3px solid white;
+
+box-shadow:
+0 6px 14px rgba(0,0,0,0.35),
+0 2px 4px rgba(0,0,0,0.2);
+
+color:inherit;
+transition:transform .2s ease;
+}
+
+/* efecto hover (solo desktop) */
+
+.markerPin:hover{
+transform:scale(1.08);
 }
 
 /* triangulo del pin */
+
 .markerPin::after{
 content:"";
 position:absolute;
 bottom:-12px;
 left:50%;
 transform:translateX(-50%);
+
 border-left:10px solid transparent;
 border-right:10px solid transparent;
-border-top:14px solid inherit;
+border-top:14px solid currentColor;
 }
 
-/* logo */
+/* logo dentro del pin */
+
 .markerPin img{
 width:26px;
 height:26px;
 object-fit:contain;
+pointer-events:none;
 }
