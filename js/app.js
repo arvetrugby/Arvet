@@ -1917,9 +1917,14 @@ function initMapaSelector() {
 }
 
 async function obtenerDatosUbicacion(lat, lng) {
-    // Guardar coordenadas
-    document.getElementById('lat').value = lat;
-    document.getElementById('lng').value = lng;
+    // GUARDAR COORDENADAS ORIGINALES DEL PIN (sin tocar)
+    const latOriginal = parseFloat(lat);
+    const lngOriginal = parseFloat(lng);
+    
+    document.getElementById('lat').value = latOriginal;
+    document.getElementById('lng').value = lngOriginal;
+    
+    console.log('Coords originales del pin:', latOriginal, lngOriginal);
     
     // Mostrar loading
     const displays = document.querySelectorAll('.datos-ubicacion');
@@ -1930,12 +1935,13 @@ async function obtenerDatosUbicacion(lat, lng) {
     });
     
     try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        // Reverse geocodificación SOLO para obtener país/provincia/ciudad
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latOriginal}&lon=${lngOriginal}&zoom=18&addressdetails=1`;
         
         const response = await fetch(url);
         const data = await response.json();
         
-        console.log('Reverse geocodificación:', data);
+        console.log('Reverse geocodificación (solo para datos):', data);
         
         if (data && data.address) {
             const address = data.address;
@@ -1954,19 +1960,18 @@ async function obtenerDatosUbicacion(lat, lng) {
                 'Departamento Rosario': 'Santa Fe'
             };
             
-            // EXTRAER PROVINCIA (prioridad: state > province > region > county)
+            // EXTRAER PROVINCIA
             let provincia = address.state || 
                            address.province || 
                            address.region || 
                            address.county || '';
             
-            // Aplicar corrección si existe
             if (correccionesProvincias[provincia]) {
                 console.log(`Corrección aplicada: "${provincia}" → "${correccionesProvincias[provincia]}"`);
                 provincia = correccionesProvincias[provincia];
             }
             
-            // EXTRAER CIUDAD (prioridad: city > town > village > locality > municipality)
+            // EXTRAER CIUDAD
             const ciudad = address.city || 
                           address.town || 
                           address.village || 
@@ -1989,7 +1994,7 @@ async function obtenerDatosUbicacion(lat, lng) {
             document.getElementById('provinciaId').value = provincia;
             document.getElementById('ciudadId').value = ciudad;
             
-            // Sugerir dirección si está vacía
+            // Sugerir dirección si está vacía (usando display_name de Nominatim)
             if (data.display_name && document.getElementById('direccion').value === '') {
                 const direccionSugerida = data.display_name.split(',')[0];
                 document.getElementById('direccion').placeholder = `Ej: ${direccionSugerida}`;
@@ -2002,4 +2007,7 @@ async function obtenerDatosUbicacion(lat, lng) {
         document.getElementById('provinciaDisplay').value = 'Error al detectar';
         document.getElementById('ciudadDisplay').value = 'Error al detectar';
     }
+    
+    // IMPORTANTE: Las coordenadas originales del pin se mantienen en los inputs hidden
+    console.log('Coords finales guardadas:', document.getElementById('lat').value, document.getElementById('lng').value);
 }
