@@ -1461,7 +1461,7 @@ function inicializarMapa() {
 const equipoIcon = L.divIcon({
     className: "markerWrapper",
     html: `
-        <div class="markerPin" style="background:${colorEquipo}">
+        <div class="markerPin" style="background:${colorPrimario}">
             <img src="${document.getElementById("equipoLogo").src}">
         </div>
     `,
