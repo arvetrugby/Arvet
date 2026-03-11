@@ -1456,13 +1456,19 @@ function inicializarMapa() {
     const zoom = window.equipoCoords ? 15 : 13;
 
     // Icono personalizado con el logo del equipo
-    const equipoIcon = L.icon({
-        iconUrl: document.getElementById("equipoLogo").src,
-        iconSize: [46,46],
-        iconAnchor: [23,46],
-        popupAnchor: [0,-40],
-        className: "mapMarker"
-    });
+    const colorEquipo = window.equipoColor || "#2563eb";
+
+const equipoIcon = L.divIcon({
+    className: "markerWrapper",
+    html: `
+        <div class="markerPin" style="background:${colorEquipo}">
+            <img src="${document.getElementById("equipoLogo").src}">
+        </div>
+    `,
+    iconSize: [44,60],
+    iconAnchor: [22,60],
+    popupAnchor: [0,-50]
+});
 
     if (mapaCreado && mapInstance) {
         console.log('Actualizando mapa existente...');
@@ -1486,7 +1492,7 @@ function inicializarMapa() {
             </div>
         `);
 
-        marker.openPopup();
+        
 
         return;
     }
@@ -1512,7 +1518,7 @@ function inicializarMapa() {
             </div>
         `);
 
-        marker.openPopup();
+    
 
         console.log('✅ Mapa creado correctamente');
 
