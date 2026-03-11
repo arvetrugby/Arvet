@@ -449,7 +449,7 @@ function initRegistro() {
         }
     // NUEVO: Validar contraseñas coincidan
     
-    
+    console.log(password, password.length);
     if (password !== passwordConfirm) {
         showMessage('⚠️ Las contraseñas no coinciden', 'error');
         setLoading(false);
