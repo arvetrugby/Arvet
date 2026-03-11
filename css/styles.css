@@ -1767,3 +1767,37 @@ border:1px solid rgba(255,215,0,.6);
         margin-left: 15px;
     }
 }
+
+ /* =========================
+   POPUP MAPA EQUIPO
+   ========================= */
+
+.popupEquipo{
+
+    text-align:center;
+    font-family:'Montserrat', sans-serif;
+
+}
+
+.popupEquipo strong{
+
+    display:block;
+    font-size:15px;
+    margin-top:4px;
+
+}
+
+.popupLogo{
+
+    width:42px;
+    height:42px;
+    object-fit:contain;
+    margin-bottom:6px;
+
+}
+
+/* sombra al icono */
+
+.mapMarker{
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+}
