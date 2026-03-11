@@ -1773,31 +1773,53 @@ border:1px solid rgba(255,215,0,.6);
    ========================= */
 
 .popupEquipo{
-
-    text-align:center;
-    font-family:'Montserrat', sans-serif;
-
-}
-
-.popupEquipo strong{
-
-    display:block;
-    font-size:15px;
-    margin-top:4px;
-
+text-align:center;
+font-size:14px;
 }
 
 .popupLogo{
+width:36px;
+height:36px;
+object-fit:contain;
+margin-bottom:6px;
+}
+/* ============================================
+   MARKER MAPA PERSONALIZADO
+   ============================================ */
 
-    width:42px;
-    height:42px;
-    object-fit:contain;
-    margin-bottom:6px;
-
+.markerWrapper{
+background:none;
+border:none;
 }
 
-/* sombra al icono */
+/* pin */
+.markerPin{
+width:44px;
+height:44px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+box-shadow:0 6px 14px rgba(0,0,0,0.35);
+border:3px solid white;
+}
 
-.mapMarker{
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+/* triangulo del pin */
+.markerPin::after{
+content:"";
+position:absolute;
+bottom:-12px;
+left:50%;
+transform:translateX(-50%);
+border-left:10px solid transparent;
+border-right:10px solid transparent;
+border-top:14px solid inherit;
+}
+
+/* logo */
+.markerPin img{
+width:26px;
+height:26px;
+object-fit:contain;
 }
