@@ -279,7 +279,10 @@ h1, h2, h3 {
   font-weight: 700;
   color: white;
 }
-
+.buscador-section p {
+  text-align: center;
+  color: white;
+}
 .search-box {
   display: flex;
   max-width: 550px;
