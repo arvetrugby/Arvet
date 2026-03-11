@@ -1832,7 +1832,7 @@ transform:translateX(-50%);
 
 border-left:10px solid transparent;
 border-right:10px solid transparent;
-border-top:14px solid currentColor;
+border-top:13px solid rgb(124 124 124);
 }
 
 /* logo dentro del pin */
