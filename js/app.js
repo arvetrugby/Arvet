@@ -1456,12 +1456,13 @@ function inicializarMapa() {
     const zoom = window.equipoCoords ? 15 : 13;
 
     // Icono personalizado con el logo del equipo
-    const colorEquipo = window.equipo?.colorPrimario || "#2563eb";
+const colorEquipo = getComputedStyle(document.documentElement)
+.getPropertyValue('--equipo-color-rgba') || "#2563eb";
 
 const equipoIcon = L.divIcon({
     className: "markerWrapper",
     html: `
-        <div class="markerPin" style="background:${"colorPrimario"}">
+        <div class="markerPin" style="background:${colorEquipo}">
             <img src="${document.getElementById("equipoLogo").src}">
         </div>
     `,
