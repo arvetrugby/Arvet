@@ -956,6 +956,7 @@ if (equipo.colorPrimario) {
     const baseColor = equipo.colorPrimario;
     
     // Aplicar variables
+    r.style.setProperty('--equipo-color', baseColor);
     r.style.setProperty('--equipo-color-rgba', hexToRgba(baseColor, 0.92));      // Navbar
     r.style.setProperty('--equipo-hero-start', hexToRgba(baseColor, 0.95));       // Hero inicio
     r.style.setProperty('--equipo-hero-mid', hexToRgba(baseColor, 0.85));        // Hero medio (más claro)
@@ -1457,7 +1458,7 @@ function inicializarMapa() {
 
     // Icono personalizado con el logo del equipo
 const colorEquipo = getComputedStyle(document.documentElement)
-.getPropertyValue('--equipo-color-rgba') || "#2563eb";
+.getPropertyValue('--equipo-color').trim() || "#2563eb";
 
 const equipoIcon = L.divIcon({
     className: "markerWrapper",
