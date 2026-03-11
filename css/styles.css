@@ -830,35 +830,68 @@ h1, h2, h3 {
 #comisionGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    gap: 28px;
 }
 
+/* Card */
 #comisionGrid .card,
 #comisionGrid > div {
+
+    background: white;
+    border-radius: 12px;
+    padding: 24px 18px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding-bottom: 10px;
-    background: white;
-    border-radius: 7px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform .2s ease, box-shadow .2s ease;
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+
+    transition: transform .25s ease, box-shadow .25s ease;
 }
 
+/* Hover */
 #comisionGrid .card:hover,
 #comisionGrid > div:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+
+    transform: translateY(-6px);
+
+    box-shadow: 0 14px 28px rgba(0,0,0,0.14);
 }
 
+/* Foto circular */
 #comisionGrid img {
-    width: 100%;
-    height: 100%;
-    border-radius: 0%;
+
+    width: 120px;
+    height: 120px;
+
+    border-radius: 50%;
     object-fit: cover;
-    margin-bottom: 0px;
+
+    margin-bottom: 14px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
+
+/* Nombre */
+#comisionGrid h3 {
+
+    font-size: 17px;
+    font-weight: 600;
+
+    margin: 6px 0 4px;
+}
+
+/* Cargo */
+#comisionGrid p {
+
+    font-size: 14px;
+    color: #64748b;
+
+    margin: 0;
+}
+
 
 
 /* ============================================
@@ -868,35 +901,62 @@ h1, h2, h3 {
 #plantelGrid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 22px;
+    gap: 24px;
 }
 
+/* Card */
 #plantelGrid .card,
 #plantelGrid > div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 0px 0px;
+
     background: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform .2s ease, box-shadow .2s ease;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    text-align: center;
+
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+
+    transition: transform .25s ease, box-shadow .25s ease;
 }
 
+/* Hover */
 #plantelGrid .card:hover,
 #plantelGrid > div:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+
+    transform: translateY(-5px);
+
+    box-shadow: 0 14px 28px rgba(0,0,0,0.14);
 }
 
+/* Contenedor de imagen */
 #plantelGrid img {
+
     width: 100%;
-    height: 100%;
-    border-radius: 0%;
+    aspect-ratio: 1 / 1;
+
     object-fit: cover;
-    margin-bottom: 0px;
+
+    transition: transform .35s ease;
 }
+
+/* pequeño zoom en hover */
+#plantelGrid .card:hover img,
+#plantelGrid > div:hover img {
+
+    transform: scale(1.06);
+}
+
+/* Nombre jugador */
+#plantelGrid h3 {
+
+    font-size: 16px;
+    font-weight: 600;
+
+    margin: 14px 0 8px;
+}
+
 
 
 /* ============================================
@@ -904,7 +964,8 @@ h1, h2, h3 {
    ============================================ */
 
 /* Tablets */
-@media (max-width: 1024px) {
+
+@media (max-width:1024px) {
 
     #comisionGrid {
         grid-template-columns: repeat(2, 1fr);
@@ -916,8 +977,10 @@ h1, h2, h3 {
 
 }
 
+
 /* Celulares */
-@media (max-width: 600px) {
+
+@media (max-width:600px) {
 
     #comisionGrid {
         grid-template-columns: 1fr;
@@ -927,13 +990,7 @@ h1, h2, h3 {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    #plantelGrid img {
-        width: 100%;
-        height: 100%;
-    }
-
 }
-
 /* ============================================
    GALERÍA - Fotos desordenadas estilo muro
    ============================================ */
