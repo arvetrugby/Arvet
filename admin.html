@@ -235,43 +235,6 @@
 
 let equipo = null;
 
-/* =========================
-   CARGAR EQUIPO
-========================= */
-
-async function cargarEquipoConfig() {
-
-    const slug = localStorage.getItem("slugEquipo");
-
-    if(!slug){
-        console.error("No hay slug guardado");
-        return;
-    }
-
-    try {
-
-        const res = await fetch(API_URL + "?action=getEquipoBySlug&slug=" + slug);
-        const data = await res.json();
-
-        if(!data.success){
-            console.error("Equipo no encontrado:", data.error);
-            return;
-        }
-
-        equipo = data.data;
-
-        document.getElementById("descripcionEquipo").value = equipo.descripcion || "";
-        document.getElementById("historiaEquipo").value = equipo.historia || "";
-        document.getElementById("fechaFundacionEquipo").value = equipo.fechaFundacion || "";
-        document.getElementById("coloresEquipo").value = equipo.colores || "";
-
-        console.log("Equipo cargado:", equipo);
-
-    } catch(err){
-        console.error("Error cargando equipo:", err);
-    }
-
-}
 
 
 /* =========================
