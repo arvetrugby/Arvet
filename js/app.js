@@ -824,50 +824,37 @@ function mostrarMensaje(texto, tipo) {
         msg.style.border = '1px solid #fca5a5';
     }
 }
+
 // ============================================
-// PÁGINA: EQUIPO (PÚBLICO)
+// PÁGINA: EQUIPO (PÚBLICO) - JS COMPLETO
 // ============================================
 
+// ----- INICIO -----
 function initEquipo() {
     console.log('=== INICIO EQUIPO ===');
-    console.log('URL completa:', window.location.href);
-    console.log('Search:', window.location.search);
-    console.log('Pathname:', window.location.pathname);
     
-    let slug = null;
-    
-    // OPCIÓN 1: URL con ?slug=vvv (formato query string)
     const urlParams = new URLSearchParams(window.location.search);
-    slug = urlParams.get('slug');
-    console.log('Slug de query params:', slug);
-    
-   
-    
-    console.log('Slug final:', slug);
-    
+    const slug = urlParams.get('slug');
+    console.log('Slug:', slug);
+
     if (!slug || slug === '' || slug === 'equipo') {
         console.error('❌ No se encontró slug válido');
         const header = document.getElementById('equipoHeader');
-        if (header) {
-            header.innerHTML = '<div class="error">Error: No se pudo identificar el equipo</div>';
-        }
+        if (header) header.innerHTML = '<div class="error">Error: No se pudo identificar el equipo</div>';
         return;
     }
-    
-    console.log('✅ Slug válido:', slug);
-    
-    // Verificar que fetchAPI esté disponible
+
     if (typeof window.fetchAPI !== 'function') {
         console.error('❌ fetchAPI no está disponible');
         return;
     }
-    
+
     cargarEquipo(slug);
 }
 
+// ----- CARGAR EQUIPO -----
 async function cargarEquipo(slug) {
     console.log('=== cargarEquipo ===');
-    console.log('Llamando con slug:', slug);
     
     const header = document.getElementById('equipoHeader');
     const quienesSomos = document.getElementById('quienesSomosContent');
@@ -875,47 +862,57 @@ async function cargarEquipo(slug) {
     const plantelGrid = document.getElementById('plantelGrid');
     const partidosList = document.getElementById('partidosEquipoList');
     const logoImg = document.getElementById('equipoLogo');
-    
-    try {
-        console.log('Enviando a API: action=getEquipoBySlug, slug=' + slug);
-        const response = await window.fetchAPI('getEquipoBySlug', { slug: slug });
-        console.log('Respuesta completa:', response);
 
+    try {
+        const response = await window.fetchAPI('getEquipoBySlug', { slug });
         if (!response.success) {
             console.error('Error:', response.error);
-            if (header) {
-                header.innerHTML = `<div class="error">Error: ${response.error}</div>`;
-            }
+            if (header) header.innerHTML = `<div class="error">Error: ${response.error}</div>`;
             return;
         }
 
         const equipo = response.data;
         console.log('Equipo cargado:', equipo);
+
         window.currentSlug = slug;
         window.currentEquipoId = equipo.id;
-        window.currentEquipo = equipo; // Guardar para la galería
-        
-// 🎨 aplicar color inmediatamente
-if (equipo.colorPrimario) {
-    const r = document.querySelector(':root');
-    
-        // Actualizar UI - Header
+        window.currentEquipo = equipo; // para galería y botones
+
+        // ----- APLICAR COLOR DE EQUIPO INMEDIATAMENTE -----
+        if (equipo.colorPrimario) {
+            const root = document.documentElement;
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1,3),16);
+                const g = parseInt(hex.slice(3,5),16);
+                const b = parseInt(hex.slice(5,7),16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+            const baseColor = equipo.colorPrimario;
+            root.style.setProperty('--equipo-color', baseColor);
+            root.style.setProperty('--equipo-color-rgba', hexToRgba(baseColor,0.92));
+            root.style.setProperty('--equipo-hero-start', hexToRgba(baseColor,0.95));
+            root.style.setProperty('--equipo-hero-mid', hexToRgba(baseColor,0.85));
+            root.style.setProperty('--equipo-hero-end', hexToRgba(baseColor,0.98));
+            console.log('🎨 Color aplicado:', baseColor);
+        }
+
+        // ----- ACTUALIZAR HEADER -----
         if (header) {
             header.innerHTML = `
                 <p>${equipo.nombre}</p>
                 <p>${equipo.ciudad} | ${equipo.provincia}</p>
-                <p>${equipo.pais}</p> 
+                <p>${equipo.pais}</p>
                 <p>${equipo.descripcion || ''}</p>
             `;
         }
 
-        // 🔵 MOSTRAR LOGO SI EXISTE
+        // ----- LOGO -----
         if (logoImg && equipo.logoUrl) {
             logoImg.src = equipo.logoUrl;
             logoImg.style.display = 'inline-block';
         }
 
-        // Actualizar Quienes Somos
+        // ----- QUIÉNES SOMOS -----
         if (quienesSomos) {
             quienesSomos.innerHTML = `
                 <p>${equipo.historia || 'Sin información disponible'}</p>
@@ -924,238 +921,148 @@ if (equipo.colorPrimario) {
             `;
         }
 
-        // Cargar datos adicionales si hay ID
-        if (equipo.id) {
-            console.log('Cargando jugadores, partidos y galería para equipo ID:', equipo.id);
-            const tareas = [];
+        // ----- MAPA -----
+        window.equipoCoords = equipo.lat && equipo.lng
+            ? { lat: parseFloat(equipo.lat), lng: parseFloat(equipo.lng) }
+            : { lat: -34.6037, lng: -58.3816 };
 
-if (comisionGrid && plantelGrid) {
-    tareas.push(cargarJugadoresEquipo(equipo.id));
-}
-
-if (partidosList) {
-    tareas.push(cargarPartidosEquipoPublico(equipo.id));
-}
-
-if (equipo.galeria) {
-    cargarGaleriaEquipo(equipo.galeria); // no necesita await
-}
-
-await Promise.all(tareas);
-        }
-
-        
-    
-    // Helper: hex a rgba
-    const hexToRgba = (hex, alpha) => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    };
-    
-    // Color base
-    const baseColor = equipo.colorPrimario;
-    
-    // Aplicar variables
-    r.style.setProperty('--equipo-color', baseColor);
-    r.style.setProperty('--equipo-color-rgba', hexToRgba(baseColor, 0.92));      // Navbar
-    r.style.setProperty('--equipo-hero-start', hexToRgba(baseColor, 0.95));       // Hero inicio
-    r.style.setProperty('--equipo-hero-mid', hexToRgba(baseColor, 0.85));        // Hero medio (más claro)
-    r.style.setProperty('--equipo-hero-end', hexToRgba(baseColor, 0.98));        // Hero fin (más oscuro)
-    
-    console.log('🎨 Color aplicado:', baseColor);
-}
-
-        // Configurar mapa...
-        if (equipo.lat && equipo.lng) {
-            window.equipoCoords = {
-                lat: parseFloat(equipo.lat),
-                lng: parseFloat(equipo.lng)
-            };
-        } else {
-            window.equipoCoords = { lat: -34.6037, lng: -58.3816 };
-        }
-        
         const mapContainer = document.getElementById('map');
-        if (mapContainer && typeof L !== 'undefined') {
-            inicializarMapa();
-        }
+        if (mapContainer && typeof L !== 'undefined') inicializarMapa();
+
+        // ----- CARGA DE DATOS PARALIZADOS -----
+        const tareas = [];
+
+        if (comisionGrid && plantelGrid) tareas.push(cargarJugadoresEquipo(equipo.id));
+        if (partidosList) tareas.push(cargarPartidosEquipoPublico(equipo.id));
+        if (equipo.galeria) cargarGaleriaEquipo(equipo.galeria); // no await
+
+        await Promise.all(tareas);
+
+        // ----- BOTÓN UNIRSE -----
+        const btnUnirse = document.getElementById('btnUnirse');
+        if (btnUnirse) btnUnirse.href = `registro-jugador.html?equipo=${window.currentEquipoId}`;
 
     } catch (error) {
         console.error('❌ Error en cargarEquipo:', error);
-        if (header) {
-            header.innerHTML = '<div class="error">Error de conexión</div>';
-        }
+        if (header) header.innerHTML = '<div class="error">Error de conexión</div>';
     }
 }
 
-// 🔵 Cargar Galería (desde datos ya cargados del equipo)
+// ----- GALERÍA -----
 function cargarGaleriaEquipo(galeria) {
     const container = document.getElementById('galeriaCarrusel');
     const dotsContainer = document.getElementById('galeriaDots');
     const sinGaleria = document.getElementById('sinGaleria');
-    const btnPrev = document.getElementById('btnPrevGaleria');
-    const btnNext = document.getElementById('btnNextGaleria');
-    
+
     if (!container) return;
-    
-    // Si no hay galería o está vacía
     if (!galeria || galeria.length === 0) {
         container.style.display = 'none';
         if (dotsContainer) dotsContainer.style.display = 'none';
         if (sinGaleria) sinGaleria.style.display = 'block';
         return;
     }
-    
-    console.log('Galería cargada:', galeria.length, 'imágenes');
-    
-    // Generar HTML del carrusel
-    container.innerHTML = galeria.map((url, index) => {
 
-    const rotacion = (Math.random() * 10 - 5).toFixed(2);
+    container.innerHTML = galeria.map(url => {
+        const rotacion = (Math.random()*10-5).toFixed(2);
+        return `
+            <div class="galeria-item" style="transform: rotate(${rotacion}deg);">
+                <img src="${url}" loading="lazy" onclick="verFoto('${url}')">
+            </div>
+        `;
+    }).join('');
 
-    return `
-        <div class="galeria-item">
-            <img src="${url}" 
-                 alt="Foto del equipo"
-                 loading="lazy"
-                 onclick="verFoto('${url}')">
-        </div>
-    `;
-
-}).join('');
-        
-    
-    // Generar dots indicadores
     if (dotsContainer) {
-        dotsContainer.innerHTML = galeria.map((_, index) => `
-            <span class="galeria-dot" onclick="irAGaleria(${index})" 
-                  style="width: 10px; height: 10px; border-radius: 50%; 
-                         background: ${index === 0 ? 'var(--primary, #3b82f6)' : '#cbd5e1'}; 
-                         cursor: pointer; transition: all 0.3s;"></span>
+        dotsContainer.innerHTML = galeria.map((_, idx) => `
+            <span class="galeria-dot" onclick="irAGaleria(${idx})"
+                style="width:10px;height:10px;border-radius:50%;
+                       background:${idx===0?'var(--primary,#3b82f6)':'#cbd5e1'};
+                       cursor:pointer;transition:all 0.3s;">
+            </span>
         `).join('');
     }
-    
-    // Mostrar botones de navegación en desktop
+
     if (window.innerWidth > 768) {
-        if (btnPrev) btnPrev.style.display = 'block';
-        if (btnNext) btnNext.style.display = 'block';
+        const btnPrev = document.getElementById('btnPrevGaleria');
+        const btnNext = document.getElementById('btnNextGaleria');
+        if (btnPrev) btnPrev.style.display='block';
+        if (btnNext) btnNext.style.display='block';
     }
-    
-    // Listener para actualizar dots al scroll
+
     container.addEventListener('scroll', () => {
         const scrollLeft = container.scrollLeft;
-        const itemWidth = container.offsetWidth * 0.85 + 12;
-        const activeIndex = Math.round(scrollLeft / itemWidth);
-        
-        document.querySelectorAll('.galeria-dot').forEach((dot, idx) => {
-            dot.style.background = idx === activeIndex ? 'var(--primary, #3b82f6)' : '#cbd5e1';
-            dot.style.transform = idx === activeIndex ? 'scale(1.2)' : 'scale(1)';
+        const itemWidth = container.offsetWidth*0.85+12;
+        const activeIndex = Math.round(scrollLeft/itemWidth);
+        document.querySelectorAll('.galeria-dot').forEach((dot,idx)=>{
+            dot.style.background = idx===activeIndex?'var(--primary,#3b82f6)':'#cbd5e1';
+            dot.style.transform = idx===activeIndex?'scale(1.2)':'scale(1)';
         });
     });
 }
-// 🔵 FUNCIONES GLOBALES PARA GALERÍA
-window.moverGaleria = function(direccion) {
+
+window.moverGaleria = function(direccion){
     const container = document.getElementById('galeriaCarrusel');
-    const itemWidth = container.offsetWidth * 0.85 + 12;
-    container.scrollBy({ left: itemWidth * direccion, behavior: 'smooth' });
+    const itemWidth = container.offsetWidth*0.85+12;
+    container.scrollBy({left:itemWidth*direccion,behavior:'smooth'});
 };
 
-window.irAGaleria = function(index) {
+window.irAGaleria = function(index){
     const container = document.getElementById('galeriaCarrusel');
-    const itemWidth = container.offsetWidth * 0.85 + 12;
-    container.scrollTo({ left: itemWidth * index, behavior: 'smooth' });
+    const itemWidth = container.offsetWidth*0.85+12;
+    container.scrollTo({left:itemWidth*index,behavior:'smooth'});
 };
-async function cargarJugadoresEquipo(equipoId) {
-    console.log('Cargando jugadores para equipo:', equipoId);
-    
+
+// ----- JUGADORES -----
+async function cargarJugadoresEquipo(equipoId){
+    console.log('Cargando jugadores equipo:',equipoId);
     try {
-        const response = await window.fetchAPI('getJugadores', { equipoId });
-        console.log('Respuesta completa:', response); // 🔥 DEBUG
-        
-        if (!response.success) {
-            console.log('No se pudieron cargar jugadores:', response.error);
-            return;
-        }
-        
+        const response = await window.fetchAPI('getJugadores',{equipoId});
+        if (!response.success) return;
+
         const jugadores = Array.isArray(response.data)
-            ? response.data.filter(j => j.estado && j.estado.trim() === 'Activo')
+            ? response.data.filter(j=>j.estado && j.estado.trim()==='Activo')
             : [];
-        
-        console.log('Jugadores filtrados:', jugadores); // 🔥 DEBUG
-        console.log('Primer jugador:', jugadores[0]); // 🔥 DEBUG
-        console.log('Avatar del primer jugador:', jugadores[0]?.avatarUrl); // 🔥 DEBUG
-        
-      
-        
-        // Comisión: roles administrativos
-        const comision = jugadores.filter(j => j.rol && j.rol !== 'Jugador');
-        
-        // Plantel: jugadores puros + admins
-        const plantel = jugadores.filter(j => 
-            !j.rol || 
-            j.rol === 'Jugador' || 
-            (j.rol && j.rol !== 'Jugador')
-        );
-        
+
+        const comision = jugadores.filter(j=>j.rol && j.rol!=='Jugador');
+        const plantel = jugadores.filter(j=>!j.rol || j.rol==='Jugador' || (j.rol && j.rol!=='Jugador'));
+
         const comisionGrid = document.getElementById('comisionGrid');
         const plantelGrid = document.getElementById('plantelGrid');
-        
-        // 🔥 COMISIÓN CON FOTOS
+
         if (comisionGrid) {
-            comisionGrid.innerHTML = comision.map(j => `
-                <div class="card" style="text-align: center;">
-                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
-                         style=" object-fit: cover;">
+            comisionGrid.innerHTML = comision.map(j=>`
+                <div class="card" style="text-align:center;">
+                    <img src="${j.avatarUrl||'https://i.ibb.co/4pDNDk1/avatar1.png'}" style="object-fit:cover;">
                     <h3>${j.nombre} ${j.apellido}</h3>
                     <p class="badge badge-success">${j.rol}</p>
                 </div>
-            `).join('') || '<p style="text-align: center; color: #64748b;">Sin comisión registrada</p>';
+            `).join('') || '<p style="text-align:center;color:#64748b;">Sin comisión registrada</p>';
         }
-        
-        // 🔥 PLANTEL CON FOTOS
+
         if (plantelGrid) {
-            plantelGrid.innerHTML = plantel.map(j => `
-                <div class="card" style="text-align: center;">
-                    <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
-                         style=" object-fit: cover;">
-                    <h3> ${j.nombre} ${j.apellido}</h3>
-                    
-                    ${j.rol && j.rol !== 'Jugador' ? `<small style="color: var(--primary); font-weight: 600;">🛡️ ${j.rol}</small>` : ''}
+            plantelGrid.innerHTML = plantel.map(j=>`
+                <div class="card" style="text-align:center;">
+                    <img src="${j.avatarUrl||'https://i.ibb.co/4pDNDk1/avatar1.png'}" style="object-fit:cover;">
+                    <h3>${j.nombre} ${j.apellido}</h3>
+                    ${j.rol && j.rol!=='Jugador'?`<small style="color:var(--primary);font-weight:600;">🛡️ ${j.rol}</small>`:''}
                 </div>
-            `).join('') || '<p style="text-align: center; color: #64748b;">Sin jugadores en el plantel</p>';
+            `).join('') || '<p style="text-align:center;color:#64748b;">Sin jugadores en el plantel</p>';
         }
-        
-        // Actualizar link del botón para unirse al equipo
-        const btnUnirse = document.getElementById('btnUnirse');
-        if (btnUnirse) {
-            btnUnirse.href = `registro-jugador.html?equipo=${window.currentEquipoId}`;
-        }
-        
-    } catch (error) {
-        console.error('Error cargando jugadores:', error);
-    }
+    } catch(e){console.error('Error cargando jugadores:',e);}
 }
-async function cargarPartidosEquipoPublico(equipoId) {
-    console.log('Cargando partidos para equipo:', equipoId);
-    
-    try {
-        const response = await window.fetchAPI('getPartidos', { equipoId });
-        if (!response.success) {
-            console.log('No se pudieron cargar partidos:', response.error);
-            return;
-        }
-        
+
+// ----- PARTIDOS -----
+async function cargarPartidosEquipoPublico(equipoId){
+    console.log('Cargando partidos equipo:',equipoId);
+    try{
+        const response = await window.fetchAPI('getPartidos',{equipoId});
+        if(!response.success) return;
         const partidosList = document.getElementById('partidosEquipoList');
-        if (!partidosList) return;
-        
-        if (response.data.length === 0) {
-            partidosList.innerHTML = '<p>No hay partidos programados</p>';
+        if(!partidosList) return;
+        if(response.data.length===0){
+            partidosList.innerHTML='<p>No hay partidos programados</p>';
             return;
         }
-        
-        partidosList.innerHTML = response.data.map(partido => {
+        partidosList.innerHTML = response.data.map(partido=>{
             const fecha = window.formatDate(partido.fecha);
             return `
                 <div class="partido-card">
@@ -1173,11 +1080,8 @@ async function cargarPartidosEquipoPublico(equipoId) {
                 </div>
             `;
         }).join('');
-    } catch (error) {
-        console.error('Error cargando partidos:', error);
-    }
+    }catch(e){console.error('Error cargando partidos:',e);}
 }
-
 // ============================================
 
 function initAdmin() {
