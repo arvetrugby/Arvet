@@ -230,24 +230,31 @@
     </main>
 
     <script src="js/app.js"></script>
-    <script>
+    
 <script>
 
 let equipo = null;
 
 /* =========================
-   CARGAR DATOS DEL EQUIPO
+   CARGAR EQUIPO
 ========================= */
 
-async function cargarEquipoConfig(slug) {
+async function cargarEquipoConfig() {
+
+    const slug = localStorage.getItem("slugEquipo");
+
+    if(!slug){
+        console.error("No hay slug guardado");
+        return;
+    }
 
     try {
 
         const res = await fetch(API_URL + "?action=getEquipoBySlug&slug=" + slug);
         const data = await res.json();
 
-        if (!data.success) {
-            console.error("Equipo no encontrado:", slug);
+        if(!data.success){
+            console.error("Equipo no encontrado:", data.error);
             return;
         }
 
@@ -258,23 +265,23 @@ async function cargarEquipoConfig(slug) {
         document.getElementById("fechaFundacionEquipo").value = equipo.fechaFundacion || "";
         document.getElementById("coloresEquipo").value = equipo.colores || "";
 
-    } catch (error) {
+        console.log("Equipo cargado:", equipo);
 
-        console.error("Error cargando equipo:", error);
-
+    } catch(err){
+        console.error("Error cargando equipo:", err);
     }
 
 }
 
 
 /* =========================
-   GUARDAR INFORMACIÓN
+   GUARDAR DATOS
 ========================= */
 
-async function guardarQuienesSomos() {
+async function guardarQuienesSomos(){
 
-    if (!equipo) {
-        alert("Equipo no cargado");
+    if(!equipo){
+        alert("El equipo no se cargó");
         return;
     }
 
@@ -287,10 +294,13 @@ async function guardarQuienesSomos() {
         colores: document.getElementById("coloresEquipo").value
     };
 
-    try {
+    try{
 
-        const res = await fetch(API_URL, {
-            method: "POST",
+        const res = await fetch(API_URL,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
             body: JSON.stringify(payload)
         });
 
@@ -298,40 +308,30 @@ async function guardarQuienesSomos() {
 
         const msg = document.getElementById("msgConfig");
 
-        if (data.success) {
-
-            msg.style.display = "block";
-            msg.style.color = "green";
-            msg.textContent = "Información guardada";
-
-        } else {
-
-            msg.style.display = "block";
-            msg.style.color = "red";
-            msg.textContent = data.error || "Error al guardar";
-
+        if(data.success){
+            msg.style.display="block";
+            msg.textContent="Información guardada correctamente";
+            msg.style.color="green";
+        }else{
+            msg.style.display="block";
+            msg.textContent=data.error || "Error al guardar";
+            msg.style.color="red";
         }
 
-    } catch (error) {
-
-        console.error("Error guardando:", error);
-
+    }catch(err){
+        console.error("Error guardando:",err);
     }
 
 }
 
 
 /* =========================
-   INICIO
+   EVENTOS
 ========================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded",()=>{
 
-    const slugEquipo = localStorage.getItem("slugEquipo");
-
-    if (slugEquipo) {
-        cargarEquipoConfig(slugEquipo);
-    }
+    cargarEquipoConfig();
 
     document
         .getElementById("btnGuardarQuienesSomos")
@@ -340,6 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
-        </script>
+        
 </body>
 </html>
