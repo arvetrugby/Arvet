@@ -1748,18 +1748,21 @@ btnGuardarColor.addEventListener('click', async function() {
                 const equipo = data.data;
                 
                 // Rellenar los campos si existen datos
-                if (descripcionInput && equipo.descripcion) {
-                    descripcionInput.value = equipo.descripcion;
-                }
-                if (historiaInput && equipo.historia) {
-                    historiaInput.value = equipo.historia;
-                }
-                if (fechaFundacionInput && equipo.fechaFundacion) {
-                    fechaFundacionInput.value = equipo.fechaFundacion;
-                }
-                if (coloresInput && equipo.colores) {
-                    coloresInput.value = equipo.colores;
-                }
+                if (descripcionInput) {
+    descripcionInput.value = equipo.descripcion || '';
+}
+
+if (historiaInput) {
+    historiaInput.value = equipo.historia || '';
+}
+
+if (fechaFundacionInput) {
+    fechaFundacionInput.value = equipo.fechaFundacion || '';
+}
+
+if (coloresInput) {
+    coloresInput.value = equipo.colores || '';
+}
                 
                 console.log('✅ Datos de Quiénes Somos cargados');
             }
