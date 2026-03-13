@@ -1608,7 +1608,7 @@ btnGuardarColor.addEventListener('click', async function() {
 });
     
     // ============================================
-    // GALERÍA (máximo 5 fotos)
+    // GALERÍA (máximo 8 fotos)
     // ============================================
     
     // Inicializar galería temporal en el objeto window para que sea global
@@ -1637,7 +1637,7 @@ btnGuardarColor.addEventListener('click', async function() {
             </div>
         `).join('');
         
-        galeriaMsg.textContent = `${window.galeriaTemporal.length}/5 fotos`;
+        galeriaMsg.textContent = `${window.galeriaTemporal.length}/8 fotos`;
     };
     
     // Cargar galería existente (mismo patrón que logo)
@@ -1658,9 +1658,9 @@ btnGuardarColor.addEventListener('click', async function() {
     
     // Agregar fotos (subir a ImgBB)
     btnAgregarFoto.addEventListener('click', () => {
-        const restantes = 5 - window.galeriaTemporal.length;
+        const restantes = 8 - window.galeriaTemporal.length;
         if (restantes <= 0) {
-            showMsg('Máximo 5 fotos alcanzado', 'error');
+            showMsg('Máximo 8 fotos alcanzado', 'error');
             return;
         }
         inputGaleria.click();
