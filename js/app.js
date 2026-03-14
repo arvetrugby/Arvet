@@ -1228,15 +1228,24 @@ async function cargarJugadoresAdmin() {
                     : `<button class="btn-action btn-success" onclick="cambiarEstadoJugador('${j.id}', 'Activo')">Aprobar</button>`;
 
               return `
-    <div class="list-item">
-        <div class="list-item-info">
-            <h4>#${j.numeroCamiseta || '-'} ${j.nombre} ${j.apellido || ''}</h4>
-            <p>
-                <span class="badge ${badgeClass}">${badgeText}</span>
-                ${j.posicion ? `• ${j.posicion}` : ''}
-                ${j.email ? `• ${j.email}` : ''}
-                ${j.rol && j.rol !== 'Jugador' ? `• <strong style="color: var(--primary);">${j.rol}</strong>` : ''}
-            </p>
+    <div class="list-item" style="display: flex; align-items: center; gap: 15px; padding: 15px;">
+        <!-- Imagen de perfil -->
+        <div style="flex-shrink: 0;">
+            <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
+                 alt="${j.nombre}" 
+                 style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary, #3b82f6);">
+        </div>
+        
+        <div style="flex: 1; min-width: 0;">
+            <div class="list-item-info">
+                <h4 style="margin: 0 0 5px 0; font-size: 16px;">${j.nombre} ${j.apellido || ''}</h4>
+                <p style="margin: 0; font-size: 13px; color: #64748b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                    ${j.posicion ? `<span>• ${j.posicion}</span>` : ''}
+                    ${j.email ? `<span>• ${j.email}</span>` : ''}
+                    ${j.rol && j.rol !== 'Jugador' ? `<span>• <strong style="color: var(--primary);">${j.rol}</strong></span>` : ''}
+                </p>
+            </div>
         </div>
         <div class="list-item-actions">
             <button class="btn-action btn-primary" onclick="editarJugador('${j.id}')">Ver / Editar</button>
