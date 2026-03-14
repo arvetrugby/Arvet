@@ -1564,16 +1564,18 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
             showMsg('❌ Error de conexión', 'error');
         }
     });
-    // ============================================
-    // COLOR PICKER (PC y móvil igual)
+      // ============================================
+    // COLOR PICKER SIEMPRE VISIBLE (inline)
     // ============================================
     
+    const colorInput = document.getElementById('colorPrimario');
+    const colorPreview = document.getElementById('colorPreview');
+    const colorContainer = document.getElementById('color-picker');
     let pickr = null;
     
-    // Inicializar Pickr (esperar a que el DOM esté listo)
+    // Inicializar Pickr en modo inline (siempre abierto)
     function initPickr(defaultColor) {
-        const container = document.getElementById('color-picker');
-        if (!container) {
+        if (!colorContainer) {
             console.error('No existe #color-picker');
             return;
         }
@@ -1587,6 +1589,9 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
             el: '#color-picker',
             theme: 'classic',
             default: defaultColor,
+            inline: true,  // ← SIEMPRE VISIBLE, no colapsado
+            showAlways: true,  // ← Nunca se cierra
+            autoReposition: false,
             swatches: [
                 '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
                 '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6',
@@ -1638,8 +1643,8 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
         initPickr(colorInicial);
     }
     
-    // Inicializar después de un pequeño delay para asegurar que el DOM está listo
-    setTimeout(cargarColorExistente, 100);
+    // Inicializar inmediatamente
+    cargarColorExistente();
 
     // Guardar color
     btnGuardarColor.addEventListener('click', async function() {
