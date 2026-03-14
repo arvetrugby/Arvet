@@ -1116,7 +1116,7 @@ async function cargarJugadoresEquipo(equipoId) {
         const plantelGrid = document.getElementById('plantelGrid');
 
         function formatearFecha(fecha) {
-    if (!fecha) return null;
+    if (!fecha || String(fecha).trim() === '') return null;
     
     const str = String(fecha).trim();
     
@@ -1126,7 +1126,7 @@ async function cargarJugadoresEquipo(equipoId) {
         return `${dia}/${mes}/${año}`;
     }
     
-    // Fallback por si acaso
+    // Fallback
     const date = new Date(str);
     if (isNaN(date.getTime())) return null;
     
@@ -1138,7 +1138,7 @@ async function cargarJugadoresEquipo(equipoId) {
 }
 
 function calcularEdad(fechaNacimiento) {
-    if (!fechaNacimiento) return null;
+    if (!fechaNacimiento || String(fechaNacimiento).trim() === '') return null;
     
     const str = String(fechaNacimiento).trim();
     let año, mes, dia;
@@ -1155,7 +1155,6 @@ function calcularEdad(fechaNacimiento) {
     
     const hoy = new Date();
     let edad = hoy.getFullYear() - parseInt(año);
-    
     const mesActual = hoy.getMonth() + 1;
     const diaActual = hoy.getDate();
     
