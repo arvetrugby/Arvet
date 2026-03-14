@@ -1690,42 +1690,41 @@ function initConfigEquipo() {
     });
     
     inputGaleria.addEventListener('change', async function() {
-        const files = Array.from(this.files);
-        const restantes = 8 - window.galeriaTemporal.length;
-        
-        if (files.length > restantes) {
-            showMsg(`Solo podés agregar ${restantes} foto(s) más`, 'error');
-            files.splice(restantes);
-        }
-        
-        if (files.length === 0) return;
-        
-        showMsg('Subiendo fotos...', 'info');
-        
-        for (const file of files) {
-            const formData = new FormData();
-            formData.append("image", file);
-            
-            try {
-                const response = await fetch("https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90 ", {
-                    method: "POST",
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    window.galeriaTemporal.push(result.data.url);
-                }
-            } catch (err) {
-                console.error('Error subiendo foto:', err);
+    const files = Array.from(this.files);
+    const restantes = 8 - window.galeriaTemporal.length;
+
+    if (files.length > restantes) {
+        showMsg(`Solo podés agregar ${restantes} foto(s) más`, 'error');
+        files.splice(restantes);
+    }
+
+    if (files.length === 0) return;
+
+    showMsg('Subiendo fotos...', 'info');
+
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+            const response = await fetch("https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.galeriaTemporal.push(result.data.url);
             }
+        } catch (err) {
+            console.error('Error subiendo foto:', err);
         }
-        
-        window.renderGaleriaAdmin();
-        showMsg('✅ Fotos agregadas. Click en Guardar.', 'success');
-    });
-    
+    }
+
+    window.renderGaleriaAdmin();
+    showMsg('✅ Fotos agregadas. Click en Guardar.', 'success');
+});
     // Guardar galería en Sheets
     btnGuardarGaleria.addEventListener('click', async function() {
         showMsg('Guardando galería...', 'info');
