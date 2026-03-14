@@ -897,15 +897,30 @@ function mostrarMenuUsuario(userData) {
         return;
     }
     
+    // Obtener el botón que abrió el menú (asumiendo que tiene id="btnUsuario" o similar)
+    // Si no tenés referencia al botón, podés pasar el evento o usar otro selector
+    const btnUsuario = document.getElementById('btnUsuario') || document.querySelector('[onclick*="mostrarMenuUsuario"]');
+    
     const menu = document.createElement('div');
     menu.id = 'menuUsuario';
+    
+    // Calcular posición respecto al viewport si existe el botón
+    let topPos = '60px';
+    let rightPos = '20px';
+    
+    if (btnUsuario) {
+        const rect = btnUsuario.getBoundingClientRect();
+        topPos = (rect.bottom + 8) + 'px'; // 8px de margen debajo del botón
+        rightPos = (window.innerWidth - rect.right) + 'px';
+    }
+    
     menu.innerHTML = `
-        <div style="position: fixed; top: ${topPos}; right: ${rightPos}; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 9999;">
-            <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f172a;">${userData.nombre} ${userData.apellido || ''}</p>
-            <p style="margin: 0 0 12px 0; font-size: 12px; color: #64748b; text-transform: uppercase;">${userData.rol}</p>
+        <div style="position: fixed; top: ${topPos}; right: ${rightPos}; background: #ffffffa6; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 9999;">
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: #292a2a;">${userData.nombre} ${userData.apellido || ''}</p>
+            <p style="margin: 0 0 12px 0; font-size: 12px; color: #292a2a; text-transform: uppercase;">${userData.rol}</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 12px 0;">
-            <a href="admin.html" style="display: block; padding: 8px 0; color: #334155; text-decoration: none; font-size: 14px;">⚙️ Panel Admin</a>
-            <a href="#" onclick="logout(); return false;" style="display: block; padding: 8px 0; color: #ef4444; text-decoration: none; font-size: 14px;">🚪 Cerrar sesión</a>
+            <a href="admin.html" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;"> Panel Admin</a>
+            <a href="#" onclick="logout(); return false;" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;"> Cerrar sesión</a>
         </div>
     `;
     
@@ -913,10 +928,10 @@ function mostrarMenuUsuario(userData) {
     
     // Cerrar al hacer click fuera
     setTimeout(() => {
-        document.addEventListener('click', function cerrar(e) {
-            if (!e.target.closest('#menuUsuario') && !e.target.closest('#navLogin')) {
+        document.addEventListener('click', function cerrarMenu(e) {
+            if (!menu.contains(e.target) && (!btnUsuario || !btnUsuario.contains(e.target))) {
                 menu.remove();
-                document.removeEventListener('click', cerrar);
+                document.removeEventListener('click', cerrarMenu);
             }
         });
     }, 100);
