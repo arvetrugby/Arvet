@@ -956,18 +956,25 @@ async function cargarEquipo(slug) {
 }
 
 // ----- GALERÍA -----
+// ----- GALERÍA -----
 function cargarGaleriaEquipo(galeria) {
     const container = document.getElementById('galeriaCarrusel');
     const dotsContainer = document.getElementById('galeriaDots');
     const sinGaleria = document.getElementById('sinGaleria');
 
     if (!container) return;
+    
+    // Sin fotos: ocultar todo, mostrar mensaje
     if (!galeria || galeria.length === 0) {
         container.style.display = 'none';
         if (dotsContainer) dotsContainer.style.display = 'none';
         if (sinGaleria) sinGaleria.style.display = 'block';
         return;
     }
+
+    // ✅ CON FOTOS: mostrar container, ocultar mensaje
+    container.style.display = 'flex';
+    if (sinGaleria) sinGaleria.style.display = 'none';
 
     container.innerHTML = galeria.map(url => {
         const rotacion = (Math.random()*10-5).toFixed(2);
@@ -979,6 +986,7 @@ function cargarGaleriaEquipo(galeria) {
     }).join('');
 
     if (dotsContainer) {
+        dotsContainer.style.display = 'flex'; // ✅ Mostrar dots
         dotsContainer.innerHTML = galeria.map((_, idx) => `
             <span class="galeria-dot" onclick="irAGaleria(${idx})"
                 style="width:10px;height:10px;border-radius:50%;
