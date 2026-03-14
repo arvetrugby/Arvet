@@ -1452,7 +1452,8 @@ function initConfigEquipo() {
     const btnGuardarLogo = document.getElementById('btnGuardarLogo');
     const msgConfig = document.getElementById('msgConfig');
     const colorInput = document.getElementById('colorPrimario');
-    const btnGuardarColor = document.getElementById('btnGuardarColor');
+const colorPreview = document.getElementById('colorPreview');
+const btnGuardarColor = document.getElementById('btnGuardarColor');
     
     if (!btnCambiarLogo || !inputLogo) {
         console.log('No están los elementos del logo');
@@ -1567,8 +1568,6 @@ function initConfigEquipo() {
     // COLOR PICKER (PC y móvil igual)
     // ============================================
     
-    const colorInput = document.getElementById('colorPrimario');
-    const colorPreview = document.getElementById('colorPreview');
     let pickr = null;
     
     // Inicializar Pickr (esperar a que el DOM esté listo)
