@@ -17,16 +17,13 @@
 
 body {
     font-family: 'Montserrat', sans-serif;
-    background: linear-gradient(
-        140deg,
-        rgba(10, 35, 80, 0.95),
-        rgba(15, 60, 120, 0.85)
-    );
+    background: #1e293b; /* Fallback mientras carga */
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    transition: background 0.5s ease; /* Transición suave */
 }
 
 .login-box {
@@ -56,7 +53,7 @@ p.subtitle {
 
 label {
     font-size: 12px;
-    color: #fff;
+    color: #544f4f;
     margin-bottom: 5px;
     display: block;
 }
@@ -271,6 +268,10 @@ async function cargarDatosEquipo() {
         }
         
         const data = resultado.data;
+
+        // ✅ APLICAR COLOR DEL EQUIPO AL BODY
+        const colorPrimario = data.colorPrimario || '#1e293b';
+        document.body.style.background = colorPrimario;
         
         // Aplicar color de fondo al header
         const header = document.getElementById('equipoHeader');
