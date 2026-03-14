@@ -955,7 +955,7 @@ async function cargarEquipo(slug) {
     }
 }
 
-// ----- GALERÍA -----
+
 // ----- GALERÍA -----
 function cargarGaleriaEquipo(galeria) {
     const container = document.getElementById('galeriaCarrusel');
@@ -972,8 +972,8 @@ function cargarGaleriaEquipo(galeria) {
         return;
     }
 
-    // ✅ CON FOTOS: mostrar container, ocultar mensaje
-    container.style.display = 'flex';
+    // ✅ CON FOTOS: mostrar container (quitar display:none), ocultar mensaje
+    container.style.display = ''; // ← VACÍO: vuelve al CSS original
     if (sinGaleria) sinGaleria.style.display = 'none';
 
     container.innerHTML = galeria.map(url => {
@@ -986,7 +986,7 @@ function cargarGaleriaEquipo(galeria) {
     }).join('');
 
     if (dotsContainer) {
-        dotsContainer.style.display = 'flex'; // ✅ Mostrar dots
+        dotsContainer.style.display = 'flex';
         dotsContainer.innerHTML = galeria.map((_, idx) => `
             <span class="galeria-dot" onclick="irAGaleria(${idx})"
                 style="width:10px;height:10px;border-radius:50%;
@@ -1013,7 +1013,6 @@ function cargarGaleriaEquipo(galeria) {
         });
     });
 }
-
 window.moverGaleria = function(direccion){
     const container = document.getElementById('galeriaCarrusel');
     const itemWidth = container.offsetWidth*0.85+12;
