@@ -840,6 +840,9 @@ function mostrarMensaje(texto, tipo) {
 function initEquipo() {
     console.log('=== INICIO EQUIPO ===');
     
+    // 🔥 VERIFICAR SESIÓN Y MOSTRAR USUARIO
+    mostrarUsuarioLogueado();
+    
     const urlParams = new URLSearchParams(window.location.search);
     const slug = urlParams.get('slug');
     console.log('Slug:', slug);
@@ -858,7 +861,36 @@ function initEquipo() {
 
     cargarEquipo(slug);
 }
-
+function mostrarUsuarioLogueado() {
+    const user = localStorage.getItem('arvet_user');
+    const userContainer = document.getElementById('userContainer'); // o donde quieras mostrarlo
+    
+    if (!userContainer) return;
+    
+    if (user) {
+        try {
+            const userData = JSON.parse(user);
+            userContainer.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--equipo-color, #3b82f6); color: white; border-radius: 20px; font-size: 14px;">
+                    <span>👤</span>
+                    <span>${userData.nombre} ${userData.apellido || ''}</span>
+                    <span style="opacity: 0.8; font-size: 12px;">(${userData.rol})</span>
+                </div>
+            `;
+            userContainer.style.display = 'flex';
+        } catch(e) {
+            userContainer.style.display = 'none';
+        }
+    } else {
+        // No logueado - mostrar botón de login
+        userContainer.innerHTML = `
+            <a href="login.html" style="padding: 8px 16px; background: #f1f5f9; color: #475569; border-radius: 20px; font-size: 14px; text-decoration: none;">
+                Iniciar sesión
+            </a>
+        `;
+        userContainer.style.display = 'flex';
+    }
+}
 // ----- CARGAR EQUIPO -----
 async function cargarEquipo(slug) {
     console.log('=== cargarEquipo ===');
