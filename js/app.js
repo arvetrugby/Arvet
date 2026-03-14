@@ -2115,13 +2115,25 @@ window.eliminarFotoGaleria = async function(index) {
     // 2. Actualizar la vista
     window.renderGaleriaAdmin();
     
-    // 3. Guardar automáticamente (mismo código que tu botón Guardar)
+    // 3. Obtener equipoId desde localStorage (igual que en cargarJugadoresAdmin)
+    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+    const equipoId = currentUser.equipoId;
+    
+    if (!equipoId) {
+        console.error('No se encontró equipoId en localStorage');
+        alert('Error: No se pudo identificar el equipo');
+        return;
+    }
+    
+    // 4. Guardar automáticamente
     try {
+        console.log('Guardando galería sin foto eliminada...');
+        
         const response = await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'updateEquipo',
-                id: currentUser.equipoId,  // ← Así como lo tenés
+                id: equipoId,
                 galeria: window.galeriaTemporal
             })
         });
@@ -2131,7 +2143,7 @@ window.eliminarFotoGaleria = async function(index) {
         if (result.success) {
             console.log('✅ Foto eliminada y guardada');
         } else {
-            console.error('Error:', result.error);
+            console.error('Error del servidor:', result.error);
         }
         
     } catch (err) {
