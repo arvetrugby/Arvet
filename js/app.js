@@ -2349,3 +2349,51 @@ async function obtenerDatosUbicacion(lat, lng) {
     // IMPORTANTE: Las coordenadas originales del pin se mantienen en los inputs hidden
     console.log('Coords finales guardadas:', document.getElementById('lat').value, document.getElementById('lng').value);
 }
+
+// ==========================================
+// COMPARTIR EQUIPO (al final del archivo)
+// ==========================================
+
+function obtenerSlugActual() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('slug') || sessionStorage.getItem('arvet_slug_redirect');
+}
+
+function compartirEquipoActual() {
+    const slug = obtenerSlugActual();
+    
+    if (!slug) {
+        alert('Error: no se pudo identificar el equipo');
+        return;
+    }
+    
+    const urlLimpia = 'https://arvetrugby.github.io/Arvet/' + slug;
+    const urlCorta = 'arvetrugby.github.io/Arvet/' + slug;
+    
+    // Actualizar el texto debajo del botón
+    const urlElement = document.getElementById('urlCompartir');
+    if (urlElement) {
+        urlElement.textContent = urlCorta;
+    }
+    
+    // Compartir
+    const texto = 'Mirá nuestro equipo en ARVET: ' + urlLimpia;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'ARVET Rugby',
+            text: 'Mirá este equipo',
+            url: urlLimpia
+        });
+    } else {
+        window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    }
+}
+
+// Actualizar URL al cargar la página (si estamos en equipo.html)
+if (document.getElementById('urlCompartir')) {
+    const slug = obtenerSlugActual();
+    if (slug) {
+        document.getElementById('urlCompartir').textContent = 'arvetrugby.github.io/Arvet/' + slug;
+    }
+}
