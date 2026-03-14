@@ -1565,127 +1565,144 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
             showMsg('❌ Error de conexión', 'error');
         }
     });
-         // ============================================
-    // COLOR PICKER SIEMPRE VISIBLE (inline)
-    // ============================================
-    
-   
-    let pickr = null;
-    
-    // Inicializar Pickr en modo inline (siempre abierto)
-    function initPickr(defaultColor) {
-        if (!colorContainer) {
-            console.error('No existe #color-picker');
-            return;
-        }
-        
-        // Asegurar que el contenedor tenga tamaño
-        colorContainer.style.minHeight = '250px';
-        colorContainer.style.position = 'relative';
-        
-        // Destruir instancia anterior si existe
-        if (pickr) {
-            pickr.destroyAndRemove();
-        }
-        
-        pickr = Pickr.create({
-            el: '#color-picker',
-            theme: 'classic',
-            default: defaultColor,
-            inline: true,
-            showAlways: true,
-            autoReposition: false,
-            swatches: [
-                '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
-                '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6',
-                '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#334155'
-            ],
-            components: {
-                preview: true,
-                opacity: false,
-                hue: true,
-                interaction: {
-                    hex: true,
-                    rgba: false,
-                    hsla: false,
-                    hsva: false,
-                    cmyk: false,
-                    input: true,
-                    clear: false,
-                    save: false
-                }
-            }
-        });
-        
-        // Forzar el color inicial después de crear
-        pickr.setColor(defaultColor);
-        
-        // Cuando cambia el color
-        pickr.on('change', (color) => {
-            const hex = color.toHEXA().toString();
-            colorInput.value = hex;
-            colorPreview.textContent = hex;
-        });
-    }
-    
-    // Cargar color existente e inicializar picker
-    async function cargarColorExistente() {
-        let colorInicial = '#6366f1';
-        
-        try {
-            const response = await fetch(`${API_URL}?action=getEquipoById&id=${currentUser.equipoId}`);
-            const data = await response.json();
-            
-            if (data.success && data.data.colorPrimario) {
-                colorInicial = data.data.colorPrimario;
-                console.log('✅ Color cargado de Sheets:', colorInicial);
-            } else {
-                console.log('ℹ️ Usando color default:', colorInicial);
-            }
-        } catch (e) {
-            console.log('No se pudo cargar color existente, usando default:', colorInicial);
-        }
-        
-        // Actualizar input y preview
-        colorInput.value = colorInicial;
-        colorPreview.textContent = colorInicial;
-        
-        // Inicializar Pickr con el color (con pequeño delay para asegurar DOM)
-        setTimeout(() => {
-            initPickr(colorInicial);
-        }, 50);
-    }
-    
-    // Inicializar
-    cargarColorExistente();
+// ============================================
+// COLOR PICKER SIEMPRE VISIBLE (inline)
+// ============================================
 
-    // Guardar color
-    btnGuardarColor.addEventListener('click', async function() {
-        const color = colorInput.value;
-        
-        showMsg('Guardando color...', 'info');
-        
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'updateEquipo',
-                    id: currentUser.equipoId,
-                    colorPrimario: color
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showMsg('✅ Color guardado', 'success');
-            } else {
-                showMsg('❌ Error: ' + result.error, 'error');
+let pickr = null;
+
+// Inicializar Pickr en modo inline (siempre abierto)
+function initPickr(defaultColor) {
+    if (!colorContainer) {
+        console.error('No existe #color-picker');
+        return;
+    }
+    
+    // 🔥 CENTRAR EL CONTENEDOR
+    colorContainer.style.cssText = `
+        width: 280px;
+        max-width: 100%;
+        margin: 0 auto;
+        position: relative;
+    `;
+    
+    // Destruir instancia anterior si existe
+    if (pickr) {
+        pickr.destroyAndRemove();
+    }
+    
+    pickr = Pickr.create({
+        el: '#color-picker',
+        theme: 'classic',
+        default: defaultColor,
+        inline: true,
+        showAlways: true,
+        autoReposition: false,
+        swatches: [
+            '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
+            '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6',
+            '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#334155'
+        ],
+        components: {
+            preview: true,
+            opacity: false,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: false,
+                hsla: false,
+                hsva: false,
+                cmyk: false,
+                input: true,
+                clear: false,
+                save: false
             }
-        } catch (err) {
-            showMsg('❌ Error de conexión', 'error');
         }
     });
+    
+    // Forzar el color inicial después de crear
+    pickr.setColor(defaultColor);
+    
+    // 🔥 CENTRAR EL PICKR DESPUÉS DE CREARLO
+    setTimeout(() => {
+        const pickrApp = colorContainer.querySelector('.pcr-app');
+        if (pickrApp) {
+            pickrApp.style.cssText = `
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                margin: 0 auto !important;
+                transform: none !important;
+            `;
+        }
+    }, 10);
+    
+    // Cuando cambia el color
+    pickr.on('change', (color) => {
+        const hex = color.toHEXA().toString();
+        colorInput.value = hex;
+        colorPreview.textContent = hex;
+    });
+}
+
+// Cargar color existente e inicializar picker
+async function cargarColorExistente() {
+    let colorInicial = '#6366f1';
+    
+    try {
+        const response = await fetch(`${API_URL}?action=getEquipoById&id=${currentUser.equipoId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data.colorPrimario) {
+            colorInicial = data.data.colorPrimario;
+            console.log('✅ Color cargado de Sheets:', colorInicial);
+        } else {
+            console.log('ℹ️ Usando color default:', colorInicial);
+        }
+    } catch (e) {
+        console.log('No se pudo cargar color existente, usando default:', colorInicial);
+    }
+    
+    // Actualizar input y preview
+    colorInput.value = colorInicial;
+    colorPreview.textContent = colorInicial;
+    
+    // Inicializar Pickr con el color (con pequeño delay para asegurar DOM)
+    setTimeout(() => {
+        initPickr(colorInicial);
+    }, 50);
+}
+
+// Inicializar
+cargarColorExistente();
+
+// Guardar color
+btnGuardarColor.addEventListener('click', async function() {
+    const color = colorInput.value;
+    
+    showMsg('Guardando color...', 'info');
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'updateEquipo',
+                id: currentUser.equipoId,
+                colorPrimario: color
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMsg('✅ Color guardado', 'success');
+        } else {
+            showMsg('❌ Error: ' + result.error, 'error');
+        }
+    } catch (err) {
+        showMsg('❌ Error de conexión', 'error');
+    }
+});
     // ============================================
     // GALERÍA (máximo 8 fotos)
     // ============================================
