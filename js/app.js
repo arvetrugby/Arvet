@@ -1564,26 +1564,49 @@ function initConfigEquipo() {
         }
     });
     
-           // ============================================
-    // SELECTOR DE COLOR (PC y móvil)
+               // ============================================
+    // COLOR PICKER (PC y móvil igual)
     // ============================================
     
-    const colorLabel = document.getElementById('colorLabel');
+    const colorInput = document.getElementById('colorPrimario');
     const colorPreview = document.getElementById('colorPreview');
+    let pickr = null;
     
-    // Actualizar visual cuando cambia el color
-    colorInput.addEventListener('input', function() {
-        const color = this.value;
-        colorLabel.style.background = color;
-        colorPreview.textContent = color;
-    });
-    
-    // También al cambiar definitivamente (cuando cierra el picker)
-    colorInput.addEventListener('change', function() {
-        const color = this.value;
-        colorLabel.style.background = color;
-        colorPreview.textContent = color;
-    });
+    // Inicializar Pickr
+    function initPickr(defaultColor) {
+        pickr = Pickr.create({
+            el: '#color-picker',
+            theme: 'classic',
+            default: defaultColor,
+            swatches: [
+                '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e',
+                '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6',
+                '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#334155'
+            ],
+            components: {
+                preview: true,
+                opacity: false,
+                hue: true,
+                interaction: {
+                    hex: true,
+                    rgba: false,
+                    hsla: false,
+                    hsva: false,
+                    cmyk: false,
+                    input: true,
+                    clear: false,
+                    save: false
+                }
+            }
+        });
+        
+        // Cuando cambia el color
+        pickr.on('change', (color) => {
+            const hex = color.toHEXA().toString();
+            colorInput.value = hex;
+            colorPreview.textContent = hex;
+        });
+    }
     
     // Cargar color existente
     async function cargarColorExistente() {
@@ -1591,14 +1614,17 @@ function initConfigEquipo() {
             const response = await fetch(`${API_URL}?action=getEquipoById&id=${currentUser.equipoId}`);
             const data = await response.json();
             
+            let colorInicial = '#6366f1';
             if (data.success && data.data.colorPrimario) {
-                const color = data.data.colorPrimario;
-                colorInput.value = color;
-                colorLabel.style.background = color;
-                colorPreview.textContent = color;
+                colorInicial = data.data.colorPrimario;
+                colorInput.value = colorInicial;
+                colorPreview.textContent = colorInicial;
             }
+            
+            initPickr(colorInicial);
         } catch (e) {
             console.log('No se pudo cargar color existente');
+            initPickr('#6366f1');
         }
     }
     cargarColorExistente();
