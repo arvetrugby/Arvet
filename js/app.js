@@ -2351,7 +2351,7 @@ async function obtenerDatosUbicacion(lat, lng) {
 }
 
 // ==========================================
-// COMPARTIR EQUIPO (al final del archivo)
+// COMPARTIR EQUIPO
 // ==========================================
 
 function obtenerSlugActual() {
@@ -2390,10 +2390,13 @@ function compartirEquipoActual() {
     }
 }
 
-// Actualizar URL al cargar la página (si estamos en equipo.html)
-if (document.getElementById('urlCompartir')) {
-    const slug = obtenerSlugActual();
-    if (slug) {
-        document.getElementById('urlCompartir').textContent = 'arvetrugby.github.io/Arvet/' + slug;
+// Actualizar URL al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const urlElement = document.getElementById('urlCompartir');
+    if (urlElement) {
+        const slug = obtenerSlugActual();
+        if (slug) {
+            urlElement.textContent = 'arvetrugby.github.io/Arvet/' + slug;
+        }
     }
-}
+});
