@@ -1152,8 +1152,10 @@ if (!currentUser || !rolesAdminPermitidos.includes(currentUser.rol)) {
     }
 
     // Inicializar funciones
+    showSection('configuracion');
     cargarDashboard();
     cargarJugadoresAdmin();
+    
 }
 
 // ============================================
