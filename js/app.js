@@ -1205,7 +1205,7 @@ function formatearFecha(fecha) {
                 <div class="card" style="text-align: center; position: relative;">
                     <img src="${j.avatarUrl || 'https://i.ibb.co/4pDNDk1/avatar1.png'}" 
                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
-                                border: 3px solid var(--equipo-color, #3b82f6); margin-bottom: 12px;">
+                                border: 3px solid var(--equipo-color, #3b82f6); margin-bottom: 12px; margin-top: 12px;">
                     <h3 style="margin: 0 0 4px 0; font-size: 16px;">${j.nombre} ${j.apellido || ''}</h3>
                     ${j.rol && j.rol !== 'Jugador' ? `
                         <p class="badge badge-success" style="display: inline-block; margin: 0 0 8px 0;">
