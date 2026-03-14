@@ -1569,9 +1569,7 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
     // COLOR PICKER SIEMPRE VISIBLE (inline)
     // ============================================
     
-    const colorInput = document.getElementById('colorPrimario');
-    const colorPreview = document.getElementById('colorPreview');
-    const colorContainer = document.getElementById('color-picker');
+   
     let pickr = null;
     
     // Inicializar Pickr en modo inline (siempre abierto)
