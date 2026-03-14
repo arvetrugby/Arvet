@@ -1168,8 +1168,10 @@ function calcularEdad(fechaNacimiento) {
 
         // Función para generar tarjeta de jugador
         function tarjetaJugador(j) {
+             console.log('Raw fecha:', j.fechaNacimiento, '| tipo:', typeof j.fechaNacimiento);
             const edad = calcularEdad(j.fechaNacimiento);
             const fechaFormateada = formatearFecha(j.fechaNacimiento);
+            console.log('Resultado:', { fechaFormateada, edad });
             
             const datosPrivados = isLogueado ? `
     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
