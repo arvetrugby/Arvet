@@ -2112,9 +2112,9 @@ window.eliminarFotoGaleria = async function(index) {
     window.galeriaTemporal.splice(index, 1);
     window.renderGaleriaAdmin();
     
-    // ✅ GUARDAR AUTOMÁTICAMENTE AL ELIMINAR
+    // Guardar automáticamente
     try {
-        showMsg('Actualizando galería...', 'info');
+        alert('Actualizando galería...'); // o console.log('Actualizando...')
         
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -2128,16 +2128,15 @@ window.eliminarFotoGaleria = async function(index) {
         const result = await response.json();
         
         if (result.success) {
-            showMsg('✅ Foto eliminada', 'success');
+            alert('✅ Foto eliminada');
         } else {
-            showMsg('❌ Error: ' + result.error, 'error');
+            alert('❌ Error: ' + result.error);
         }
     } catch (err) {
-        showMsg('❌ Error de conexión', 'error');
+        alert('❌ Error de conexión');
         console.error(err);
     }
 };
-
 
 
 // ============================================
