@@ -2007,33 +2007,30 @@ btnGuardarColor.addEventListener('click', async function() {
     }
 
     window.renderGaleriaAdmin();
-    showMsg('✅ Fotos agregadas. Click en Guardar.', 'success');
-});
-    // Guardar galería en Sheets
-    btnGuardarGaleria.addEventListener('click', async function() {
-        showMsg('Guardando galería...', 'info');
+    // ✅ GUARDAR AUTOMÁTICAMENTE EN SHEETS (sin botón)
+    showMsg('Guardando en el servidor...', 'info');
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'updateEquipo',
+                id: currentUser.equipoId,
+                galeria: window.galeriaTemporal
+            })
+        });
         
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'updateEquipo',
-                    id: currentUser.equipoId,
-                    galeria: window.galeriaTemporal
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showMsg('✅ Galería guardada', 'success');
-            } else {
-                showMsg('❌ Error: ' + result.error, 'error');
-            }
-        } catch (err) {
-            showMsg('❌ Error de conexión', 'error');
+        const result = await response.json();
+        
+        if (result.success) {
+            showMsg('✅ Fotos guardadas exitosamente', 'success');
+        } else {
+            showMsg('❌ Error al guardar: ' + result.error, 'error');
         }
-    });
+    } catch (err) {
+        showMsg('❌ Error de conexión al guardar', 'error');
+    }
+});
     // ============================================
     // QUIÉNES SOMOS - Descripción, Historia, etc.
     // ============================================
