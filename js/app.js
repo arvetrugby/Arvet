@@ -1245,42 +1245,44 @@ async function cargarJugadoresAdmin() {
             
             <!-- Botones de Rol -->
             <div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn-action ${j.rol === 'Jugador' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Jugador')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Jugador
-                </button>
-                <button class="btn-action ${j.rol === 'Capitán' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Capitán')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Capitán
-                </button>
-                <button class="btn-action ${j.rol === 'Capitán' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Sub Capitán')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Capitán
-                </button>
-                <button class="btn-action ${j.rol === 'Manager' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Manager')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Manager
-                </button>
-                <button class="btn-action ${j.rol === 'Manager' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Sub Manager')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Manager
-                </button>
-                <button class="btn-action ${j.rol === 'Admin' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Admin')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Admin
-                </button>
-                 <button class="btn-action ${j.rol === 'Admin' ? 'btn-success' : 'btn-secondary'}" 
-                        onclick="cambiarRolJugador('${j.id}', 'Tesorero')"
-                        style="font-size: 11px; padding: 4px 8px;">
-                    Admin
-                </button>
-            </div>
+        // Botones de Rol - VERSIÓN CORREGIDA
+`<div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
+    <button class="btn-action ${j.rol === 'Jugador' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Jugador')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Jugador
+    </button>
+    <button class="btn-action ${j.rol === 'Capitán' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Capitán')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Capitán
+    </button>
+    <button class="btn-action ${j.rol === 'Sub Capitán' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Sub Capitán')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Sub Capitán
+    </button>
+    <button class="btn-action ${j.rol === 'Manager' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Manager')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Manager
+    </button>
+    <button class="btn-action ${j.rol === 'Sub Manager' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Sub Manager')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Sub Manager
+    </button>
+    <button class="btn-action ${j.rol === 'Admin' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Admin')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Admin
+    </button>
+    <button class="btn-action ${j.rol === 'Tesorero' ? 'btn-success' : 'btn-secondary'}" 
+            onclick="cambiarRolJugador('${j.id}', 'Tesorero')"
+            style="font-size: 11px; padding: 4px 8px;">
+        Tesorero
+    </button>
+</div>`
         </div>
     </div>
 `;
