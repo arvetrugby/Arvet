@@ -1691,7 +1691,7 @@ function initConfigEquipo() {
     
     inputGaleria.addEventListener('change', async function() {
         const files = Array.from(this.files);
-        const restantes = 5 - window.galeriaTemporal.length;
+        const restantes = 8 - window.galeriaTemporal.length;
         
         if (files.length > restantes) {
             showMsg(`Solo podés agregar ${restantes} foto(s) más`, 'error');
