@@ -840,8 +840,8 @@ function mostrarMensaje(texto, tipo) {
 function initEquipo() {
     console.log('=== INICIO EQUIPO ===');
     
-    // 🔥 VERIFICAR SESIÓN Y MOSTRAR USUARIO
-    mostrarUsuarioLogueado();
+    / 🔥 VERIFICAR SESIÓN Y ACTUALIZAR NAV
+    actualizarNavUsuario();
     
     const urlParams = new URLSearchParams(window.location.search);
     const slug = urlParams.get('slug');
@@ -861,35 +861,65 @@ function initEquipo() {
 
     cargarEquipo(slug);
 }
-function mostrarUsuarioLogueado() {
-    const user = localStorage.getItem('arvet_user');
-    const userContainer = document.getElementById('userContainer'); // o donde quieras mostrarlo
+function actualizarNavUsuario() {
+    const loginLink = document.getElementById('navLogin');
+    if (!loginLink) return;
     
-    if (!userContainer) return;
+    const user = localStorage.getItem('arvet_user');
     
     if (user) {
         try {
             const userData = JSON.parse(user);
-            userContainer.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--equipo-color, #3b82f6); color: white; border-radius: 20px; font-size: 14px;">
-                    <span>👤</span>
-                    <span>${userData.nombre} ${userData.apellido || ''}</span>
-                    <span style="opacity: 0.8; font-size: 12px;">(${userData.rol})</span>
-                </div>
-            `;
-            userContainer.style.display = 'flex';
+            
+            // Cambiar a modo "usuario logueado"
+            loginLink.textContent = `👤 ${userData.nombre}`;
+            loginLink.href = '#'; // o 'admin.html' si querés que lleve al panel
+            loginLink.className = 'btn-user'; // clase diferente para estilos
+            
+            // Opcional: click para ir al panel admin o desloguear
+            loginLink.onclick = function(e) {
+                e.preventDefault();
+                // Toggle menú de usuario
+                mostrarMenuUsuario(userData);
+            };
+            
         } catch(e) {
-            userContainer.style.display = 'none';
+            // Si hay error, dejar como login normal
         }
-    } else {
-        // No logueado - mostrar botón de login
-        userContainer.innerHTML = `
-            <a href="login.html" style="padding: 8px 16px; background: #f1f5f9; color: #475569; border-radius: 20px; font-size: 14px; text-decoration: none;">
-                Iniciar sesión
-            </a>
-        `;
-        userContainer.style.display = 'flex';
     }
+}
+
+function mostrarMenuUsuario(userData) {
+    // Crear menú desplegable simple
+    const existente = document.getElementById('menuUsuario');
+    if (existente) {
+        existente.remove();
+        return;
+    }
+    
+    const menu = document.createElement('div');
+    menu.id = 'menuUsuario';
+    menu.innerHTML = `
+        <div style="position: absolute; top: 60px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 1000;">
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f172a;">${userData.nombre} ${userData.apellido || ''}</p>
+            <p style="margin: 0 0 12px 0; font-size: 12px; color: #64748b; text-transform: uppercase;">${userData.rol}</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 12px 0;">
+            <a href="admin.html" style="display: block; padding: 8px 0; color: #334155; text-decoration: none; font-size: 14px;">⚙️ Panel Admin</a>
+            <a href="#" onclick="logout(); return false;" style="display: block; padding: 8px 0; color: #ef4444; text-decoration: none; font-size: 14px;">🚪 Cerrar sesión</a>
+        </div>
+    `;
+    
+    document.body.appendChild(menu);
+    
+    // Cerrar al hacer click fuera
+    setTimeout(() => {
+        document.addEventListener('click', function cerrar(e) {
+            if (!e.target.closest('#menuUsuario') && !e.target.closest('#navLogin')) {
+                menu.remove();
+                document.removeEventListener('click', cerrar);
+            }
+        });
+    }, 100);
 }
 // ----- CARGAR EQUIPO -----
 async function cargarEquipo(slug) {
