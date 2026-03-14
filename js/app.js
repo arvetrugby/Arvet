@@ -900,7 +900,7 @@ function mostrarMenuUsuario(userData) {
     const menu = document.createElement('div');
     menu.id = 'menuUsuario';
     menu.innerHTML = `
-        <div style="position: absolute; top: 60px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 1000;">
+        <div style="position: fixed; top: ${topPos}; right: ${rightPos}; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 9999;">
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f172a;">${userData.nombre} ${userData.apellido || ''}</p>
             <p style="margin: 0 0 12px 0; font-size: 12px; color: #64748b; text-transform: uppercase;">${userData.rol}</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 12px 0;">
