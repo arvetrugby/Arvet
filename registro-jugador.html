@@ -253,28 +253,24 @@ button:disabled {
 const urlParams = new URLSearchParams(window.location.search);
 const equipoId = urlParams.get('equipo') || urlParams.get('id');
 
-// Función para cargar datos del equipo
+// Función para cargar datos del equipo usando fetchAPI de app.js
 async function cargarDatosEquipo() {
     if (!equipoId) {
-        mostrarError('No se especificó ningún equipo');
+        console.error('No se especificó ningún equipo');
+        document.getElementById('nombreEquipo').textContent = 'Error: Equipo no especificado';
         return;
     }
     
     try {
-        // Consulta a Firebase (ajustá según tu estructura)
-        const equipoDoc = await db.collection('equipos').doc(equipoId).get();
+        // Usar la misma función que ya existe en app.js
+        const resultado = await fetchAPI('getEquipoById', { id: equipoId });
         
-        if (!equipoDoc.exists) {
-            // Si no encuentra por ID, probar por slug
-            const slugQuery = await db.collection('equipos').where('slug', '==', equipoId).get();
-            if (slugQuery.empty) {
-                mostrarError('Equipo no encontrado');
-                return;
-            }
-            var data = slugQuery.docs[0].data();
-        } else {
-            var data = equipoDoc.data();
+        if (!resultado.success || !resultado.data) {
+            document.getElementById('nombreEquipo').textContent = 'Equipo no encontrado';
+            return;
         }
+        
+        const data = resultado.data;
         
         // Aplicar color de fondo al header
         const header = document.getElementById('equipoHeader');
@@ -300,12 +296,19 @@ async function cargarDatosEquipo() {
         
     } catch (error) {
         console.error('Error cargando equipo:', error);
-        mostrarError('Error al cargar los datos del equipo');
+        document.getElementById('nombreEquipo').textContent = 'Error al cargar equipo';
     }
 }
 
-// Llamar al cargar
-document.addEventListener('DOMContentLoaded', cargarDatosEquipo);
+// Esperar a que app.js cargue completamente
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dar tiempo a que app.js inicialice
+        setTimeout(cargarDatosEquipo, 100);
+    });
+} else {
+    setTimeout(cargarDatosEquipo, 100);
+}
     </script>
     <script src="js/app.js"></script>
 </body>
