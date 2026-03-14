@@ -1266,31 +1266,31 @@ async function cargarJugadoresAdmin() {
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
             <button onclick="cambiarRolJugador('${j.id}', 'Jugador')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Jugador' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                👤 Jugador
+                 Jugador
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Capitán')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Capitán' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                ⭐ Capitán
+                 Capitán
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Sub Capitán')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Sub Capitán' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                ☆ Sub Capitán
+                 Sub Capitán
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Manager')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Manager' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                📋 Manager
+                 Manager
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Sub Manager')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Sub Manager' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                📄 Sub Manager
+                 Sub Manager
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Tesorero')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Tesorero' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                💰 Tesorero
+                 Tesorero
             </button>
             <button onclick="cambiarRolJugador('${j.id}', 'Admin')"
                     style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Admin' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                ⚙️ Admin
+                 Admin
             </button>
         </div>
     </div>
