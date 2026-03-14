@@ -1115,62 +1115,51 @@ async function cargarJugadoresEquipo(equipoId) {
         const comisionGrid = document.getElementById('comisionGrid');
         const plantelGrid = document.getElementById('plantelGrid');
 
-        function formatearFecha(fecha) {
+        // Función para calcular edad desde YYYY-MM-DD
+function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento || String(fechaNacimiento).trim() === '') return null;
+    
+    const str = String(fechaNacimiento).trim();
+    
+    // Parsear YYYY-MM-DD
+    if (str.includes('-')) {
+        const [año, mes, dia] = str.split('-');
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - parseInt(año);
+        const mesActual = hoy.getMonth() + 1;
+        const diaActual = hoy.getDate();
+        
+        if (mesActual < parseInt(mes) || (mesActual === parseInt(mes) && diaActual < parseInt(dia))) {
+            edad--;
+        }
+        return edad > 0 ? edad : null;
+    }
+    
+    return null;
+}
+
+// Función para formatear fecha YYYY-MM-DD → DD/MM/YYYY
+function formatearFecha(fecha) {
     if (!fecha || String(fecha).trim() === '') return null;
     
     const str = String(fecha).trim();
     
-    // Si viene como 2020-05-15
+    // Si viene como YYYY-MM-DD
     if (str.includes('-')) {
         const [año, mes, dia] = str.split('-');
         return `${dia}/${mes}/${año}`;
     }
     
-    // Fallback
-    const date = new Date(str);
-    if (isNaN(date.getTime())) return null;
-    
-    return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    return null;
 }
-
-function calcularEdad(fechaNacimiento) {
-    if (!fechaNacimiento || String(fechaNacimiento).trim() === '') return null;
-    
-    const str = String(fechaNacimiento).trim();
-    let año, mes, dia;
-    
-    if (str.includes('-')) {
-        [año, mes, dia] = str.split('-');
-    } else {
-        const date = new Date(str);
-        if (isNaN(date.getTime())) return null;
-        año = date.getFullYear();
-        mes = date.getMonth() + 1;
-        dia = date.getDate();
-    }
-    
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - parseInt(año);
-    const mesActual = hoy.getMonth() + 1;
-    const diaActual = hoy.getDate();
-    
-    if (mesActual < parseInt(mes) || (mesActual === parseInt(mes) && diaActual < parseInt(dia))) {
-        edad--;
-    }
-    
-    return edad > 0 ? edad : null;
-}
-
         // Función para generar tarjeta de jugador
         function tarjetaJugador(j) {
-             console.log('Raw fecha:', j.fechaNacimiento, '| tipo:', typeof j.fechaNacimiento);
-            const edad = calcularEdad(j.fechaNacimiento);
-            const fechaFormateada = formatearFecha(j.fechaNacimiento);
-            console.log('Resultado:', { fechaFormateada, edad });
+    console.log('>>> Jugador:', j.nombre, 'Fecha raw:', j.fechaNacimiento);
+    
+    const edad = calcularEdad(j.fechaNacimiento);
+    const fechaFormateada = formatearFecha(j.fechaNacimiento);
+    
+    console.log('>>> Resultado:', { fechaFormateada, edad });
             
             const datosPrivados = isLogueado ? `
     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
