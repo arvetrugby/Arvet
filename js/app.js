@@ -2105,57 +2105,49 @@ async function cargarQuienesSomosExistente() {
 // Función global para eliminar foto (FUERA de initConfigEquipo)
 window.eliminarFotoGaleria = async function(index) {
 
-    if (!confirm('¿Eliminar esta foto?')) return;
+  if (!confirm('¿Eliminar esta foto?')) return;
 
-    showMsg('Eliminando foto...', 'info', 1500);
+  // 1. Eliminar del array temporal
+  window.galeriaTemporal.splice(index, 1);
 
-    // 1. Eliminar del array temporal
-    window.galeriaTemporal.splice(index, 1);
+  // 2. Actualizar la vista
+  window.renderGaleriaAdmin();
 
-    // 2. Actualizar la vista
-    window.renderGaleriaAdmin();
+  // 3. Obtener equipoId desde localStorage (igual que en cargarJugadoresAdmin)
+  const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+  const equipoId = currentUser.equipoId;
 
-    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
-    const equipoId = currentUser.equipoId;
+  if (!equipoId) {
+    console.error('No se encontró equipoId en localStorage');
+    alert('Error: No se pudo identificar el equipo');
+    return;
+  }
 
-    if (!equipoId) {
-        showMsg('❌ No se pudo identificar el equipo', 'error');
-        return;
+  // 4. Guardar automáticamente
+  try {
+    console.log('Guardando galería sin foto eliminada...');
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'updateEquipo',
+        id: equipoId,
+        galeria: window.galeriaTemporal
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log('✅ Foto eliminada y guardada');
+    } else {
+      console.error('Error del servidor:', result.error);
     }
 
-    try {
-
-        showMsg('Guardando cambios...', 'info', 2000);
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'updateEquipo',
-                id: equipoId,
-                galeria: window.galeriaTemporal
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-
-            showMsg('✅ Foto eliminada', 'success', 2500);
-
-        } else {
-
-            showMsg('❌ Error: ' + result.error, 'error');
-
-        }
-
-    } catch (err) {
-
-        console.error(err);
-        showMsg('❌ Error de conexión', 'error');
-
-    }
-
-}
+  } catch (err) {
+    console.error('Error de conexión:', err);
+  }
+};
 // ============================================
 // ADMIN MOBILE - NAVEGACIÓN GLOBAL
 // ============================================
