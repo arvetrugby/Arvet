@@ -52,31 +52,30 @@ window.formatCurrency = function(amount) {
 };
 
 window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
+
+    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+
+    showMsg('Actualizando rol...', 'info');
+
     try {
-        // Llamada al backend
         const response = await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'asignarRolComision',
                 jugadorId: jugadorId,
-                rol: nuevoRol
+                rol: nuevoRol,
+                equipoId: currentUser.equipoId
             })
         });
 
         const result = await response.json();
 
         if (result.success) {
-            showMsg('Rol actualizado a ' + nuevoRol, 'success');
+            showMsg('Rol actualizado', 'success');
 
-            // Recargar lista de jugadores
-            await cargarJugadoresAdmin();
-
-            // Roles que notificamos con usuario/clave
-            const rolesImportantes = ['Admin', 'Capitán', 'Sub Capitán', 'Manager', 'Sub Manager', 'Tesorero'];
-
-            if (rolesImportantes.includes(nuevoRol)) {
-                agregarBotonWhatsAppRol(jugadorId, nuevoRol);
-            }
+            setTimeout(() => {
+                cargarJugadoresAdmin();
+            }, 200);
 
         } else {
             showMsg('Error: ' + (result.error || 'No se pudo cambiar el rol'), 'error');
@@ -87,50 +86,6 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
         showMsg('Error de conexión', 'error');
     }
 };
-
-// Función para generar botón WhatsApp al cambiar rol
-async function agregarBotonWhatsAppRol(jugadorId, nuevoRol) {
-    try {
-        const datosJugador = await window.fetchAPI('getJugadorById', { id: jugadorId });
-
-        if (!datosJugador.success) return;
-
-        const { nombre, email, password, telefono } = datosJugador.data;
-
-        const mensaje = `Hola ${nombre}, tu rol fue actualizado a "${nuevoRol}".\nUsuario: ${email}\nContraseña: ${password}\nIngresa aquí: https://tusitio.com/login.html`;
-
-        // Crear botón temporal para enviar WhatsApp
-        const container = document.createElement('div');
-        container.style.marginTop = '8px';
-
-        const btn = document.createElement('button');
-        btn.textContent = '📲 Avisar por WhatsApp';
-        btn.style.padding = '6px 12px';
-        btn.style.borderRadius = '8px';
-        btn.style.border = 'none';
-        btn.style.background = '#25D366';
-        btn.style.color = 'white';
-        btn.style.cursor = 'pointer';
-        btn.onclick = () => {
-            const waLink = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-            window.open(waLink, '_blank');
-            container.remove(); // quitar botón después de click
-        };
-
-        container.appendChild(btn);
-
-        // Insertar en el DOM: al final de la lista del jugador
-        const jugadorDiv = document.querySelector(`.list-item[data-id="${jugadorId}"]`);
-        if (jugadorDiv) {
-            jugadorDiv.appendChild(container);
-        } else {
-            document.body.appendChild(container); // fallback
-        }
-
-    } catch (err) {
-        console.error('Error creando botón WhatsApp:', err);
-    }
-}
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
 // ============================================
@@ -1595,7 +1550,6 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
     showMsg('Actualizando...', 'info');
 
     try {
-        // Llamada a Apps Script para actualizar estado
         const response = await window.fetchAPI('updateEstadoJugador', {
             id,
             estado: nuevoEstado
@@ -1604,32 +1558,15 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
         if (response.success) {
             showMsg('Estado actualizado', 'success');
 
-            // Refrescar la lista de jugadores
+            // Recargar lista
             await cargarJugadoresAdmin();
 
-            // Agregar botón de WhatsApp solo si fue aprobado
-            if (nuevoEstado === 'Activo') {
-                const mensaje = `Hola ${response.nombre}, tu registro fue aprobado.\nUsuario: ${response.email}\nContraseña: ${response.password}\nIngresa aquí: https://tusitio.com/login.html`;
-
-                // Crear botón dinámicamente
-                const btnWhatsApp = document.createElement('button');
-                btnWhatsApp.textContent = 'Avisar por WhatsApp';
-                btnWhatsApp.className = 'btn-action btn-success';
-                btnWhatsApp.style.marginBottom = '10px';
-                btnWhatsApp.onclick = () => {
-                    // Abrir WhatsApp Web / App
-                    window.open(`https://api.whatsapp.com/send?phone=&text=${encodeURIComponent(mensaje)}`, '_blank');
-                };
-
-                // Insertar el botón arriba de la lista
-                const container = document.getElementById('listaJugadores');
-                if (container) container.prepend(btnWhatsApp);
-            }
+            // Botón WhatsApp
+            agregarBotonWhatsApp(id, nuevoEstado);
 
         } else {
             showMsg('Error: ' + (response.error || 'No se pudo actualizar'), 'error');
         }
-
     } catch (err) {
         console.error(err);
         showMsg('Error de conexión', 'error');
