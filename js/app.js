@@ -905,43 +905,37 @@ function actualizarNavUsuario() {
 }
 
 function mostrarMenuUsuario(userData) {
-    // Crear menú desplegable simple
     const existente = document.getElementById('menuUsuario');
     if (existente) {
         existente.remove();
         return;
     }
-    
-    // Obtener el botón que abrió el menú (asumiendo que tiene id="btnUsuario" o similar)
-    // Si no tenés referencia al botón, podés pasar el evento o usar otro selector
+
     const btnUsuario = document.getElementById('btnUsuario') || document.querySelector('[onclick*="mostrarMenuUsuario"]');
     
     const menu = document.createElement('div');
     menu.id = 'menuUsuario';
-    
-    // Calcular posición respecto al viewport si existe el botón
+
     let topPos = '60px';
     let rightPos = '20px';
-    
     if (btnUsuario) {
         const rect = btnUsuario.getBoundingClientRect();
-        topPos = (rect.bottom + 8) + 'px'; // 8px de margen debajo del botón
+        topPos = (rect.bottom + 8) + 'px';
         rightPos = (window.innerWidth - rect.right) + 'px';
     }
-    
+
     menu.innerHTML = `
         <div style="position: fixed; top: ${topPos}; right: ${rightPos}; background: #ffffffa6; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 16px; min-width: 180px; z-index: 9999;">
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #292a2a;">${userData.nombre} ${userData.apellido || ''}</p>
             <p style="margin: 0 0 12px 0; font-size: 12px; color: #292a2a; text-transform: uppercase;">${userData.rol}</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 12px 0;">
-            <a href="admin.html" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;"> Panel Admin</a>
-            <a href="#" onclick="logout(); return false;" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;"> Cerrar sesión</a>
+            <a href="#" onclick="irAlPanel(); return false;" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;">Panel</a>
+            <a href="#" onclick="logout(); return false;" style="display: block; padding: 8px 0; color: #292a2a; text-decoration: none; font-size: 14px;">Cerrar sesión</a>
         </div>
     `;
-    
+
     document.body.appendChild(menu);
-    
-    // Cerrar al hacer click fuera
+
     setTimeout(() => {
         document.addEventListener('click', function cerrarMenu(e) {
             if (!menu.contains(e.target) && (!btnUsuario || !btnUsuario.contains(e.target))) {
@@ -950,6 +944,21 @@ function mostrarMenuUsuario(userData) {
             }
         });
     }, 100);
+}
+
+// Nueva función para redirigir según rol
+function irAlPanel() {
+    const userData = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+    if (!userData || !userData.rol) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (['Admin', 'Manager', 'Capitán'].includes(userData.rol)) {
+        window.location.href = 'admin.html';
+    } else {
+        window.location.href = 'panel-jugador.html';
+    }
 }
 // ----- CARGAR EQUIPO -----
 async function cargarEquipo(slug) {
