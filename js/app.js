@@ -1625,12 +1625,7 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
         });
 
         if (response.success) {
-            showMsg('Estado actualizado', 'success');
-
-            // Recargar lista
-            cargarJugadoresAdmin();
-
-            // Usar los datos que devuelve el backend
+            // Datos del jugador devueltos por Apps Script
             const jugador = {
                 id: id,
                 nombre: response.nombre,
@@ -1639,16 +1634,34 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
                 telefono: response.telefono // si Apps Script lo devuelve
             };
 
-            let mensaje = '';
-            if (nuevoEstado === 'Activo') {
-                mensaje = `Hola ${jugador.nombre}, tu registro fue aprobado.\nUsuario: ${jugador.email}\nContraseña: ${jugador.password}\nIngresa aquí: https://tusitio.com/login.html`;
-            } else if (nuevoEstado === 'Pendiente') {
-                mensaje = `Hola ${jugador.nombre}, tu estado cambió a Pendiente.`;
-            } else if (nuevoEstado === 'Eliminado') {
-                mensaje = `Hola ${jugador.nombre}, tu registro fue eliminado.`;
+            // Crear botón latente de WhatsApp si no existe ya
+            if (!document.getElementById(`btnWS-${id}`)) {
+                const botonWS = document.createElement('a');
+                botonWS.id = `btnWS-${id}`;
+                botonWS.href = `https://wa.me/${String(jugador.telefono).replace(/\D/g, '')}?text=${encodeURIComponent(
+                    nuevoEstado === 'Activo'
+                        ? `Hola ${jugador.nombre}, tu registro fue aprobado.\nUsuario: ${jugador.email}\nContraseña: ${jugador.password}\nIngresa aquí: https://tusitio.com/login.html`
+                        : `Hola ${jugador.nombre}, tu estado cambió a ${nuevoEstado}.`
+                )}`;
+                botonWS.target = '_blank';
+                botonWS.textContent = 'Enviar WhatsApp';
+                botonWS.style.position = 'fixed';
+                botonWS.style.top = '50%';
+                botonWS.style.left = '50%';
+                botonWS.style.transform = 'translate(-50%, -50%)';
+                botonWS.style.background = '#22c55e';
+                botonWS.style.color = 'white';
+                botonWS.style.padding = '12px 24px';
+                botonWS.style.borderRadius = '24px';
+                botonWS.style.fontWeight = '600';
+                botonWS.style.fontSize = '14px';
+                botonWS.style.zIndex = '9999';
+                botonWS.style.cursor = 'pointer';
+                document.body.appendChild(botonWS);
             }
 
-            agregarBotonWhatsApp(jugador, mensaje);
+            showMsg('Estado actualizado', 'success');
+            setTimeout(() => cargarJugadoresAdmin(), 200);
 
         } else {
             showMsg('Error: ' + (response.error || 'No se pudo actualizar'), 'error');
@@ -1659,7 +1672,6 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
         showMsg('Error de conexión', 'error');
     }
 };
-
 window.eliminarJugador = async function(id) {
 
 if (!confirm('¿Seguro que querés eliminar este jugador?')) return;
