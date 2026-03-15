@@ -50,6 +50,8 @@ window.formatCurrency = function(amount) {
         currency: 'ARS'
     }).format(amount);
 };
+
+
 window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
 
@@ -72,40 +74,18 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
             showMsg('Rol actualizado', 'success');
 
             // Recargar lista de jugadores
-            setTimeout(() => {
-                cargarJugadoresAdmin();
-            }, 200);
+            await cargarJugadoresAdmin();
 
-            // Agregar botón/modal de WhatsApp con mensaje personalizado
+            // Agregar botón de WhatsApp en el card del jugador (NO flotante)
             const j = result.data;
             if (j && j.telefono) {
-                const existente = document.getElementById('whatsappRol');
-                if (existente) existente.remove();
-
                 const mensaje = `Hola ${j.nombre} ${j.apellido}, tu rol en el equipo ha cambiado a: ${j.rol}. Usuario: ${j.email}. Contraseña: ${j.password}. Ingresa aquí: https://tusitio.com/login.html`;
                 
-                const btn = document.createElement('a');
-                btn.id = 'whatsappRol';
-                btn.href = `https://wa.me/${String(j.telefono).replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`;
-                btn.target = '_blank';
-                btn.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 9999;
-                    padding: 12px 20px;
-                    background: #25d366;
-                    color: white;
-                    font-weight: 600;
-                    border-radius: 12px;
-                    text-decoration: none;
-                    font-size: 14px;
-                    text-align: center;
-                `;
-                btn.textContent = 'Avisar por WhatsApp';
-                
-                document.body.appendChild(btn);
+                // Usar la misma función agregarBotonWhatsApp que ya tienes
+                agregarBotonWhatsApp(
+                    { id: jugadorId, telefono: j.telefono }, 
+                    mensaje
+                );
             }
 
         } else {
@@ -117,7 +97,6 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
         showMsg('Error de conexión', 'error');
     }
 };
-
 // ============================================
 // BOTON WHATSAPP EN CARD (LATIDO INFINITO)
 // ============================================
