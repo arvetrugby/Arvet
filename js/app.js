@@ -925,12 +925,12 @@ function initRegistroJugador() {
                     // Más tiempo para que pueda clickear el botón
                     setTimeout(() => {
                         window.location.href = 'login.html';
-                    }, 8000);
+                    }, 12000);
                 } else {
                     // Comportamiento normal
                     setTimeout(() => {
                         window.location.href = esAdmin ? 'admin.html' : 'login.html';
-                    }, 3000);
+                    }, 6000);
                 }
             } else {
                 mostrarMensaje('❌ ' + (result.error || 'Error al registrar'), 'error');
