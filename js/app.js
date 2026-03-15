@@ -1550,6 +1550,7 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
     showMsg('Actualizando...', 'info');
 
     try {
+        // Llamada a la API
         const response = await window.fetchAPI('updateEstadoJugador', {
             id,
             estado: nuevoEstado
@@ -1561,18 +1562,36 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
             // Recargar lista
             await cargarJugadoresAdmin();
 
-            // Botón WhatsApp
-            agregarBotonWhatsApp(id, nuevoEstado);
+            // === Preparar mensaje de WhatsApp si se aprueba ===
+            if (nuevoEstado === 'Activo') {
+                // response debería traer: email, nombre, password
+                const nombre = response.nombre || '';
+                const email = response.email || '';
+                const password = response.password || ''; // AHORA sí debería estar
+
+                // Link de login
+                const linkLogin = 'https://tusitio.com/login.html';
+
+                // Texto del mensaje
+                const mensaje = `Hola ${nombre}, tu registro fue aprobado.\nUsuario: ${email}\nContraseña: ${password}\nIngresa aquí: ${linkLogin}`;
+
+                // Abrir WhatsApp Web (o móvil)
+                const telefono = ''; // si querés usar número real, lo pones aquí
+                const urlWhats = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+
+                // Abrir ventana WhatsApp (para probar)
+                window.open(urlWhats, '_blank');
+            }
 
         } else {
             showMsg('Error: ' + (response.error || 'No se pudo actualizar'), 'error');
         }
+
     } catch (err) {
         console.error(err);
         showMsg('Error de conexión', 'error');
     }
 };
-
 window.eliminarJugador = async function(id) {
 
 if (!confirm('¿Seguro que querés eliminar este jugador?')) return;
