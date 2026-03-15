@@ -1506,12 +1506,8 @@ function editarJugador(id) {
 // ============================================
 
 window.nuevoJugador = function() {
-
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
-
-    window.location.href =
-        `registro-jugador.html?equipo=${currentUser.equipoId}&admin=1`;
-
+    window.location.href = `registro-jugador.html?equipo=${currentUser.equipoId}&admin=1`;
 }
 
 window.editarJugador = function(id) {
@@ -1523,7 +1519,9 @@ window.editarJugador = function(id) {
 
 window.logout = function() {
     if (confirm('¿Cerrar sesión?')) {
-        localStorage.removeItem('arvet_user');
+        if (!esAdmin) {
+    localStorage.removeItem('arvet_user');
+}
         localStorage.removeItem('arvet_login_time');
         window.location.href = 'login.html';
     }
