@@ -1428,7 +1428,7 @@ async function cargarJugadoresAdmin() {
                     : `<button class="btn-action btn-success" onclick="cambiarEstadoJugador('${j.id}', 'Activo')">Aprobar</button>`;
 
               return `
-    <div class="list-item" style="display: flex; flex-direction: column; gap: 12px; padding: 15px;">
+    <div class="list-item" data-id="${j.id}" style="display: flex; flex-direction: column; gap: 12px; padding: 15px;">
         
         <!-- Fila superior: Avatar + Info -->
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -1558,11 +1558,12 @@ window.cambiarEstadoJugador = async function(id, nuevoEstado) {
         if (response.success) {
             showMsg('Estado actualizado', 'success');
 
-            // Recargar lista de jugadores
+            // Recargar lista
             await cargarJugadoresAdmin();
 
-            // Agregar botón WhatsApp
-            agregarBotonWhatsApp(id, nuevoEstado); // llama a la función que definimos antes
+            // Botón WhatsApp
+            agregarBotonWhatsApp(id, nuevoEstado);
+
         } else {
             showMsg('Error: ' + (response.error || 'No se pudo actualizar'), 'error');
         }
@@ -1690,6 +1691,57 @@ const equipoIcon = L.divIcon({
     } catch (error) {
         console.error('❌ Error creando mapa:', error);
     }
+}
+// ==========================
+// WHATSAPP ADMIN
+// ==========================
+function agregarBotonWhatsApp(jugadorId, estado) {
+    // Buscar el contenedor del jugador en el DOM
+    const jugadorDiv = document.querySelector(`div.list-item[data-id="${jugadorId}"]`);
+    if (!jugadorDiv) return;
+
+    // Buscar o crear contenedor de acciones extra
+    let accionesExtra = jugadorDiv.querySelector('.acciones-extra');
+    if (!accionesExtra) {
+        accionesExtra = document.createElement('div');
+        accionesExtra.className = 'acciones-extra';
+        accionesExtra.style.marginTop = '8px';
+        jugadorDiv.appendChild(accionesExtra);
+    } else {
+        accionesExtra.innerHTML = ''; // Limpiar botones previos
+    }
+
+    // Obtener info del jugador del cache local
+    const jugadores = JSON.parse(localStorage.getItem('jugadores_cache') || '[]');
+    const jugador = jugadores.find(j => j.id === jugadorId);
+    if (!jugador) return;
+
+    // Generar mensaje según estado
+    let mensaje = '';
+    if (estado === 'Activo') {
+        mensaje = `Hola ${jugador.nombre}, tu registro fue aprobado.\nTu usuario: ${jugador.email}\nTu contraseña: ${jugador.password}\nIngresa aquí: https://tusitio.com/login.html`;
+    } else if (estado === 'Pendiente') {
+        mensaje = `Hola ${jugador.nombre}, tu estado pasó a pendiente.`;
+    } else {
+        mensaje = `Hola ${jugador.nombre}, tu estado fue actualizado a: ${estado}`;
+    }
+
+    // Botón WhatsApp
+    const telefono = jugador.telefono || ''; // usar número si existe
+    const boton = document.createElement('a');
+    boton.href = `https://api.whatsapp.com/send?phone=${telefono}&text=${encodeURIComponent(mensaje)}`;
+    boton.target = '_blank';
+    boton.textContent = 'Avisar por WhatsApp';
+    boton.style.display = 'inline-block';
+    boton.style.padding = '6px 12px';
+    boton.style.marginTop = '4px';
+    boton.style.background = '#25D366';
+    boton.style.color = 'white';
+    boton.style.borderRadius = '6px';
+    boton.style.fontSize = '12px';
+    boton.style.textDecoration = 'none';
+
+    accionesExtra.appendChild(boton);
 }
 // ============================================
 // ADMIN: CONFIGURACIÓN BÁSICA
@@ -2479,51 +2531,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function agregarBotonWhatsApp(jugadorId, motivo) {
-    // Buscar el contenedor del jugador
-    const jugadorDiv = document.querySelector(`.list-item[data-id="${jugadorId}"]`);
-    if (!jugadorDiv) return;
 
-    // Evitar duplicar botón
-    if (jugadorDiv.querySelector('.btn-whatsapp')) return;
-
-    // Obtener datos del jugador desde el cache
-    const jugadoresCache = JSON.parse(localStorage.getItem('jugadores_cache') || '[]');
-    const jugador = jugadoresCache.find(j => j.id === jugadorId);
-    if (!jugador || !jugador.telefono) return;
-
-    const telefono = jugador.telefono.replace(/\D/g, ''); // quitar espacios, guiones, etc.
-
-    // Mensaje según motivo
-    let mensajeText = '';
-    if (motivo === 'Aprobado') {
-        mensajeText = `Hola ${jugador.nombre}, tu cuenta ha sido aprobada ✅\n` +
-                      `Usuario: ${jugador.email}\n` +
-                      `Contraseña: ${jugador.password || '(la que registraste)'}\n` +
-                      `Ingresa aquí: https://tu-sitio.com/login.html`;
-    } else {
-        mensajeText = `Hola ${jugador.nombre}, tu cuenta fue actualizada: ${motivo}`;
-    }
-
-    const mensaje = encodeURIComponent(mensajeText);
-
-    const btn = document.createElement('button');
-    btn.className = 'btn-whatsapp';
-    btn.textContent = '📲 Avisar por WhatsApp';
-    btn.style.marginTop = '6px';
-    btn.style.fontSize = '12px';
-    btn.style.padding = '6px 10px';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '8px';
-    btn.style.background = '#25D366';
-    btn.style.color = 'white';
-    btn.style.cursor = 'pointer';
-
-    btn.onclick = () => {
-        window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
-    };
-
-    // Agregar al final del contenedor de botones
-    const botonesContainer = jugadorDiv.querySelector('div'); // el primer div de botones
-    if (botonesContainer) botonesContainer.appendChild(btn);
-}
