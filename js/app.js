@@ -696,9 +696,6 @@ function initRegistroJugador() {
     });
     
     // Obtener equipoId de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const equipoId = urlParams.get('equipo');
-    const esAdmin = urlParams.get('admin') === '1';
     
     console.log('Equipo ID:', equipoId);
     
