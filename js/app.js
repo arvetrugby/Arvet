@@ -1453,47 +1453,29 @@ async function cargarJugadoresAdmin() {
         ${j.email ? `<p style="margin: 0; font-size: 12px; color: #94a3b8; word-break: break-all;">${j.email}</p>` : ''}
         
         <!-- Botones de acción principales -->
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-action btn-primary" onclick="editarJugador('${j.id}')" style="flex: 1; min-width: 80px; font-size: 12px; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer;">
-                Ver / Editar
-            </button>
-            ${btnEstado.replace('btn-action', 'btn-action').replace('>', ` style="flex: 1; min-width: 80px; font-size: 12px; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer;">`)}
-            <button class="btn-action btn-delete" onclick="eliminarJugador('${j.id}')" style="flex: 1; min-width: 80px; font-size: 12px; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ef4444; color: white;">
-                Eliminar
-            </button>
-        </div>
-        
-        <!-- Botones de Rol - TODOS MISMO TAMAÑO -->
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-           <button onclick="cambiarRolJugador('${j.id}', 'Jugador', this')" 
-    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Jugador' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-    Jugador
-</button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Capitán', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Capitán' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Capitán
-            </button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Sub Capitán', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Sub Capitán' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Sub Capitán
-            </button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Manager', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Manager' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Manager
-            </button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Sub Manager', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Sub Manager' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Sub Manager
-            </button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Tesorero', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Tesorero' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Tesorero
-            </button>
-            <button onclick="cambiarRolJugador('${j.id}', 'Admin', this')" 
-                    style="font-size: 11px; padding: 10px 6px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; min-height: 36px; width: 100%; ${j.rol === 'Admin' ? 'background: #22c55e; color: white;' : 'background: #f1f5f9; color: #475569;'}">
-                 Admin
-            </button>
-        </div>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Jugador')})" style="...">
+        Jugador
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Capitán')})" style="...">
+        Capitán
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Sub Capitán')})" style="...">
+        Sub Capitán
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Manager')})" style="...">
+        Manager
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Sub Manager')})" style="...">
+        Sub Manager
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Tesorero')})" style="...">
+        Tesorero
+    </button>
+    <button onclick="cambiarRolJugador(${JSON.stringify(j.id)}, ${JSON.stringify('Admin')})" style="...">
+        Admin
+    </button>
+</div>
     </div>
 `;
             }).join('');
