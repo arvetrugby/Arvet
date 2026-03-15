@@ -1715,7 +1715,10 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
     cargarLogoExistente();
     
     // 2. Seleccionar nuevo logo (subir a ImgBB)
-    btnCambiarLogo.addEventListener('click', () => inputLogo.click());
+    btnCambiarLogo.addEventListener('click', () => {
+    inputLogo.value = "";
+    inputLogo.click();
+});
     
        inputLogo.addEventListener('change', async function() {
         const file = this.files[0];
@@ -1947,6 +1950,7 @@ btnGuardarColor.addEventListener('click', async function() {
             if (data.success && data.data.galeria) {
                 window.galeriaTemporal = data.data.galeria;
                 window.renderGaleriaAdmin();
+                inputGaleria.value = "";
             }
         } catch (err) {
             console.log('No se pudo cargar galería existente');
