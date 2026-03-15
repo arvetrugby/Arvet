@@ -53,16 +53,14 @@ window.formatCurrency = function(amount) {
 
 window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
     try {
-        // Llamada al backend
         const response = await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'asignarRolComision',
-                jugadorId: jugadorId,
+                jugadorId,
                 rol: nuevoRol
             })
         });
-
         const result = await response.json();
 
         if (result.success) {
@@ -71,11 +69,15 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
             // Recargar lista de jugadores
             await cargarJugadoresAdmin();
 
-            // Roles que notificamos con usuario/clave
-            const rolesImportantes = ['Admin', 'Capitán', 'Sub Capitán', 'Manager', 'Sub Manager', 'Tesorero'];
+            // Traer info completa del jugador
+            const jugadorData = await window.fetchAPI('getJugadorById', { id: jugadorId });
+            if (jugadorData.success) {
+                const { email, password, nombre } = jugadorData.data;
 
-            if (rolesImportantes.includes(nuevoRol)) {
-                agregarBotonWhatsAppRol(jugadorId, nuevoRol);
+                // Aviso WhatsApp
+                const mensaje = `Hola ${nombre}, tu rol fue actualizado a "${nuevoRol}".\nUsuario: ${email}\nContraseña: ${password}\nIngresa aquí: https://tusitio.com/login.html`;
+                const waLink = `https://wa.me/${jugadorData.data.telefono}?text=${encodeURIComponent(mensaje)}`;
+                window.open(waLink, '_blank');
             }
 
         } else {
@@ -87,50 +89,6 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
         showMsg('Error de conexión', 'error');
     }
 };
-
-// Función para generar botón WhatsApp al cambiar rol
-async function agregarBotonWhatsAppRol(jugadorId, nuevoRol) {
-    try {
-        const datosJugador = await window.fetchAPI('getJugadorById', { id: jugadorId });
-
-        if (!datosJugador.success) return;
-
-        const { nombre, email, password, telefono } = datosJugador.data;
-
-        const mensaje = `Hola ${nombre}, tu rol fue actualizado a "${nuevoRol}".\nUsuario: ${email}\nContraseña: ${password}\nIngresa aquí: https://tusitio.com/login.html`;
-
-        // Crear botón temporal para enviar WhatsApp
-        const container = document.createElement('div');
-        container.style.marginTop = '8px';
-
-        const btn = document.createElement('button');
-        btn.textContent = '📲 Avisar por WhatsApp';
-        btn.style.padding = '6px 12px';
-        btn.style.borderRadius = '8px';
-        btn.style.border = 'none';
-        btn.style.background = '#25D366';
-        btn.style.color = 'white';
-        btn.style.cursor = 'pointer';
-        btn.onclick = () => {
-            const waLink = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-            window.open(waLink, '_blank');
-            container.remove(); // quitar botón después de click
-        };
-
-        container.appendChild(btn);
-
-        // Insertar en el DOM: al final de la lista del jugador
-        const jugadorDiv = document.querySelector(`.list-item[data-id="${jugadorId}"]`);
-        if (jugadorDiv) {
-            jugadorDiv.appendChild(container);
-        } else {
-            document.body.appendChild(container); // fallback
-        }
-
-    } catch (err) {
-        console.error('Error creando botón WhatsApp:', err);
-    }
-}
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
 // ============================================
