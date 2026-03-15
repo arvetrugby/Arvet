@@ -70,6 +70,7 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
         const result = await response.json();
         
         if (result.success) {
+            showMsg('Nuevo rol?, ok', 'success');
             // Recargar lista de jugadores
             cargarJugadoresAdmin();
         } else {
