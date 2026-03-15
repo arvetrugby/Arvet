@@ -117,8 +117,44 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
         showMsg('Error de conexión', 'error');
     }
 };
+// ============================================
+// BOTON WHATSAPP
+// ============================================
+function agregarBotonWhatsApp(jugador, mensaje) {
+    const jugadorDiv = document.querySelector(`.list-item[data-id="${jugador.id}"]`);
+    if (!jugadorDiv) return;
 
+    // Evitar duplicados
+    if (jugadorDiv.querySelector('.btn-whatsapp')) return;
 
+    const btn = document.createElement('a');
+    btn.className = 'btn-whatsapp';
+    btn.href = `https://wa.me/${String(jugador.telefono).replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`;
+    btn.target = '_blank';
+    btn.textContent = 'WhatsApp';
+
+    // Estilos
+    btn.style.marginTop = '6px';
+    btn.style.display = 'inline-flex';
+    btn.style.alignItems = 'center';
+    btn.style.gap = '6px';
+    btn.style.padding = '6px 12px';
+    btn.style.background = '#22c55e';
+    btn.style.color = 'white';
+    btn.style.borderRadius = '20px';
+    btn.style.fontSize = '12px';
+    btn.style.fontWeight = '500';
+    btn.style.textDecoration = 'none';
+
+    // Al hacer click desaparece el botón
+    btn.onclick = function () {
+        setTimeout(() => {
+            btn.remove();
+        }, 100); // pequeña demora para asegurar que el clic funcione
+    };
+
+    jugadorDiv.appendChild(btn);
+}
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
 // ============================================
@@ -1578,61 +1614,39 @@ window.logout = function() {
         window.location.href = 'login.html';
     }
 }
-
 window.cambiarEstadoJugador = async function(id, nuevoEstado) {
     showMsg('Actualizando...', 'info');
 
     try {
-        // Llamada al Apps Script / API
         const response = await window.fetchAPI('updateEstadoJugador', {
             id,
             estado: nuevoEstado
         });
 
-        if (!response.success) {
+        if (response.success) {
+            showMsg('Estado actualizado', 'success');
+
+            // Recargar lista
+            const jugadores = await cargarJugadoresAdmin();
+
+            // Preparar mensaje según estado
+            const jugador = jugadores.find(j => j.id === id);
+            if (jugador) {
+                let mensaje = '';
+                if (nuevoEstado === 'Activo') {
+                    mensaje = `Hola ${jugador.nombre}, tu registro fue aprobado.\nUsuario: ${jugador.email}\nContraseña: ${jugador.password}\nIngresa aquí: https://tusitio.com/login.html`;
+                } else if (nuevoEstado === 'Pendiente') {
+                    mensaje = `Hola ${jugador.nombre}, tu estado cambió a Pendiente.`;
+                } else if (nuevoEstado === 'Eliminado') {
+                    mensaje = `Hola ${jugador.nombre}, tu registro fue eliminado.`;
+                }
+
+                agregarBotonWhatsApp(jugador, mensaje);
+            }
+
+        } else {
             showMsg('Error: ' + (response.error || 'No se pudo actualizar'), 'error');
-            return;
         }
-
-        showMsg('Estado actualizado', 'success');
-
-        // Recargar lista de jugadores
-        await cargarJugadoresAdmin();
-
-        // Generar botón WhatsApp centrado
-        const { nombre, email, password, telefono } = response;
-
-        if (!telefono) return; // si no hay teléfono, no hacemos nada
-
-        // Si ya existe el botón, lo eliminamos
-        const botonExistente = document.getElementById('btnWhatsAppAviso');
-        if (botonExistente) botonExistente.remove();
-
-        const btn = document.createElement('a');
-        btn.id = 'btnWhatsAppAviso';
-        btn.href = `https://wa.me/${String(telefono).replace(/\D/g, '')}?text=${encodeURIComponent(
-            `Hola ${nombre}, tu estado de registro en ARVET ahora es ${nuevoEstado.toLowerCase()}.\nUsuario: ${email}\nContraseña: ${password}\nIngresa aquí: https://tusitio.com/login.html`
-        )}`;
-        btn.target = '_blank';
-        btn.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #25D366;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            text-align: center;
-            z-index: 9999;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-            text-decoration: none;
-        `;
-        btn.textContent = `Avisar a ${nombre} por WhatsApp`;
-
-        document.body.appendChild(btn);
     } catch (err) {
         console.error(err);
         showMsg('Error de conexión', 'error');
