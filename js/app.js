@@ -1676,7 +1676,7 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
     }
     
     // Mostrar mensaje helper
-    function showMsg(text, type) {
+    window.showMsg = function(text, type) {
     const overlay = document.getElementById("msgOverlay");
     const msgConfig = document.getElementById("msgConfig");
 
