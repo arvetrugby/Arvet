@@ -52,10 +52,11 @@ window.formatCurrency = function(amount) {
 };
 
 window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
-    if (!confirm(`¿Cambiar rol a "${nuevoRol}"?`)) return;
-    
+
     const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
-    
+
+    showMsg('Actualizando rol...', 'info');
+
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -66,19 +67,23 @@ window.cambiarRolJugador = async function(jugadorId, nuevoRol) {
                 equipoId: currentUser.equipoId
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-            showMsg('Nuevo rol?, ok', 'success');
-            // Recargar lista de jugadores
-            cargarJugadoresAdmin();
+            showMsg('Rol actualizado', 'success');
+
+            setTimeout(() => {
+                cargarJugadoresAdmin();
+            }, 200);
+
         } else {
-            alert('Error: ' + (result.error || 'No se pudo cambiar el rol'));
+            showMsg('Error: ' + (result.error || 'No se pudo cambiar el rol'), 'error');
         }
+
     } catch (err) {
         console.error(err);
-        alert('Error de conexión');
+        showMsg('Error de conexión', 'error');
     }
 };
 // ============================================
