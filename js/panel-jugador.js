@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   async function cargarPerfil() {
     try {
+       mostrarLoader();
       const response = await fetch(`${API_URL}?action=getJugadorById&id=${jugadorId}`);
       const data = await response.json();
       
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (jugador.equipoId || jugador.equipo_id) {
         await cargarEquipo(jugador.equipoId || jugador.equipo_id);
       }
-      
+      ocultarLoader();
     } catch (err) {
       console.error('Error cargando perfil:', err);
       mostrarMensaje('Error de conexión', 'error');
@@ -303,7 +304,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     localStorage.removeItem('admin_edit_jugador');
     window.location.href = 'login.html';
   });
-  
+  // ==========================================
+  // LOADER
+  // ==========================================
+  function mostrarLoader() {
+  const loader = document.getElementById('loader');
+  if (loader) loader.style.display = 'flex';
+}
+
+function ocultarLoader() {
+  const loader = document.getElementById('loader');
+  if (loader) {
+    // Fade out suave
+    loader.style.transition = 'opacity 0.3s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 300);
+  }
+}
   // ==========================================
   // INICIAR
   // ==========================================
