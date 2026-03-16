@@ -167,11 +167,25 @@ function agregarBotonWhatsApp(jugador, mensaje) {
 
 
 
+
 function agregarBotonWhatsAppAdmin(telefonoAdmin, datosJugador) {
     const msg = document.getElementById('msg');
     
     // Evitar duplicados
     if (document.getElementById('btnWhatsAppAdmin')) return;
+    
+    // Contenedor del contador
+    const contadorDiv = document.createElement('div');
+    contadorDiv.id = 'contadorRedirect';
+    contadorDiv.style.cssText = `
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(22, 197, 94, 0.1);
+        border-radius: 8px;
+        font-size: 13px;
+        color: #166534;
+        font-weight: 600;
+    `;
     
     const btn = document.createElement('a');
     btn.id = 'btnWhatsAppAdmin';
@@ -188,44 +202,64 @@ function agregarBotonWhatsAppAdmin(telefonoAdmin, datosJugador) {
     `;
     
     btn.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 30px;  /* <-- Cambiado de 15px a 30px */
-    padding: 14px 24px;  /* <-- Un poco más grande para que sea más visible */
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    color: white;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 15px;  /* <-- Un poco más grande */
-    text-decoration: none;
-    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);  /* <-- Sombra más pronunciada */
-    animation: latido-infinito 1.5s ease-in-out infinite;
-    transition: all 0.3s ease;
-`;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+        animation: latido-infinito 1.5s ease-in-out infinite;
+        transition: all 0.3s ease;
+    `;
     
+    // Al hacer clic, detener contador y redirigir
     btn.onclick = function() {
+        clearInterval(intervalo);
+        btn.style.animation = 'none';
+        btn.style.background = '#6b7280';
+        btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Mensaje enviado
+        `;
+        contadorDiv.textContent = 'Redirigiendo...';
+        
         setTimeout(() => {
-            btn.style.animation = 'none';
-            btn.style.background = '#6b7280';
-            btn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                </svg>
-                Mensaje enviado
-            `;
-        }, 500);
+            window.location.href = 'login.html';
+        }, 1500);
     };
     
     msg.appendChild(btn);
+    msg.appendChild(contadorDiv);
     
-    // Agregar texto explicativo
-    const info = document.createElement('div');
-    info.style.marginTop = '10px';
-    info.style.fontSize = '12px';
-    info.style.color = '#166534';
-    info.textContent = 'Click para enviar WhatsApp al administrador del equipo';
-    msg.appendChild(info);
+    // 🔥 SCROLL AUTOMÁTICO AL BOTÓN
+    setTimeout(() => {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    
+    // 🔥 CONTADOR REGRESIVO 8 SEGUNDOS
+    let segundos = 8;
+    contadorDiv.textContent = `⏱️ Tienes ${segundos} segundos para avisar al admin...`;
+    
+    const intervalo = setInterval(() => {
+        segundos--;
+        if (segundos > 0) {
+            contadorDiv.textContent = `⏱️ Tienes ${segundos} segundos para avisar al admin...`;
+        } else {
+            clearInterval(intervalo);
+            contadorDiv.textContent = '⏱️ Redirigiendo al login...';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+    }, 1000);
 }
 // ============================================
 // DETECTOR DE PÁGINA ACTUAL (VERSIÓN NUEVA)
