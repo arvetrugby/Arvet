@@ -162,45 +162,7 @@ try {
 
   }
 
-  /*********************************
-  DOCUMENTOS
-  *********************************/
-
-  mostrarDocumento("aptoLink", jugador.apto, "apto");
-  mostrarDocumento("estudiosLink", jugador.estudios, "estudios");
-  mostrarDocumento("deslindeLink", jugador.deslinde, "deslinde");
-
-} catch (err) {
-
-  console.error(err);
-
-}
-
-/*********************************
-MOSTRAR DOCUMENTOS
-*********************************/
-
-function mostrarDocumento(divId, url, tipo) {
-
-  const div = document.getElementById(divId);
-
-  if (!div) return;
-
-  if (url) {
-
-    div.innerHTML = `
-      <a href="${url}" target="_blank">📄 Ver documento</a>
-      <button onclick="eliminarDocumento('${tipo}')" class="btnEliminarDoc">❌</button>
-    `;
-
-  } else {
-
-    div.innerHTML = `<span style="color:red">No cargado</span>`;
-
-  }
-
-}
-
+ 
 /*********************************
 GUARDAR PERFIL
 *********************************/
