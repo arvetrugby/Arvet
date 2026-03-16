@@ -255,53 +255,9 @@ form.addEventListener('submit', async function (e) {
   }
 
 });
-function optimizarImagen(file) {
 
-  return new Promise((resolve) => {
-
-    const img = new Image();
-    const reader = new FileReader();
-
-    reader.onload = e => {
-
-      img.src = e.target.result;
-
-      img.onload = () => {
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        const size = 300;
-
-        canvas.width = size;
-        canvas.height = size;
-
-        const min = Math.min(img.width, img.height);
-
-        ctx.drawImage(
-          img,
-          (img.width - min) / 2,
-          (img.height - min) / 2,
-          min,
-          min,
-          0,
-          0,
-          size,
-          size
-        );
-
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-
-    };
-
-    reader.readAsDataURL(file);
-
-  });
-
-}
 /*********************************
-CAMBIAR AVATAR OPTIMIZADO
+CAMBIAR AVATAR
 *********************************/
 
 const btnCambiarAvatar = document.getElementById('btnCambiarAvatar');
@@ -309,83 +265,33 @@ const inputAvatar = document.getElementById('inputAvatar');
 const avatarPreview = document.getElementById('avatarPreview');
 
 btnCambiarAvatar?.addEventListener('click', () => inputAvatar.click());
-avatarPreview?.addEventListener('click', () => inputAvatar.click());
 
 inputAvatar?.addEventListener('change', async function () {
 
   const file = this.files[0];
   if (!file) return;
 
-  mostrarMensaje("Procesando imagen...");
+  const formData = new FormData();
+  formData.append("image", file);
 
-  try {
+  const response = await fetch(
+    "https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
+    { method: "POST", body: formData }
+  );
 
-    const imagenOptimizada = await optimizarImagen(file);
+  const result = await response.json();
 
-    const formData = new FormData();
-    formData.append("image", imagenOptimizada.split(',')[1]);
+  if (result.success) {
 
-    const response = await fetch(
-      "https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
-      {
-        method: "POST",
-        body: formData
-      }
-    );
+    avatarUrlActual = result.data.medium.url;
+    avatarPreview.src = avatarUrlActual;
 
-    const result = await response.json();
-
-    if (!result.success) {
-      mostrarMensaje("Error subiendo imagen", "error");
-      return;
-    }
-
-    const nuevaUrl = result.data.url;
-
-    avatarPreview.src = nuevaUrl;
-
-    const save = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "updateJugador",
-        id: jugadorId,
-        avatarUrl: nuevaUrl
-      })
-    });
-
-    const saveResult = await save.json();
-
-    if (saveResult.success) {
-
-      avatarUrlActual = nuevaUrl;
-
-      mostrarMensaje("Foto actualizada");
-
-      if (!esAdminEditando) {
-
-        const updatedUser = {
-          ...user,
-          avatarUrl: nuevaUrl
-        };
-
-        localStorage.setItem("arvet_user", JSON.stringify(updatedUser));
-
-      }
-
-    } else {
-
-      mostrarMensaje("Error guardando avatar", "error");
-
-    }
-
-  } catch (err) {
-
-    console.error(err);
-    mostrarMensaje("Error procesando imagen", "error");
+    mostrarMensaje("Imagen cargada");
 
   }
 
 });
+
 /*********************************
 LOGOUT
 *********************************/
