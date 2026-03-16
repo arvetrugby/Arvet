@@ -255,9 +255,53 @@ form.addEventListener('submit', async function (e) {
   }
 
 });
+function optimizarImagen(file) {
 
+  return new Promise((resolve) => {
+
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = e => {
+
+      img.src = e.target.result;
+
+      img.onload = () => {
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const size = 300;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        const min = Math.min(img.width, img.height);
+
+        ctx.drawImage(
+          img,
+          (img.width - min) / 2,
+          (img.height - min) / 2,
+          min,
+          min,
+          0,
+          0,
+          size,
+          size
+        );
+
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+
+    };
+
+    reader.readAsDataURL(file);
+
+  });
+
+}
 /*********************************
-CAMBIAR AVATAR AUTOMÁTICO
+CAMBIAR AVATAR OPTIMIZADO
 *********************************/
 
 const btnCambiarAvatar = document.getElementById('btnCambiarAvatar');
@@ -265,20 +309,22 @@ const inputAvatar = document.getElementById('inputAvatar');
 const avatarPreview = document.getElementById('avatarPreview');
 
 btnCambiarAvatar?.addEventListener('click', () => inputAvatar.click());
+avatarPreview?.addEventListener('click', () => inputAvatar.click());
 
 inputAvatar?.addEventListener('change', async function () {
 
   const file = this.files[0];
   if (!file) return;
 
-  mostrarMensaje("Subiendo imagen...");
-
-  const formData = new FormData();
-  formData.append("image", file);
+  mostrarMensaje("Procesando imagen...");
 
   try {
 
-    // 1️⃣ subir a imgbb
+    const imagenOptimizada = await optimizarImagen(file);
+
+    const formData = new FormData();
+    formData.append("image", imagenOptimizada.split(',')[1]);
+
     const response = await fetch(
       "https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
       {
@@ -294,11 +340,10 @@ inputAvatar?.addEventListener('change', async function () {
       return;
     }
 
-    const nuevaUrl = result.data.medium.url;
+    const nuevaUrl = result.data.url;
 
     avatarPreview.src = nuevaUrl;
 
-    // 2️⃣ guardar automáticamente en backend
     const save = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -314,9 +359,8 @@ inputAvatar?.addEventListener('change', async function () {
 
       avatarUrlActual = nuevaUrl;
 
-      mostrarMensaje("Foto actualizada correctamente");
+      mostrarMensaje("Foto actualizada");
 
-      // actualizar también localStorage si es el propio jugador
       if (!esAdminEditando) {
 
         const updatedUser = {
@@ -337,7 +381,7 @@ inputAvatar?.addEventListener('change', async function () {
   } catch (err) {
 
     console.error(err);
-    mostrarMensaje("Error subiendo imagen", "error");
+    mostrarMensaje("Error procesando imagen", "error");
 
   }
 
