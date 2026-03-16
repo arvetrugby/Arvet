@@ -592,6 +592,21 @@ function initRegistro() {
     const loading = document.getElementById("loading");
     const msg = document.getElementById("msg");
     
+    // Inicializar selector internacional de teléfono
+const inputTelefono = document.querySelector("#telefono");
+
+const iti = window.intlTelInput(inputTelefono, {
+    initialCountry: "auto",
+    nationalMode: false,
+    geoIpLookup: function(callback) {
+        fetch("https://ipapi.co/json")
+            .then(res => res.json())
+            .then(data => callback(data.country_code))
+            .catch(() => callback("ar"));
+    },
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+});
+    
     if (!form) {
         console.log('Formulario de registro no encontrado');
         return;
@@ -653,7 +668,7 @@ function initRegistro() {
         lng: document.getElementById('lng').value,
         adminNombre: document.getElementById('adminNombre').value.trim(),
         adminApellido: document.getElementById('adminApellido').value.trim(),
-        telefono: document.getElementById('telefono').value.trim(),  // ← NUEVO
+        telefono: iti.getNumber(), // ← NUEVO
         email: document.getElementById('email').value.trim(),
         password: password  // ← Usamos la variable validada
     };
