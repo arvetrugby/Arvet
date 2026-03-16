@@ -1,18 +1,14 @@
-
 document.addEventListener('DOMContentLoaded', async function() {
   
-  console.log('🚀 Iniciando panel de jugador...');
+  console.log('🚀 Panel de jugador iniciando...');
   
-  // ==========================================
-  // VALIDAR CONFIGURACIÓN
-  // ==========================================
   if (typeof API_URL === 'undefined') {
-    alert('❌ Error: API_URL no está configurado. Editá el HTML y poné tu URL de Apps Script.');
+    alert('❌ Error: API_URL no configurado');
     return;
   }
   
   // ==========================================
-  // SESIÓN Y PERMISOS
+  // SESIÓN
   // ==========================================
   const adminEditId = localStorage.getItem('admin_edit_jugador');
   let user = null;
@@ -20,35 +16,25 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     const userData = localStorage.getItem('arvet_user');
     if (userData) user = JSON.parse(userData);
-  } catch (e) {
-    console.error('Error leyendo localStorage:', e);
-  }
+  } catch (e) {}
   
   const esAdminEditando = !!adminEditId;
   const jugadorId = esAdminEditando ? adminEditId : (user?.id || user?.ID);
   
-  console.log('ID Jugador:', jugadorId, '| Admin:', esAdminEditando);
-  
-  // Redirigir si no hay sesión
   if (!jugadorId) {
     window.location.href = 'login.html';
     return;
   }
   
-  // Validar rol (solo si no es admin editando)
   if (!esAdminEditando && user?.rol !== 'Jugador') {
     window.location.href = 'login.html';
     return;
   }
   
-  // ==========================================
-  // VARIABLES GLOBALES
-  // ==========================================
   let avatarUrlActual = null;
-  let equipoColor = '#6366f1'; // Color por defecto
   
   // ==========================================
-  // FUNCIONES AUXILIARES
+  // UTILIDADES
   // ==========================================
   
   function mostrarMensaje(texto, tipo = 'ok') {
@@ -60,14 +46,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     div.style.background = tipo === 'ok' ? '#d1fae5' : '#fee2e2';
     div.style.color = tipo === 'ok' ? '#059669' : '#dc2626';
     
-    setTimeout(() => {
-      div.style.display = 'none';
-    }, 4000);
+    setTimeout(() => div.style.display = 'none', 4000);
   }
   
   function formatearFecha(fechaStr) {
     if (!fechaStr) return '';
-    // Si ya está en formato YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) return fechaStr;
     
     try {
@@ -81,25 +64,22 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
   
   // ==========================================
-  // CARGAR DATOS DEL JUGADOR
+  // CARGAR PERFIL
   // ==========================================
   
   async function cargarPerfil() {
     try {
-      console.log('Cargando perfil...');
-      
       const response = await fetch(`${API_URL}?action=getJugadorById&id=${jugadorId}`);
       const data = await response.json();
       
       if (!data.success) {
-        mostrarMensaje('Error cargando perfil: ' + (data.message || ''), 'error');
+        mostrarMensaje('Error cargando perfil', 'error');
         return;
       }
       
       const jugador = data.data;
-      console.log('Jugador cargado:', jugador);
       
-      // --- Datos personales ---
+      // Datos personales
       document.getElementById('nombre').value = jugador.nombre || '';
       document.getElementById('apellido').value = jugador.apellido || '';
       document.getElementById('email').value = jugador.email || '';
@@ -111,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('fechaNacimiento').value = formatearFecha(jugador.fechaNacimiento);
       }
       
-      // --- Avatar ---
+      // Avatar
       const avatarImg = document.getElementById('avatarPreview');
       if (jugador.avatarUrl || jugador.avatar) {
         avatarUrlActual = jugador.avatarUrl || jugador.avatar;
@@ -120,37 +100,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         avatarImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="%23e2e8f0"/><text x="60" y="60" text-anchor="middle" fill="%2394a3b8" font-size="14">Sin foto</text></svg>';
       }
       
-      // --- Estado ---
+      // Estado (simplificado - sin documentos)
       const estadoEl = document.getElementById('estadoJugador');
       const estadoBox = document.getElementById('estadoBox');
-      const estado = jugador.estado || 'FALTA DOCUMENTACIÓN';
       
+      // Si tenés un campo estado en tu base, úsalo. Si no, mostrá "ACTIVO" por defecto
+      const estado = jugador.estado || 'ACTIVO';
       estadoEl.textContent = estado;
-      estadoBox.classList.remove('habilitado', 'faltante');
       
-      if (estado === 'HABILITADO') {
+      estadoBox.classList.remove('habilitado', 'faltante');
+      if (estado === 'HABILITADO' || estado === 'ACTIVO') {
         estadoBox.classList.add('habilitado');
       } else {
         estadoBox.classList.add('faltante');
       }
       
-      // --- Nombre en header ---
+      // Nombre en header
       const nombreCompleto = `${jugador.nombre || ''} ${jugador.apellido || ''}`.trim();
       document.getElementById('nombreJugadorHeader').textContent = nombreCompleto || 'Jugador';
       
-      // --- Cargar equipo (color y logo) ---
+      // Cargar equipo (color y logo)
       if (jugador.equipoId || jugador.equipo_id) {
         await cargarEquipo(jugador.equipoId || jugador.equipo_id);
       }
       
-      // --- Documentos ---
-      mostrarDocumento('aptoLink', jugador.apto, 'apto');
-      mostrarDocumento('estudiosLink', jugador.estudios, 'estudios');
-      mostrarDocumento('deslindeLink', jugador.deslinde, 'deslinde');
-      
     } catch (err) {
       console.error('Error cargando perfil:', err);
-      mostrarMensaje('Error de conexión al cargar perfil', 'error');
+      mostrarMensaje('Error de conexión', 'error');
     }
   }
   
@@ -160,8 +136,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   async function cargarEquipo(equipoId) {
     try {
-      console.log('Cargando equipo:', equipoId);
-      
       const response = await fetch(`${API_URL}?action=getEquipoById&id=${equipoId}`);
       const data = await response.json();
       
@@ -180,66 +154,14 @@ document.addEventListener('DOMContentLoaded', async function() {
           nombreEl.textContent = equipo.nombre || 'Mi Equipo';
         }
         
-        // Color (IMPORTANTE)
-        if (equipo.colorPrimario || equipo.color) {
-          equipoColor = equipo.colorPrimario || equipo.color;
-          document.documentElement.style.setProperty('--equipo-color', equipoColor);
-          console.log('Color del equipo aplicado:', equipoColor);
-        }
+        // Color
+        const color = equipo.colorPrimario || equipo.color || '#6366f1';
+        document.documentElement.style.setProperty('--equipo-color', color);
       }
     } catch (err) {
       console.error('Error cargando equipo:', err);
     }
   }
-  
-  // ==========================================
-  // MOSTRAR DOCUMENTOS
-  // ==========================================
-  
-  function mostrarDocumento(divId, url, tipo) {
-    const div = document.getElementById(divId);
-    if (!div) return;
-    
-    if (url) {
-      div.className = 'doc-link';
-      div.innerHTML = `
-        <a href="${url}" target="_blank">📄 Ver documento</a>
-        <button class="btn-eliminar" onclick="eliminarDocumento('${tipo}')">🗑️ Eliminar</button>
-      `;
-    } else {
-      div.className = 'no-doc';
-      div.innerHTML = '❌ No cargado';
-    }
-  }
-  
-  // ==========================================
-  // ELIMINAR DOCUMENTO (GLOBAL)
-  // ==========================================
-  
-  window.eliminarDocumento = async function(tipo) {
-    if (!confirm('¿Seguro que querés eliminar este documento?')) return;
-    
-    try {
-      // Usar no-cors para Apps Script
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'eliminarDocumento',
-          idJugador: jugadorId,
-          tipo: tipo
-        })
-      });
-      
-      mostrarMensaje('Documento eliminado');
-      setTimeout(cargarPerfil, 1000); // Recargar después de un momento
-      
-    } catch (err) {
-      console.error('Error eliminando:', err);
-      mostrarMensaje('Error al eliminar', 'error');
-    }
-  };
   
   // ==========================================
   // GUARDAR PERFIL
@@ -273,17 +195,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       
       mostrarMensaje('✅ Perfil actualizado');
       
-      // Actualizar localStorage si es el usuario logueado
       if (!esAdminEditando && user) {
         const updatedUser = { ...user, nombre: datos.nombre, apellido: datos.apellido, email: datos.email };
         localStorage.setItem('arvet_user', JSON.stringify(updatedUser));
       }
       
-      // Actualizar nombre en header
       document.getElementById('nombreJugadorHeader').textContent = `${datos.nombre} ${datos.apellido}`.trim();
       
     } catch (err) {
-      console.error('Error guardando:', err);
       mostrarMensaje('Error al guardar', 'error');
     }
   });
@@ -301,11 +220,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!file) return;
     
     if (file.size > 2 * 1024 * 1024) {
-      mostrarMensaje('La imagen es muy grande (máx 2MB)', 'error');
+      mostrarMensaje('Imagen muy grande (máx 2MB)', 'error');
       return;
     }
     
-    mostrarMensaje('⏳ Subiendo imagen...');
+    mostrarMensaje('⏳ Subiendo...');
     
     try {
       const formData = new FormData();
@@ -321,78 +240,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (result.success) {
         avatarUrlActual = result.data.url || result.data.display_url;
         document.getElementById('avatarPreview').src = avatarUrlActual;
-        mostrarMensaje('✅ Imagen cargada. Guardá el perfil para confirmar.');
+        mostrarMensaje('✅ Foto cargada. Guardá el perfil.');
       } else {
-        mostrarMensaje('Error al subir imagen', 'error');
+        mostrarMensaje('Error al subir foto', 'error');
       }
     } catch (err) {
-      console.error('Error:', err);
       mostrarMensaje('Error de conexión', 'error');
-    }
-  });
-  
-  // ==========================================
-  // SUBIR DOCUMENTOS
-  // ==========================================
-  
-  document.getElementById('btnSubirDocumentos').addEventListener('click', async function() {
-    const aptoFile = document.getElementById('aptoMedico').files[0];
-    const estudiosFile = document.getElementById('estudios').files[0];
-    const deslindeFile = document.getElementById('deslinde').files[0];
-    
-    if (!aptoFile && !estudiosFile && !deslindeFile) {
-      mostrarMensaje('Seleccioná al menos un documento', 'error');
-      return;
-    }
-    
-    this.textContent = '⏳ Subiendo...';
-    this.disabled = true;
-    
-    try {
-      const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-      });
-      
-      const data = {
-        action: 'subirDocumentos',
-        idJugador: jugadorId
-      };
-      
-      if (aptoFile) {
-        data.apto = { name: aptoFile.name, type: aptoFile.type, data: await toBase64(aptoFile) };
-      }
-      if (estudiosFile) {
-        data.estudios = { name: estudiosFile.name, type: estudiosFile.type, data: await toBase64(estudiosFile) };
-      }
-      if (deslindeFile) {
-        data.deslinde = { name: deslindeFile.name, type: deslindeFile.type, data: await toBase64(deslindeFile) };
-      }
-      
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      
-      mostrarMensaje('✅ Documentos subidos');
-      
-      // Limpiar inputs
-      document.getElementById('aptoMedico').value = '';
-      document.getElementById('estudios').value = '';
-      document.getElementById('deslinde').value = '';
-      
-      setTimeout(cargarPerfil, 1500);
-      
-    } catch (err) {
-      console.error('Error:', err);
-      mostrarMensaje('Error al subir documentos', 'error');
-    } finally {
-      this.textContent = '📤 Subir documentación';
-      this.disabled = false;
     }
   });
   
@@ -404,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const password = document.getElementById('nuevaPassword').value.trim();
     
     if (!password || password.length < 6) {
-      mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error');
+      mostrarMensaje('Mínimo 6 caracteres', 'error');
       return;
     }
     
@@ -424,8 +277,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       document.getElementById('nuevaPassword').value = '';
       
     } catch (err) {
-      console.error('Error:', err);
-      mostrarMensaje('Error al actualizar contraseña', 'error');
+      mostrarMensaje('Error al actualizar', 'error');
     }
   });
   
@@ -457,9 +309,5 @@ document.addEventListener('DOMContentLoaded', async function() {
   // ==========================================
   
   await cargarPerfil();
-  console.log('✅ Panel cargado completamente');
   
 });
-
-
-
