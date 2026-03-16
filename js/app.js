@@ -668,7 +668,8 @@ const iti = window.intlTelInput(inputTelefono, {
         lng: document.getElementById('lng').value,
         adminNombre: document.getElementById('adminNombre').value.trim(),
         adminApellido: document.getElementById('adminApellido').value.trim(),
-        telefono: iti.getNumber(), // ← NUEVO
+        telefono: iti.getNumber(), 
+        fechaNacimiento: document.getElementById('fechaNacimiento').value, 
         email: document.getElementById('email').value.trim(),
         password: password  // ← Usamos la variable validada
     };
@@ -682,11 +683,12 @@ const iti = window.intlTelInput(inputTelefono, {
                 `&provinciaId=${encodeURIComponent(data.provinciaId)}` +
                 `&ciudadId=${encodeURIComponent(data.ciudadId)}` +
                 `&direccion=${encodeURIComponent(data.direccion)}` +
-                `&lat=${encodeURIComponent(data.lat)}` +           // ← NUEVO
-                `&lng=${encodeURIComponent(data.lng)}` +           // ← NUEVO
+                `&lat=${encodeURIComponent(data.lat)}` +           
+                `&lng=${encodeURIComponent(data.lng)}` +          
                 `&adminNombre=${encodeURIComponent(data.adminNombre)}` +
                 `&adminApellido=${encodeURIComponent(data.adminApellido)}` +
-                `&telefono=${encodeURIComponent(data.telefono)}` +  // ← NUEVO
+                `&telefono=${encodeURIComponent(data.telefono)}` +  
+                `&fechaNacimiento=${encodeURIComponent(data.fechaNacimiento)}` + 
                 `&email=${encodeURIComponent(data.email)}` +
                 `&password=${encodeURIComponent(data.password)}`
             );
