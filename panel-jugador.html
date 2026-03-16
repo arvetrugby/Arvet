@@ -13,7 +13,6 @@ body{
   padding:20px;
 }
 
-/* HEADER CON COLOR DEL EQUIPO */
 .player-header{
   padding:30px 20px;
   color:white;
@@ -24,11 +23,12 @@ body{
 }
 
 .player-header img{
-  width:120px;
-  height:120px;
+  width:80px;
+  height:80px;
   object-fit:contain;
   margin-bottom:10px;
-  
+  background:white;
+  border-radius:50%;
   padding:5px;
 }
 
@@ -44,7 +44,6 @@ body{
   font-size:14px;
 }
 
-/* CONTENIDO */
 .container{
   max-width:600px;
   margin:0 auto;
@@ -80,7 +79,6 @@ button{
 
 button[type="submit"],
 #btnCambiarAvatar,
-#btnSubirDocumentos,
 #btnCambiarPass{
   background:var(--equipo-color,#6366f1);
   color:white;
@@ -88,7 +86,6 @@ button[type="submit"],
 
 button[type="submit"]:hover,
 #btnCambiarAvatar:hover,
-#btnSubirDocumentos:hover,
 #btnCambiarPass:hover{
   opacity:0.9;
 }
@@ -107,8 +104,7 @@ button[type="submit"]:hover,
 input[type="text"],
 input[type="email"],
 input[type="date"],
-input[type="password"],
-input[type="file"]{
+input[type="password"]{
   width:100%;
   padding:12px;
   border-radius:8px;
@@ -151,39 +147,6 @@ input:focus{
   background:#f8fafc;
 }
 
-.doc-link{
-  margin-top:8px;
-  margin-bottom:15px;
-  padding:10px;
-  background:#f8fafc;
-  border-radius:6px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
-.doc-link a{
-  color:var(--equipo-color,#6366f1);
-  text-decoration:none;
-  font-weight:600;
-}
-
-.btn-eliminar{
-  background:#ef4444 !important;
-  color:white;
-  padding:6px 12px;
-  font-size:12px;
-  margin:0;
-}
-
-.no-doc{
-  color:#94a3b8;
-  font-style:italic;
-  margin-top:8px;
-  margin-bottom:15px;
-  display:block;
-}
-
 #mensajePerfil{
   padding:12px;
   border-radius:8px;
@@ -203,12 +166,13 @@ label{
   font-weight:600;
   color:#475569;
   font-size:14px;
+  display:block;
+  margin-bottom:5px;
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER DINÁMICO DEL EQUIPO -->
 <div class="player-header">
   <img id="equipoLogo" src="" alt="Logo">
   <h1 id="nombreEquipo">Cargando...</h1>
@@ -235,39 +199,28 @@ label{
     <button type="button" id="btnCambiarAvatar">📷 Cambiar foto</button>
   </div>
   
-  <h3>📋 Documentación obligatoria</h3>
-  
-  <div style="margin-bottom:15px;">
-    <label>Apto Médico (PDF o imagen)</label>
-    <input type="file" id="aptoMedico" accept=".pdf,image/*">
-    <div id="aptoLink" class="no-doc">Cargando...</div>
-  </div>
-  
-  <div style="margin-bottom:15px;">
-    <label>Estudios realizados (PDF o imagen)</label>
-    <input type="file" id="estudios" accept=".pdf,image/*">
-    <div id="estudiosLink" class="no-doc">Cargando...</div>
-  </div>
-  
-  <div style="margin-bottom:15px;">
-    <label>Deslinde de responsabilidad (PDF o imagen)</label>
-    <input type="file" id="deslinde" accept=".pdf,image/*">
-    <div id="deslindeLink" class="no-doc">Cargando...</div>
-  </div>
-  
-  <button type="button" id="btnSubirDocumentos">📤 Subir documentación</button>
-  
-  <hr>
-  
   <h3>👤 Datos personales</h3>
   
   <form id="formPerfil">
+    <label>Nombre</label>
     <input type="text" id="nombre" placeholder="Nombre" required>
+    
+    <label>Apellido</label>
     <input type="text" id="apellido" placeholder="Apellido" required>
+    
+    <label>Email</label>
     <input type="email" id="email" placeholder="Email" required>
+    
+    <label>Teléfono</label>
     <input type="text" id="telefono" placeholder="Teléfono">
+    
+    <label>Fecha de nacimiento</label>
     <input type="date" id="fechaNacimiento">
+    
+    <label>DNI</label>
     <input type="text" id="dni" placeholder="DNI">
+    
+    <label>CUIT/CUIL</label>
     <input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
     
     <button type="submit">💾 Guardar cambios</button>
@@ -276,14 +229,13 @@ label{
   <hr>
   
   <h3>🔒 Cambiar contraseña</h3>
-  <input type="password" id="nuevaPassword" placeholder="Nueva contraseña (mín. 6 caracteres)">
+  <label>Nueva contraseña (mín. 6 caracteres)</label>
+  <input type="password" id="nuevaPassword" placeholder="••••••••">
   <button type="button" id="btnCambiarPass">🔑 Actualizar contraseña</button>
 
 </div>
 
-
 <script>
-  // ⚠️ PEGÁ ACÁ TU URL DE GOOGLE APPS SCRIPT
   const API_URL = 'https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec';
 </script>
 
@@ -291,5 +243,3 @@ label{
 
 </body>
 </html>
-
-
