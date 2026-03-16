@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', async function () {
 
+/*********************************
+DATOS DE SESIÓN
+*********************************/
+
 const adminEditId = localStorage.getItem('admin_edit_jugador');
 const user = JSON.parse(localStorage.getItem('arvet_user') || "{}");
 
@@ -77,180 +81,204 @@ try {
 
   const jugador = data.data;
 
-  /*************** DATOS PERSONALES ***************/
+/*************** DATOS PERSONALES ***************/
 
-  document.getElementById('nombre').value = jugador.nombre || '';
-  document.getElementById('apellido').value = jugador.apellido || '';
-  document.getElementById('email').value = jugador.email || '';
-  document.getElementById('telefono').value = jugador.telefono || '';
-  document.getElementById('dni').value = jugador.dni || '';
-  document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
+document.getElementById('nombre').value = jugador.nombre || '';
+document.getElementById('apellido').value = jugador.apellido || '';
+document.getElementById('email').value = jugador.email || '';
+document.getElementById('telefono').value = jugador.telefono || '';
+document.getElementById('dni').value = jugador.dni || '';
+document.getElementById('cuitCuil').value = jugador.cuitCuil || '';
 
-  if (jugador.fechaNacimiento) {
-    const fecha = new Date(jugador.fechaNacimiento);
-    document.getElementById('fechaNacimiento').value =
-      fecha.toISOString().split('T')[0];
-  }
+if (jugador.fechaNacimiento) {
+  const fecha = new Date(jugador.fechaNacimiento);
+  document.getElementById('fechaNacimiento').value =
+    fecha.toISOString().split('T')[0];
+}
 
-  /*************** AVATAR ***************/
+/*************** AVATAR ***************/
 
-  const avatarImg = document.getElementById('avatarPreview');
+const avatarImg = document.getElementById('avatarPreview');
 
-  if (jugador.avatarUrl) {
-    avatarUrlActual = jugador.avatarUrl;
-    avatarImg.src = jugador.avatarUrl;
-  }
+if (jugador.avatarUrl) {
+  avatarUrlActual = jugador.avatarUrl;
+  avatarImg.src = jugador.avatarUrl;
+}
 
- 
-  /*********************************
-  HEADER (EQUIPO)
-  *********************************/
+/*********************************
+HEADER (EQUIPO)
+*********************************/
 
-  if (jugador.equipoId) {
+if (jugador.equipoId) {
 
-    try {
+  try {
 
-      const resEquipo = await fetch(`${API_URL}?action=getEquipoById&id=${jugador.equipoId}`);
-      const dataEquipo = await resEquipo.json();
+    const resEquipo = await fetch(`${API_URL}?action=getEquipoById&id=${jugador.equipoId}`);
+    const dataEquipo = await resEquipo.json();
 
-      if (dataEquipo.success) {
+    if (dataEquipo.success) {
 
-        const equipo = dataEquipo.data;
+      const equipo = dataEquipo.data;
 
-        const logo = document.getElementById("equipoLogo");
-        const nombreEquipo = document.getElementById("nombreEquipo");
-        const nombreJugador = document.getElementById("nombreJugador");
+      const logo = document.getElementById("equipoLogo");
+      const nombreEquipo = document.getElementById("nombreEquipo");
+      const nombreJugador = document.getElementById("nombreJugador");
 
-        if (logo && equipo.logoUrl) {
-          logo.src = equipo.logoUrl;
-        }
-
-        if (nombreEquipo) {
-          nombreEquipo.textContent = equipo.nombre;
-        }
-
-        if (nombreJugador) {
-          nombreJugador.textContent =
-            jugador.nombre + " " + (jugador.apellido || "");
-        }
-
-        if (equipo.colorPrimario) {
-          document.documentElement.style.setProperty(
-            '--equipo-color',
-            equipo.colorPrimario
-          );
-        }
-
+      if (logo && equipo.logoUrl) {
+        logo.src = equipo.logoUrl;
       }
 
-    } catch (err) {
-      console.error("Error cargando equipo", err);
+      if (nombreEquipo) {
+        nombreEquipo.textContent = equipo.nombre;
+      }
+
+      if (nombreJugador) {
+        nombreJugador.textContent =
+          jugador.nombre + " " + (jugador.apellido || "");
+      }
+
+      if (equipo.colorPrimario) {
+        document.documentElement.style.setProperty(
+          '--equipo-color',
+          equipo.colorPrimario
+        );
+      }
+
     }
 
+  } catch (err) {
+    console.error("Error cargando equipo", err);
   }
 
- 
+}
+
+} catch (err) {
+
+console.error("Error cargando perfil", err);
+
+}
+
 /*********************************
 GUARDAR PERFIL
 *********************************/
 
 const form = document.getElementById('formPerfil');
 
-form.addEventListener('submit', async function (e) {
+form?.addEventListener('submit', async function (e) {
 
   e.preventDefault();
 
   const datos = {
+
     id: jugadorId,
-    nombre: nombre.value.trim(),
-    apellido: apellido.value.trim(),
-    email: email.value.trim(),
-    telefono: telefono.value.trim(),
-    fechaNacimiento: fechaNacimiento.value,
-    dni: dni.value.trim(),
-    cuitCuil: cuitCuil.value.trim(),
+    nombre: document.getElementById('nombre').value.trim(),
+    apellido: document.getElementById('apellido').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    telefono: document.getElementById('telefono').value.trim(),
+    fechaNacimiento: document.getElementById('fechaNacimiento').value,
+    dni: document.getElementById('dni').value.trim(),
+    cuitCuil: document.getElementById('cuitCuil').value.trim(),
     avatarUrl: avatarUrlActual
+
   };
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    body: JSON.stringify({
-      action: 'updateJugador',
-      ...datos
-    })
-  });
+  try {
 
-  const result = await response.json();
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'updateJugador',
+        ...datos
+      })
+    });
 
-  if (result.success) {
+    const result = await response.json();
 
-    mostrarMensaje("Perfil actualizado");
+    if (result.success) {
 
-    if (!esAdminEditando) {
+      mostrarMensaje("Perfil actualizado");
 
-      const updatedUser = {
-        ...user,
-        nombre: datos.nombre,
-        apellido: datos.apellido,
-        email: datos.email
-      };
+      if (!esAdminEditando) {
 
-      localStorage.setItem('arvet_user', JSON.stringify(updatedUser));
+        const updatedUser = {
+          ...user,
+          nombre: datos.nombre,
+          apellido: datos.apellido,
+          email: datos.email
+        };
+
+        localStorage.setItem('arvet_user', JSON.stringify(updatedUser));
+
+      }
+
+    } else {
+
+      mostrarMensaje("Error al actualizar", "error");
 
     }
 
-  } else {
-    mostrarMensaje("Error al actualizar", "error");
+  } catch (err) {
+
+    console.error(err);
+    mostrarMensaje("Error de conexión", "error");
+
   }
 
 });
+
+/*********************************
+OPTIMIZAR IMAGEN
+*********************************/
+
 function optimizarImagen(file) {
 
-  return new Promise((resolve) => {
+return new Promise((resolve) => {
 
-    const img = new Image();
-    const reader = new FileReader();
+const img = new Image();
+const reader = new FileReader();
 
-    reader.onload = e => {
+reader.onload = e => {
 
-      img.src = e.target.result;
+img.src = e.target.result;
 
-      img.onload = () => {
+img.onload = () => {
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
 
-        const size = 300;
+const size = 300;
 
-        canvas.width = size;
-        canvas.height = size;
+canvas.width = size;
+canvas.height = size;
 
-        const min = Math.min(img.width, img.height);
+const min = Math.min(img.width, img.height);
 
-        ctx.drawImage(
-          img,
-          (img.width - min) / 2,
-          (img.height - min) / 2,
-          min,
-          min,
-          0,
-          0,
-          size,
-          size
-        );
+ctx.drawImage(
+img,
+(img.width - min) / 2,
+(img.height - min) / 2,
+min,
+min,
+0,
+0,
+size,
+size
+);
 
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
+resolve(canvas.toDataURL("image/jpeg", 0.8));
 
-    };
+};
 
-    reader.readAsDataURL(file);
+};
 
-  });
+reader.readAsDataURL(file);
+
+});
 
 }
+
 /*********************************
-CAMBIAR AVATAR OPTIMIZADO
+CAMBIAR AVATAR
 *********************************/
 
 const btnCambiarAvatar = document.getElementById('btnCambiarAvatar');
@@ -262,87 +290,88 @@ avatarPreview?.addEventListener('click', () => inputAvatar.click());
 
 inputAvatar?.addEventListener('change', async function () {
 
-  const file = this.files[0];
-  if (!file) return;
+const file = this.files[0];
+if (!file) return;
 
-  mostrarMensaje("Procesando imagen...");
+mostrarMensaje("Procesando imagen...");
 
-  try {
+try {
 
-    const imagenOptimizada = await optimizarImagen(file);
+const imagenOptimizada = await optimizarImagen(file);
 
-    const formData = new FormData();
-    formData.append("image", imagenOptimizada.split(',')[1]);
+const formData = new FormData();
+formData.append("image", imagenOptimizada);
 
-    const response = await fetch(
-      "https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
-      {
-        method: "POST",
-        body: formData
-      }
-    );
+const response = await fetch(
+"https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
+{
+method: "POST",
+body: formData
+}
+);
 
-    const result = await response.json();
+const result = await response.json();
 
-    if (!result.success) {
-      mostrarMensaje("Error subiendo imagen", "error");
-      return;
-    }
+if (!result.success) {
+mostrarMensaje("Error subiendo imagen", "error");
+return;
+}
 
-    const nuevaUrl = result.data.url;
+const nuevaUrl = result.data.url;
 
-    avatarPreview.src = nuevaUrl;
+avatarPreview.src = nuevaUrl;
 
-    const save = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "updateJugador",
-        id: jugadorId,
-        avatarUrl: nuevaUrl
-      })
-    });
+const save = await fetch(API_URL, {
+method: "POST",
+body: JSON.stringify({
+action: "updateJugador",
+id: jugadorId,
+avatarUrl: nuevaUrl
+})
+});
 
-    const saveResult = await save.json();
+const saveResult = await save.json();
 
-    if (saveResult.success) {
+if (saveResult.success) {
 
-      avatarUrlActual = nuevaUrl;
+avatarUrlActual = nuevaUrl;
 
-      mostrarMensaje("Foto actualizada");
+mostrarMensaje("Foto actualizada");
 
-      if (!esAdminEditando) {
+if (!esAdminEditando) {
 
-        const updatedUser = {
-          ...user,
-          avatarUrl: nuevaUrl
-        };
+const updatedUser = {
+...user,
+avatarUrl: nuevaUrl
+};
 
-        localStorage.setItem("arvet_user", JSON.stringify(updatedUser));
+localStorage.setItem("arvet_user", JSON.stringify(updatedUser));
 
-      }
+}
 
-    } else {
+} else {
 
-      mostrarMensaje("Error guardando avatar", "error");
+mostrarMensaje("Error guardando avatar", "error");
 
-    }
+}
 
-  } catch (err) {
+} catch (err) {
 
-    console.error(err);
-    mostrarMensaje("Error procesando imagen", "error");
+console.error(err);
+mostrarMensaje("Error procesando imagen", "error");
 
-  }
+}
 
 });
+
 /*********************************
 LOGOUT
 *********************************/
 
 document.getElementById('btnLogout')?.addEventListener('click', () => {
 
-  localStorage.removeItem('arvet_user');
-  window.location.href = "login.html";
+localStorage.removeItem('arvet_user');
+window.location.href = "login.html";
 
 });
 
