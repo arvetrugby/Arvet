@@ -1,7 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -17,42 +17,32 @@ body{
 font-family:Montserrat;
 background:#f1f5f9;
 margin:0;
-padding-top:0 !important;
 }
 
 /* HEADER EQUIPO */
+
 .player-header{
-padding:28px 20px;
+padding:35px 20px;
 color:white;
-
-background: var(--equipo-color,#6366f1);
-}
-.player-header-content{
-max-width:900px;
-margin:auto;
-display:flex;
-align-items:center;
-gap:18px;
+text-align:center;
+background:var(--equipo-color,#6366f1);
 }
 
-.player-header-logo img{
+.player-header img{
 width:90px;
 height:90px;
 object-fit:contain;
-border-radius:12px;
-padding:6px;
+margin-bottom:10px;
 }
 
-.player-header-info h1{
+.player-header h1{
 margin:0;
-font-size:22px;
-font-weight:700;
+font-size:20px;
 }
 
-.player-header-info p{
-margin:4px 0 0 0;
+.player-header p{
+margin:5px 0 0 0;
 opacity:.9;
-font-size:14px;
 }
 
 /* MAIN */
@@ -112,6 +102,16 @@ border:1px solid #cbd5e1;
 margin-bottom:12px;
 }
 
+/* ESTADO */
+
+.estado-box{
+padding:12px;
+border-radius:8px;
+background:#f1f5f9;
+font-weight:600;
+text-align:center;
+margin-bottom:15px;
+}
 
 </style>
 
@@ -123,35 +123,24 @@ margin-bottom:12px;
 
 <div class="player-header">
 
-<div class="player-header-content">
+<img id="equipoLogo" src="">
 
-<div class="player-header-logo">
-<img id="equipoLogo" src="" alt="Logo equipo">
-</div>
-
-<div class="player-header-info">
 <h1 id="nombreEquipo">Equipo</h1>
-<p id="nombreJugador">Panel del jugador</p>
-</div>
+
+<p>Panel del jugador</p>
 
 </div>
-
-</div>
-
 
 <div class="main">
 
-<button id="btnVolverAdmin" class="btn-primary" style="display:none;">
-← Volver al Admin
-</button>
-
-<button id="btnLogout" class="btn-primary">
-Cerrar sesión
-</button>
+<button id="btnVolverAdmin" class="btn-secondary" style="display:none;">← Volver al Admin</button>
+<button id="btnLogout" class="btn-secondary">Cerrar sesión</button>
 
 <div id="mensajePerfil" style="display:none;"></div>
 
-
+<div class="estado-box">
+Estado: <span id="estadoJugador">Cargando...</span>
+</div>
 
 <!-- FOTO PERFIL -->
 
@@ -159,26 +148,43 @@ Cerrar sesión
 
 <h3>Mi foto</h3>
 
-<img id="avatarPreview"
-class="avatar"
-src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-alt="Foto de perfil">
+<img id="avatarPreview" class="avatar" src="">
 
 <br><br>
 
-<input type="file"
-id="inputAvatar"
-accept="image/*"
-style="display:none;">
+<input type="file" id="inputAvatar" accept="image/*" style="display:none;">
 
-<button type="button"
-id="btnCambiarAvatar"
-class="btn-primary">
+<button type="button" id="btnCambiarAvatar" class="btn-primary">
 Cambiar foto
 </button>
 
 </div>
 
+<!-- DOCUMENTOS -->
+
+<div class="card">
+
+<h3>Documentación obligatoria</h3>
+
+<label>Apto Médico</label>
+<input type="file" id="aptoMedico" accept=".pdf,image/*">
+<div id="aptoLink"></div>
+
+<label>Estudios realizados</label>
+<input type="file" id="estudios" accept=".pdf,image/*">
+<div id="estudiosLink"></div>
+
+<label>Deslinde de responsabilidad</label>
+<input type="file" id="deslinde" accept=".pdf,image/*">
+<div id="deslindeLink"></div>
+
+<br>
+
+<button type="button" id="btnSubirDocumentos" class="btn-primary">
+Subir documentación
+</button>
+
+</div>
 
 <!-- DATOS PERSONALES -->
 
@@ -188,39 +194,13 @@ Cambiar foto
 
 <form id="formPerfil">
 
-<input type="text"
-id="nombre"
-placeholder="Nombre"
-autocomplete="given-name"
-required>
-
-<input type="text"
-id="apellido"
-placeholder="Apellido"
-autocomplete="family-name"
-required>
-
-<input type="email"
-id="email"
-placeholder="Email"
-autocomplete="email"
-required>
-
-<input type="text"
-id="telefono"
-placeholder="Teléfono"
-autocomplete="tel">
-
-<input type="date"
-id="fechaNacimiento">
-
-<input type="text"
-id="dni"
-placeholder="DNI">
-
-<input type="text"
-id="cuitCuil"
-placeholder="CUIT/CUIL">
+<input type="text" id="nombre" placeholder="Nombre">
+<input type="text" id="apellido" placeholder="Apellido">
+<input type="email" id="email" placeholder="Email">
+<input type="text" id="telefono" placeholder="Teléfono">
+<input type="date" id="fechaNacimiento">
+<input type="text" id="dni" placeholder="DNI">
+<input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
 
 <button type="submit" class="btn-primary">
 Guardar cambios
@@ -230,21 +210,15 @@ Guardar cambios
 
 </div>
 
-
 <!-- CONTRASEÑA -->
 
 <div class="card">
 
 <h3>Cambiar contraseña</h3>
 
-<input type="password"
-id="nuevaPassword"
-placeholder="Nueva contraseña"
-autocomplete="new-password">
+<input type="password" id="nuevaPassword" placeholder="Nueva contraseña">
 
-<button type="button"
-id="btnCambiarPass"
-class="btn-primary">
+<button type="button" id="btnCambiarPass" class="btn-primary">
 Actualizar contraseña
 </button>
 
@@ -252,9 +226,9 @@ Actualizar contraseña
 
 </div>
 
-
 <script src="js/app.js"></script>
 <script src="js/panel-jugador.js"></script>
 
 </body>
 </html>
+```
