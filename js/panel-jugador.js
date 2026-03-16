@@ -106,7 +106,18 @@ if (jugador.avatarUrl) {
 }
 
 /*********************************
-HEADER (EQUIPO)
+HEADER (NOMBRE JUGADOR)
+*********************************/
+
+const nombreJugador = document.getElementById("nombreJugador");
+
+if (nombreJugador) {
+  nombreJugador.textContent =
+    `${jugador.nombre || ""} ${jugador.apellido || ""}`.trim();
+}
+
+/*********************************
+EQUIPO
 *********************************/
 
 if (jugador.equipoId) {
@@ -122,7 +133,6 @@ if (jugador.equipoId) {
 
       const logo = document.getElementById("equipoLogo");
       const nombreEquipo = document.getElementById("nombreEquipo");
-      const nombreJugador = document.getElementById("nombreJugador");
 
       if (logo && equipo.logoUrl) {
         logo.src = equipo.logoUrl;
@@ -130,11 +140,6 @@ if (jugador.equipoId) {
 
       if (nombreEquipo) {
         nombreEquipo.textContent = equipo.nombre;
-      }
-
-      if (nombreJugador) {
-        nombreJugador.textContent =
-          jugador.nombre + " " + (jugador.apellido || "");
       }
 
       if (equipo.colorPrimario) {
@@ -150,11 +155,10 @@ if (jugador.equipoId) {
     console.error("Error cargando equipo", err);
   }
 
-}
+} else {
 
-} catch (err) {
-
-console.error("Error cargando perfil", err);
+  const nombreEquipo = document.getElementById("nombreEquipo");
+  if (nombreEquipo) nombreEquipo.textContent = "ARVET";
 
 }
 
@@ -300,7 +304,7 @@ try {
 const imagenOptimizada = await optimizarImagen(file);
 
 const formData = new FormData();
-formData.append("image", imagenOptimizada);
+formData.append("image", imagenOptimizada.split(',')[1]);
 
 const response = await fetch(
 "https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90",
@@ -348,10 +352,6 @@ avatarUrl: nuevaUrl
 localStorage.setItem("arvet_user", JSON.stringify(updatedUser));
 
 }
-
-} else {
-
-mostrarMensaje("Error guardando avatar", "error");
 
 }
 
