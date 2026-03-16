@@ -17,19 +17,21 @@ body{
 font-family:Montserrat;
 background:#f1f5f9;
 margin:0;
+padding-top:0 !important;
 }
 
 /* HEADER EQUIPO */
 .player-header{
 padding:28px 20px;
 color:white;
+
 background:linear-gradient(
-135deg,
-var(--equipo-color,#6366f1),
-rgba(0,0,0,0.25)
+180deg,
+var(--equipo-color) 0%,
+color-mix(in srgb, var(--equipo-color) 60%, transparent) 60%,
+transparent 100%
 );
 }
-
 .player-header-content{
 max-width:900px;
 margin:auto;
@@ -39,10 +41,10 @@ gap:18px;
 }
 
 .player-header-logo img{
-width:70px;
-height:70px;
+width:90px;
+height:90px;
 object-fit:contain;
-background:white;
+background:none;
 border-radius:12px;
 padding:6px;
 }
