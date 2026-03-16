@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,29 +20,43 @@ margin:0;
 }
 
 /* HEADER EQUIPO */
-
 .player-header{
-padding:35px 20px;
+padding:28px 20px;
 color:white;
-text-align:center;
-background:var(--equipo-color,#6366f1);
+background:linear-gradient(
+135deg,
+var(--equipo-color,#6366f1),
+rgba(0,0,0,0.25)
+);
 }
 
-.player-header img{
-width:90px;
-height:90px;
+.player-header-content{
+max-width:900px;
+margin:auto;
+display:flex;
+align-items:center;
+gap:18px;
+}
+
+.player-header-logo img{
+width:70px;
+height:70px;
 object-fit:contain;
-margin-bottom:10px;
+background:white;
+border-radius:12px;
+padding:6px;
 }
 
-.player-header h1{
+.player-header-info h1{
 margin:0;
-font-size:20px;
+font-size:22px;
+font-weight:700;
 }
 
-.player-header p{
-margin:5px 0 0 0;
+.player-header-info p{
+margin:4px 0 0 0;
 opacity:.9;
+font-size:14px;
 }
 
 /* MAIN */
@@ -120,14 +134,20 @@ margin-bottom:15px;
 <body>
 
 <!-- HEADER DINÁMICO DEL EQUIPO -->
-
 <div class="player-header">
 
+<div class="player-header-content">
+
+<div class="player-header-logo">
 <img id="equipoLogo" src="">
+</div>
 
+<div class="player-header-info">
 <h1 id="nombreEquipo">Equipo</h1>
+<p id="nombreJugador">Panel del jugador</p>
+</div>
 
-<p>Panel del jugador</p>
+</div>
 
 </div>
 
