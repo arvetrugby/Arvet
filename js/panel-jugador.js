@@ -429,22 +429,6 @@ if (btnSubirDocs) {
     mostrarMensaje("Error de conexión", "error");
   }
 };
-
-/*********************************
-  HEADER
-  *********************************/
-
-  const user = JSON.parse(localStorage.getItem("arvet_user") || "{}");
-
-if(user){
-    
-    const nombreJugador = document.getElementById("nombreJugador");
-    
-    if(nombreJugador){
-        nombreJugador.textContent = user.nombre + " " + (user.apellido || "");
-    }
-
-}
   /*********************************
    LOGOUT
   *********************************/
