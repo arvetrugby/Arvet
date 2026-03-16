@@ -1,234 +1,281 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Mi Perfil - ARVET</title>
-
-<link rel="stylesheet" href="css/styles.css">
-
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-
 <style>
-
 body{
-font-family:Montserrat;
-background:#f1f5f9;
-margin:0;
+  font-family:'Montserrat',sans-serif;
+  background:#f1f5f9;
+  margin:0;
 }
 
-/* HEADER EQUIPO */
-
 .player-header{
-padding:35px 20px;
-color:white;
-text-align:center;
-background:var(--equipo-color,#6366f1);
+  padding:35px 20px;
+  color:white;
+  text-align:center;
+  background:var(--equipo-color,#6366f1);
 }
 
 .player-header img{
-width:90px;
-height:90px;
-object-fit:contain;
-margin-bottom:10px;
+  width:90px;
+  height:90px;
+  object-fit:contain;
+  margin-bottom:10px;
 }
 
 .player-header h1{
-margin:0;
-font-size:20px;
+  margin:0;
+  font-size:20px;
 }
 
 .player-header p{
-margin:5px 0 0 0;
-opacity:.9;
+  margin:5px 0 0 0;
+  opacity:.9;
 }
-
-/* MAIN */
 
 .main{
-max-width:800px;
-margin:auto;
-padding:20px;
+  max-width:800px;
+  margin:auto;
+  padding:20px;
 }
-
-/* CARDS */
 
 .card{
-background:white;
-padding:25px;
-border-radius:12px;
-margin-bottom:20px;
-box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
-
-/* PERFIL */
 
 .avatar{
-width:120px;
-height:120px;
-border-radius:50%;
-object-fit:cover;
-border:4px solid #e2e8f0;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid #e2e8f0;
 }
 
-/* BOTONES */
-
 button{
-padding:10px 18px;
-border-radius:8px;
-border:none;
-cursor:pointer;
-font-weight:600;
+  padding:10px 18px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+  font-family:'Montserrat',sans-serif;
 }
 
 .btn-primary{
-background:var(--equipo-color,#6366f1);
-color:white;
+  background:var(--equipo-color,#6366f1);
+  color:white;
+}
+
+.btn-primary:hover{
+  opacity:0.9;
 }
 
 .btn-secondary{
-background:#e2e8f0;
+  background:#e2e8f0;
+  color:#334155;
 }
 
-/* INPUTS */
+.btn-secondary:hover{
+  background:#cbd5e1;
+}
+
+.btn-danger{
+  background:#ef4444;
+  color:white;
+  padding:6px 12px;
+  font-size:12px;
+  margin-left:10px;
+}
+
+.btn-danger:hover{
+  background:#dc2626;
+}
 
 input{
-width:100%;
-padding:10px;
-border-radius:8px;
-border:1px solid #cbd5e1;
-margin-bottom:12px;
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  margin-bottom:12px;
+  font-family:'Montserrat',sans-serif;
+  box-sizing:border-box;
 }
 
-/* ESTADO */
+input:focus{
+  outline:none;
+  border-color:var(--equipo-color,#6366f1);
+}
 
 .estado-box{
-padding:12px;
-border-radius:8px;
-background:#f1f5f9;
-font-weight:600;
-text-align:center;
-margin-bottom:15px;
+  padding:12px;
+  border-radius:8px;
+  background:#f1f5f9;
+  font-weight:600;
+  text-align:center;
+  margin-bottom:15px;
 }
 
-</style>
+.habilitado{
+  color:#059669;
+  background:#d1fae5 !important;
+}
 
+.faltante{
+  color:#dc2626;
+  background:#fee2e2 !important;
+}
+
+.doc-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:5px;
+  margin-bottom:15px;
+}
+
+.doc-link a{
+  color:var(--equipo-color,#6366f1);
+  text-decoration:none;
+  font-weight:600;
+}
+
+.doc-link a:hover{
+  text-decoration:underline;
+}
+
+.no-doc{
+  color:#ef4444;
+  font-size:14px;
+  margin-top:5px;
+  margin-bottom:15px;
+  display:block;
+}
+
+label{
+  display:block;
+  margin-bottom:5px;
+  font-weight:600;
+  color:#475569;
+  font-size:14px;
+}
+
+h3{
+  margin-top:0;
+  color:#1e293b;
+  margin-bottom:20px;
+}
+
+#mensajePerfil{
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:15px;
+  text-align:center;
+  font-weight:600;
+}
+
+.header-actions{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.nombre-jugador-header{
+  font-size:24px;
+  font-weight:700;
+  margin:10px 0 0 0;
+}
+</style>
 </head>
 
 <body>
 
-<!-- HEADER DINÁMICO DEL EQUIPO -->
-
 <div class="player-header">
-
-<img id="equipoLogo" src="">
-
-<h1 id="nombreEquipo">Equipo</h1>
-
-<p>Panel del jugador</p>
-
+  <img id="equipoLogo" src="" alt="Logo equipo">
+  <h1 id="nombreEquipo">Equipo</h1>
+  <p class="nombre-jugador-header" id="nombreJugadorHeader">Jugador</p>
+  <p>Panel del jugador</p>
 </div>
 
 <div class="main">
 
-<button id="btnVolverAdmin" class="btn-secondary" style="display:none;">← Volver al Admin</button>
-<button id="btnLogout" class="btn-secondary">Cerrar sesión</button>
+  <div class="header-actions">
+    <button id="btnVolverAdmin" class="btn-secondary" style="display:none;">← Volver al Admin</button>
+    <button id="btnLogout" class="btn-secondary">Cerrar sesión</button>
+  </div>
 
-<div id="mensajePerfil" style="display:none;"></div>
+  <div id="mensajePerfil" style="display:none;"></div>
 
-<div class="estado-box">
-Estado: <span id="estadoJugador">Cargando...</span>
-</div>
+  <div class="estado-box" id="estadoBox">
+    Estado: <span id="estadoJugador">Cargando...</span>
+  </div>
 
-<!-- FOTO PERFIL -->
+  <!-- FOTO PERFIL -->
+  <div class="card" style="text-align:center">
+    <h3>Mi foto</h3>
+    <img id="avatarPreview" class="avatar" src="" alt="Avatar">
+    <br><br>
+    <input type="file" id="inputAvatar" accept="image/*" style="display:none;">
+    <button type="button" id="btnCambiarAvatar" class="btn-primary">Cambiar foto</button>
+  </div>
 
-<div class="card" style="text-align:center">
+  <!-- DOCUMENTOS -->
+  <div class="card">
+    <h3>Documentación obligatoria</h3>
+    
+    <label>Apto Médico</label>
+    <input type="file" id="aptoMedico" accept=".pdf,image/*">
+    <div id="aptoLink" class="doc-link"></div>
 
-<h3>Mi foto</h3>
+    <label>Estudios realizados</label>
+    <input type="file" id="estudios" accept=".pdf,image/*">
+    <div id="estudiosLink" class="doc-link"></div>
 
-<img id="avatarPreview" class="avatar" src="">
+    <label>Deslinde de responsabilidad</label>
+    <input type="file" id="deslinde" accept=".pdf,image/*">
+    <div id="deslindeLink" class="doc-link"></div>
 
-<br><br>
+    <button type="button" id="btnSubirDocumentos" class="btn-primary" style="margin-top:10px;">
+      Subir documentación
+    </button>
+  </div>
 
-<input type="file" id="inputAvatar" accept="image/*" style="display:none;">
+  <!-- DATOS PERSONALES -->
+  <div class="card">
+    <h3>Datos personales</h3>
+    <form id="formPerfil">
+      <input type="text" id="nombre" placeholder="Nombre">
+      <input type="text" id="apellido" placeholder="Apellido">
+      <input type="email" id="email" placeholder="Email">
+      <input type="text" id="telefono" placeholder="Teléfono">
+      <input type="date" id="fechaNacimiento">
+      <input type="text" id="dni" placeholder="DNI">
+      <input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
 
-<button type="button" id="btnCambiarAvatar" class="btn-primary">
-Cambiar foto
-</button>
+      <button type="submit" class="btn-primary">Guardar cambios</button>
+    </form>
+  </div>
 
-</div>
-
-<!-- DOCUMENTOS -->
-
-<div class="card">
-
-<h3>Documentación obligatoria</h3>
-
-<label>Apto Médico</label>
-<input type="file" id="aptoMedico" accept=".pdf,image/*">
-<div id="aptoLink"></div>
-
-<label>Estudios realizados</label>
-<input type="file" id="estudios" accept=".pdf,image/*">
-<div id="estudiosLink"></div>
-
-<label>Deslinde de responsabilidad</label>
-<input type="file" id="deslinde" accept=".pdf,image/*">
-<div id="deslindeLink"></div>
-
-<br>
-
-<button type="button" id="btnSubirDocumentos" class="btn-primary">
-Subir documentación
-</button>
-
-</div>
-
-<!-- DATOS PERSONALES -->
-
-<div class="card">
-
-<h3>Datos personales</h3>
-
-<form id="formPerfil">
-
-<input type="text" id="nombre" placeholder="Nombre">
-<input type="text" id="apellido" placeholder="Apellido">
-<input type="email" id="email" placeholder="Email">
-<input type="text" id="telefono" placeholder="Teléfono">
-<input type="date" id="fechaNacimiento">
-<input type="text" id="dni" placeholder="DNI">
-<input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
-
-<button type="submit" class="btn-primary">
-Guardar cambios
-</button>
-
-</form>
+  <!-- CONTRASEÑA -->
+  <div class="card">
+    <h3>Cambiar contraseña</h3>
+    <input type="password" id="nuevaPassword" placeholder="Nueva contraseña">
+    <button type="button" id="btnCambiarPass" class="btn-primary">Actualizar contraseña</button>
+  </div>
 
 </div>
 
-<!-- CONTRASEÑA -->
-
-<div class="card">
-
-<h3>Cambiar contraseña</h3>
-
-<input type="password" id="nuevaPassword" placeholder="Nueva contraseña">
-
-<button type="button" id="btnCambiarPass" class="btn-primary">
-Actualizar contraseña
-</button>
-
-</div>
-
-</div>
-
-<script src="js/app.js"></script>
-<script src="js/panel-jugador.js"></script>
+<script>
+// CONFIGURACIÓN - Cambia esto por tu URL real de Apps Script
+const API_URL = 'https://script.google.com/macros/s/TU_SCRIPT_ID/exec';
+</script>
+<script src="panel-jugador.js"></script>
 
 </body>
 </html>
-```
