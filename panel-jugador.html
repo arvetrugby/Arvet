@@ -1,59 +1,236 @@
-<h2>Mi Perfil</h2>
-<button id="btnLogout">Cerrar sesión</button><button id="btnVolverAdmin" style="display:none;">← Volver al Admin</button>
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel del Jugador - ARVET</title>
+
+<link rel="stylesheet" href="css/styles.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+.admin-body{
+    font-family: 'Montserrat', sans-serif;
+    background:#f1f5f9;
+}
+
+/* HEADER */
+
+.admin-header{
+    background:#0f172a;
+    color:white;
+    padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.admin-header h1{
+    font-size:20px;
+}
+
+/* MAIN */
+
+.admin-main{
+    padding:30px;
+}
+
+/* CARDS */
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom:25px;
+}
+
+/* BOTONES */
+
+.btn-primary{
+    background:#6366f1;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.btn-primary:hover{
+    opacity:.9;
+}
+
+.btn-secondary{
+    background:#e2e8f0;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+/* INPUTS */
+
+input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #cbd5e1;
+    margin-bottom:12px;
+}
+
+label{
+    font-size:14px;
+    font-weight:600;
+}
+
+/* ESTADO */
+
+.estado-box{
+    background:#f1f5f9;
+    padding:12px;
+    border-radius:8px;
+    font-weight:600;
+    margin-bottom:15px;
+    text-align:center;
+}
+
+#mensajePerfil{
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+
+</style>
+
+</head>
+
+<body class="admin-body">
+
+<header class="admin-header">
+<h1>Mi Perfil</h1>
+
+<div>
+<button id="btnVolverAdmin" class="btn-secondary" style="display:none;">← Admin</button>
+<button id="btnLogout" class="btn-secondary">Cerrar sesión</button>
+</div>
+
+</header>
+
+<main class="admin-main">
+
 <div id="mensajePerfil" style="display:none;"></div>
+
 <div class="estado-box">
-  Estado: <span id="estadoJugador">Cargando...</span>
+Estado: <span id="estadoJugador">Cargando...</span>
 </div>
-<div style="margin-bottom:20px; text-align:center;">
-  <img id="avatarPreview"
-       src=""
-       style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid #ddd;">
-  <br><br>
-  <input type="file" id="inputAvatar" accept="image/*" style="display:none;">
-  <button type="button" id="btnCambiarAvatar">Cambiar foto</button>
+
+<!-- FOTO PERFIL -->
+
+<div class="card" style="text-align:center;">
+
+<h3>Foto de Perfil</h3>
+
+<img id="avatarPreview"
+src=""
+style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #ddd;">
+
+<br><br>
+
+<input type="file" id="inputAvatar" accept="image/*" style="display:none;">
+
+<button type="button" id="btnCambiarAvatar" class="btn-primary">
+Cambiar foto
+</button>
+
 </div>
+
+<!-- DOCUMENTACION -->
+
+<div class="card">
+
 <h3>Documentación obligatoria</h3>
 
 <div style="margin-bottom:15px;">
-  <label>Apto Médico (PDF o imagen)</label><br>
-  <input type="file" id="aptoMedico" accept=".pdf,image/*">
-  <div id="aptoLink"></div>
+
+<label>Apto Médico (PDF o imagen)</label>
+<input type="file" id="aptoMedico" accept=".pdf,image/*">
+<div id="aptoLink"></div>
+
 </div>
 
 <div style="margin-bottom:15px;">
-  <label>Estudios realizados (PDF o imagen)</label><br>
-  <input type="file" id="estudios" accept=".pdf,image/*">
-  <div id="estudiosLink"></div>
+
+<label>Estudios realizados (PDF o imagen)</label>
+<input type="file" id="estudios" accept=".pdf,image/*">
+<div id="estudiosLink"></div>
+
 </div>
 
 <div style="margin-bottom:15px;">
-  <label>Deslinde de responsabilidad (PDF o imagen)</label><br>
-  <input type="file" id="deslinde" accept=".pdf,image/*">
-  <div id="deslindeLink"></div>
-  
+
+<label>Deslinde de responsabilidad (PDF o imagen)</label>
+<input type="file" id="deslinde" accept=".pdf,image/*">
+<div id="deslindeLink"></div>
+
 </div>
 
-<button type="button" id="btnSubirDocumentos">
-  Subir documentación
+<button type="button" id="btnSubirDocumentos" class="btn-primary">
+Subir documentación
 </button>
+
+</div>
+
+<!-- DATOS PERSONALES -->
+
+<div class="card">
+
+<h3>Datos personales</h3>
+
 <form id="formPerfil">
 
 <input type="text" id="nombre" placeholder="Nombre">
-<input type="text" id="apellido" placeholder="Apellido">
-<input type="email" id="email" placeholder="Email">
-<input type="text" id="telefono" placeholder="Teléfono">
-<input type="date" id="fechaNacimiento">
-<input type="text" id="dni" placeholder="DNI">
-<input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
-  
 
-<button type="submit">Guardar cambios</button>
+<input type="text" id="apellido" placeholder="Apellido">
+
+<input type="email" id="email" placeholder="Email">
+
+<input type="text" id="telefono" placeholder="Teléfono">
+
+<input type="date" id="fechaNacimiento">
+
+<input type="text" id="dni" placeholder="DNI">
+
+<input type="text" id="cuitCuil" placeholder="CUIT/CUIL">
+
+<button type="submit" class="btn-primary">
+Guardar cambios
+</button>
 
 </form>
-<hr>
+
+</div>
+
+<!-- CONTRASEÑA -->
+
+<div class="card">
+
 <h3>Cambiar contraseña</h3>
+
 <input type="password" id="nuevaPassword" placeholder="Nueva contraseña">
-<button type="button" id="btnCambiarPass">Actualizar contraseña</button>
+
+<button type="button" id="btnCambiarPass" class="btn-primary">
+Actualizar contraseña
+</button>
+
+</div>
+
+</main>
 
 <script src="js/app.js"></script>
 <script src="js/panel-jugador.js"></script>
+
+</body>
+</html>
