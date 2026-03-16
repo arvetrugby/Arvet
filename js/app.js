@@ -669,10 +669,14 @@ const iti = window.intlTelInput(inputTelefono, {
         adminNombre: document.getElementById('adminNombre').value.trim(),
         adminApellido: document.getElementById('adminApellido').value.trim(),
         telefono: iti.getNumber(), 
-        fechaNacimiento: document.getElementById('fechaNacimiento').value, 
+        dni: document.getElementById('dni').value,
+        cuitCuil: document.getElementById('cuitCuil').value,
+        avatarUrl: document.getElementById('avatarUrl').value,
+        fechaNacimiento: document.getElementById('fechaNacimiento').value,
         email: document.getElementById('email').value.trim(),
         password: password,
-        avatarUrl: document.getElementById('avatarUrl').value
+        avatarUrl: document.getElementById('avatarUrl').value,
+        
     };
        
 
