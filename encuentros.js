@@ -703,13 +703,16 @@ function confirmarParticipacionJugador(encuentroId, jugadorId) {
 
 function obtenerUsuarioActual() {
     // Simulación - en producción viene del login/token
-    return JSON.parse(localStorage.getItem('arveta_usuario') || '{
+    const usuarioDefault = {
         "id": "usr_123",
         "nombre": "Admin",
         "equipoId": "eq_tigres",
         "equipoNombre": "Tigres RC",
         "rol": "admin"
-    }');
+    };
+    
+    const stored = localStorage.getItem('arveta_usuario');
+    return stored ? JSON.parse(stored) : usuarioDefault;
 }
 
 function obtenerEncuentroPorId(id) {
