@@ -110,7 +110,9 @@ color:white;
              <li onclick="showSection('jugadores')">
                 <span></span> Plantel
             </li>
-            
+            <li onclick="showSection('encuentros')">
+            <span></span> Encuentros
+            </li>
               <div class="nav-footer">
             <button id="btnVerSitio" class="btn-secondary">
                 🌐 Ver Sitio Público
@@ -244,6 +246,28 @@ color:white;
             </div>
         </section>
 
+        <section id="encuentros" class="admin-section">
+    <div class="section-header">
+        <h2>Encuentros</h2>
+        <button class="btn-fab" onclick="nuevoEncuentro()">+</button>
+    </div>
+    
+    <!-- Tabs: Mis Encuentros | Invitaciones Recibidas -->
+    <div class="encuentros-tabs">
+        <button class="tab-btn active" onclick="showTab('creados')">Mis Encuentros</button>
+        <button class="tab-btn" onclick="showTab('invitaciones')">Invitaciones</button>
+    </div>
+    
+    <!-- Contenido Mis Encuentros -->
+    <div id="tab-creados" class="tab-content active">
+        <div id="listaMisEncuentros"></div>
+    </div>
+    
+    <!-- Contenido Invitaciones -->
+    <div id="tab-invitaciones" class="tab-content">
+        <div id="listaInvitaciones"></div>
+    </div>
+</section>
         <!-- Finanzas 
         <section id="finanzas" class="admin-section">
             <div class="section-header">
