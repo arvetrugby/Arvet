@@ -310,9 +310,9 @@ function guardarEncuentro(e) {
     };
     
     // Guardar en localStorage (simulando API)
-    let encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]');
+    let encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]');
     encuentros.push(encuentro);
-    localStorage.setItem('arveta_encuentros', JSON.stringify(encuentros));
+    localStorage.setItem('arvet_encuentros', JSON.stringify(encuentros));
     
     // Enviar invitaciones según filtros
     enviarInvitaciones(encuentro);
@@ -324,7 +324,7 @@ function guardarEncuentro(e) {
 
 function enviarInvitaciones(encuentro) {
     // Simulación: buscar equipos que cumplan filtros y enviarles invitación
-    const equipos = JSON.parse(localStorage.getItem('arveta_equipos') || '[]');
+    const equipos = JSON.parse(localStorage.getItem('arvet_equipos') || '[]');
     
     const equiposFiltrados = equipos.filter(eq => {
         if (eq.id === encuentro.creadorId) return false; // No invitar al creador
@@ -356,9 +356,9 @@ function enviarInvitaciones(encuentro) {
     }));
     
     // Guardar invitaciones
-    let todasInvitaciones = JSON.parse(localStorage.getItem('arveta_invitaciones') || '[]');
+    let todasInvitaciones = JSON.parse(localStorage.getItem('arvet_invitaciones') || '[]');
     todasInvitaciones = todasInvitaciones.concat(invitaciones);
-    localStorage.setItem('arveta_invitaciones', JSON.stringify(todasInvitaciones));
+    localStorage.setItem('arvet_invitaciones', JSON.stringify(todasInvitaciones));
     
     // Actualizar encuentro con invitaciones pendientes
     encuentro.invitacionesPendientes = invitaciones.map(i => i.equipoId);
@@ -374,7 +374,7 @@ function renderizarMisEncuentros() {
     const empty = document.getElementById('emptyCreados');
     
     const usuario = obtenerUsuarioActual();
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]')
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]')
         .filter(e => e.creadorId === usuario.id)
         .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
     
@@ -499,7 +499,7 @@ function renderizarInvitaciones() {
     const usuario = obtenerUsuarioActual();
     
     // Obtener invitaciones para este equipo
-    const invitaciones = JSON.parse(localStorage.getItem('arveta_invitaciones') || '[]')
+    const invitaciones = JSON.parse(localStorage.getItem('arvet_invitaciones') || '[]')
         .filter(i => i.equipoId === usuario.id && i.estado === 'pendiente')
         .sort((a, b) => new Date(b.fechaEnvio) - new Date(a.fechaEnvio));
     
@@ -571,7 +571,7 @@ function renderizarInvitaciones() {
 // ============================================
 
 function aceptarInvitacion(invitacionId) {
-    const invitaciones = JSON.parse(localStorage.getItem('arveta_invitaciones') || '[]');
+    const invitaciones = JSON.parse(localStorage.getItem('arvet_invitaciones') || '[]');
     const invIndex = invitaciones.findIndex(i => i.id === invitacionId);
     
     if (invIndex === -1) return;
@@ -580,10 +580,10 @@ function aceptarInvitacion(invitacionId) {
     invitacion.estado = 'aceptada';
     invitacion.fechaRespuesta = new Date().toISOString();
     
-    localStorage.setItem('arveta_invitaciones', JSON.stringify(invitaciones));
+    localStorage.setItem('arvet_invitaciones', JSON.stringify(invitaciones));
     
     // Agregar equipo al encuentro
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]');
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]');
     const encIndex = encuentros.findIndex(e => e.id === invitacion.encuentroId);
     
     if (encIndex !== -1) {
@@ -600,7 +600,7 @@ function aceptarInvitacion(invitacionId) {
         encuentros[encIndex].invitacionesPendientes = encuentros[encIndex].invitacionesPendientes
             .filter(id => id !== usuario.id);
         
-        localStorage.setItem('arveta_encuentros', JSON.stringify(encuentros));
+        localStorage.setItem('arvet_encuentros', JSON.stringify(encuentros));
         
         // Notificar a jugadores del equipo
         notificarJugadoresDeEquipo(encuentros[encIndex]);
@@ -613,7 +613,7 @@ function aceptarInvitacion(invitacionId) {
 function rechazarInvitacion(invitacionId) {
     if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
     
-    const invitaciones = JSON.parse(localStorage.getItem('arveta_invitaciones') || '[]');
+    const invitaciones = JSON.parse(localStorage.getItem('arvet_invitaciones') || '[]');
     const invIndex = invitaciones.findIndex(i => i.id === invitacionId);
     
     if (invIndex === -1) return;
@@ -621,7 +621,7 @@ function rechazarInvitacion(invitacionId) {
     invitaciones[invIndex].estado = 'rechazada';
     invitaciones[invIndex].fechaRespuesta = new Date().toISOString();
     
-    localStorage.setItem('arveta_invitaciones', JSON.stringify(invitaciones));
+    localStorage.setItem('arvet_invitaciones', JSON.stringify(invitaciones));
     
     mostrarMensaje('Invitación rechazada', 'info');
     renderizarInvitaciones();
@@ -629,7 +629,7 @@ function rechazarInvitacion(invitacionId) {
 
 function notificarJugadoresDeEquipo(encuentro) {
     // Simulación: agregar notificación a cada jugador del equipo
-    const jugadores = JSON.parse(localStorage.getItem('arveta_jugadores') || '[]')
+    const jugadores = JSON.parse(localStorage.getItem('arvet_jugadores') || '[]')
         .filter(j => j.equipoId === obtenerUsuarioActual().id);
     
     const notificaciones = jugadores.map(j => ({
@@ -645,7 +645,7 @@ function notificarJugadoresDeEquipo(encuentro) {
     
     let todasNotis = JSON.parse(localStorage.getItem('arveta_notificaciones') || '[]');
     todasNotis = todasNotis.concat(notificaciones);
-    localStorage.setItem('arveta_notificaciones', JSON.stringify(todasNotis));
+    localStorage.setItem('arvet_notificaciones', JSON.stringify(todasNotis));
 }
 
 // ============================================
@@ -657,7 +657,7 @@ function obtenerEncuentrosParaJugador(jugadorId) {
     const usuario = obtenerUsuarioActual();
     
     // Encuentros donde su equipo participa
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]')
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]')
         .filter(e => e.equipos && e.equipos.some(eq => eq.id === usuario.equipoId));
     
     return encuentros.map(enc => {
@@ -674,7 +674,7 @@ function obtenerEncuentrosParaJugador(jugadorId) {
 }
 
 function confirmarParticipacionJugador(encuentroId, jugadorId) {
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]');
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]');
     const encIndex = encuentros.findIndex(e => e.id === encuentroId);
     
     if (encIndex === -1) return;
@@ -692,7 +692,7 @@ function confirmarParticipacionJugador(encuentroId, jugadorId) {
     
     equipo.jugadoresConfirmados = equipo.jugadores.length;
     
-    localStorage.setItem('arveta_encuentros', JSON.stringify(encuentros));
+    localStorage.setItem('arvet_encuentros', JSON.stringify(encuentros));
     
     mostrarMensaje('Participación confirmada', 'success');
 }
@@ -711,21 +711,21 @@ function obtenerUsuarioActual() {
         "rol": "admin"
     };
     
-    const stored = localStorage.getItem('arveta_usuario');
+    const stored = localStorage.getItem('arvet_usuario');
     return stored ? JSON.parse(stored) : usuarioDefault;
 }
 
 function obtenerEncuentroPorId(id) {
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]');
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]');
     return encuentros.find(e => e.id === id);
 }
 
 function actualizarEncuentro(encuentro) {
-    const encuentros = JSON.parse(localStorage.getItem('arveta_encuentros') || '[]');
+    const encuentros = JSON.parse(localStorage.getItem('arvet_encuentros') || '[]');
     const index = encuentros.findIndex(e => e.id === encuentro.id);
     if (index !== -1) {
         encuentros[index] = encuentro;
-        localStorage.setItem('arveta_encuentros', JSON.stringify(encuentros));
+        localStorage.setItem('arvet_encuentros', JSON.stringify(encuentros));
     }
 }
 
