@@ -5,19 +5,373 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Preview Encuentro</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-  .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 600px; margin: auto; overflow: hidden; padding: 16px; }
-  img { width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; }
-  h2 { margin: 0 0 8px 0; font-size: 1.6em; color: #1e293b; }
-  p { margin: 6px 0; color: #475569; font-size: 1em; }
-  .section-title { font-weight: bold; margin-top: 12px; }
-  .dates span, .valores span { display: block; margin-bottom: 4px; }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 1000px;
+    width: 100%;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    animation: slideUp 0.6s ease-out;
+    position: relative;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Imagen con overlay gradiente */
+  .image-section {
+    position: relative;
+    min-height: 400px;
+    overflow: hidden;
+  }
+
+  .image-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform 0.5s ease;
+  }
+
+  .card:hover .image-section img {
+    transform: scale(1.05);
+  }
+
+  .image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    display: flex;
+    align-items: flex-end;
+    padding: 24px;
+  }
+
+  .event-type-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+  }
+
+  /* Sección de datos */
+  .content-section {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .event-header {
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    color: #1a202c;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #718096;
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .location::before {
+    content: "📍";
+  }
+
+  .creator-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f7fafc;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+  }
+
+  .creator-badge::before {
+    content: "👤";
+  }
+
+  .description-box {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 20px;
+    border-radius: 16px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .description-box::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 4rem;
+    color: rgba(102, 126, 234, 0.2);
+    font-family: Georgia, serif;
+  }
+
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #667eea;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, #667eea, transparent);
+    margin-left: 8px;
+  }
+
+  .dates-container, .prices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .date-item, .price-item {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .date-item:hover, .price-item:hover {
+    border-color: #667eea;
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+
+  .date-item::before {
+    content: "📅";
+    font-size: 1.2rem;
+  }
+
+  .price-item::before {
+    content: "🎫";
+    font-size: 1.2rem;
+  }
+
+  .date-info, .price-info {
+    flex: 1;
+  }
+
+  .date-main, .price-amount {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1rem;
+  }
+
+  .date-desc, .price-desc {
+    font-size: 0.85rem;
+    color: #718096;
+  }
+
+  .price-amount {
+    color: #48bb78;
+    font-size: 1.2rem;
+  }
+
+  .cupo-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 700;
+    color: #e53e3e;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .cupo-badge::before {
+    content: "🔥";
+  }
+
+  .coordinates {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .coordinates::before {
+    content: "🌐";
+  }
+
+  /* Loading state */
+  .loading {
+    text-align: center;
+    color: white;
+    font-size: 1.2rem;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Error state */
+  .error-message {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    color: #e53e3e;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+
+  /* Responsive: Móvil */
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+
+    .card {
+      grid-template-columns: 1fr;
+      border-radius: 20px;
+    }
+
+    .image-section {
+      min-height: 250px;
+    }
+
+    .content-section {
+      padding: 24px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+    }
+
+    .cupo-badge {
+      top: 10px;
+      right: 10px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+
+    .description-box {
+      margin: 16px 0;
+      padding: 16px;
+    }
+
+    .date-item, .price-item {
+      padding: 10px 12px;
+    }
+  }
+
+  /* Efecto de brillo en hover */
+  .card::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%
+    );
+    transform: rotate(45deg);
+    transition: all 0.6s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .card:hover::after {
+    animation: shine 0.6s ease-in-out;
+  }
+
+  @keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+  }
 </style>
 </head>
 <body>
 
 <div id="preview-container">
-  <p>Cargando encuentro...</p>
+  <p class="loading">✨ Cargando encuentro...</p>
 </div>
 
 <script>
@@ -26,7 +380,8 @@
   const encuentroId = params.get('id');
 
   if (!encuentroId) {
-    document.getElementById('preview-container').innerHTML = "<p>Error: ID del encuentro no provisto.</p>";
+    document.getElementById('preview-container').innerHTML = 
+      '<div class="error-message">❌ Error: ID del encuentro no provisto.</div>';
   } else {
     // 2️⃣ Hacer fetch a tu API real usando action=getEncuentroById
     const API_URL = "https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec";
@@ -36,7 +391,8 @@
       .then(res => res.json())
       .then(res => {
         if (!res.success || !res.data) {
-          document.getElementById('preview-container').innerHTML = "<p>Encuentro no encontrado.</p>";
+          document.getElementById('preview-container').innerHTML = 
+            '<div class="error-message">🔍 Encuentro no encontrado.</div>';
           return;
         }
 
@@ -46,21 +402,39 @@
         const container = document.getElementById('preview-container');
         container.innerHTML = `
           <div class="card">
-            <img src="${enc.flyerUrl}" alt="Flyer del encuentro">
-            <h2>${enc.nombre}</h2>
-            <p><strong>Lugar:</strong> ${enc.lugar}</p>
-            <p><strong>Tipos:</strong> ${enc.tipo}</p>
-            <p><strong>Creador:</strong> ${enc.creadorNombre}</p>
-            <p><strong>Cupo máximo:</strong> ${enc.cupoMaximo}</p>
-            <p><strong>Coordenadas:</strong> ${enc.lat}, ${enc.lng}</p>
-            <p class="section-title">Descripción:</p>
-            <p>${enc.descripcion || "Sin descripción"}</p>
+            <div class="cupo-badge">
+              ${enc.cupoMaximo} cupos
+            </div>
+            
+            <div class="image-section">
+              <img src="${enc.flyerUrl}" alt="Flyer del encuentro">
+              <div class="image-overlay">
+                <span class="event-type-badge">${enc.tipo}</span>
+              </div>
+            </div>
 
-            <div class="section-title">Fechas:</div>
-            <div class="dates" id="fechas"></div>
+            <div class="content-section">
+              <div class="event-header">
+                <h2>${enc.nombre}</h2>
+                <div class="location">${enc.lugar}</div>
+                <div class="creator-badge">Organiza: ${enc.creadorNombre}</div>
+              </div>
 
-            <div class="section-title">Valores:</div>
-            <div class="valores" id="valores"></div>
+              <div class="description-box">
+                <div class="section-title">Sobre el evento</div>
+                <p>${enc.descripcion || "Sin descripción disponible"}</p>
+              </div>
+
+              <div class="section-title">📅 Fechas y Horarios</div>
+              <div class="dates-container" id="fechas"></div>
+
+              <div class="section-title">💰 Entradas</div>
+              <div class="prices-container" id="valores"></div>
+
+              <div class="coordinates">
+                Coordenadas: ${enc.lat}, ${enc.lng}
+              </div>
+            </div>
           </div>
         `;
 
@@ -72,13 +446,24 @@
           fechasArray = [];
         }
         const fechasDiv = document.getElementById('fechas');
-        fechasArray.forEach(f => {
-          f.horarios.forEach(h => {
-            const span = document.createElement('span');
-            span.innerText = `${f.dia} - ${h.hora} (${h.desc})`;
-            fechasDiv.appendChild(span);
+        
+        if (fechasArray.length === 0) {
+          fechasDiv.innerHTML = '<div class="date-item"><span class="date-main">Próximamente</span></div>';
+        } else {
+          fechasArray.forEach(f => {
+            f.horarios.forEach(h => {
+              const div = document.createElement('div');
+              div.className = 'date-item';
+              div.innerHTML = `
+                <div class="date-info">
+                  <div class="date-main">${f.dia}</div>
+                  <div class="date-desc">${h.hora} - ${h.desc}</div>
+                </div>
+              `;
+              fechasDiv.appendChild(div);
+            });
           });
-        });
+        }
 
         // Parsear y mostrar valores
         let valoresArray = [];
@@ -88,18 +473,32 @@
           valoresArray = [];
         }
         const valoresDiv = document.getElementById('valores');
-        valoresArray.forEach(v => {
-          const span = document.createElement('span');
-          span.innerText = `${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')} ${v.desc ? "(" + v.desc + ")" : ""}`;
-          valoresDiv.appendChild(span);
-        });
+        
+        if (valoresArray.length === 0) {
+          valoresDiv.innerHTML = '<div class="price-item"><span class="price-amount">Gratis</span></div>';
+        } else {
+          valoresArray.forEach(v => {
+            const div = document.createElement('div');
+            div.className = 'price-item';
+            div.innerHTML = `
+              <div class="price-info">
+                <div class="price-amount">$${parseFloat(v.precio).toLocaleString('es-AR')}</div>
+                <div class="price-desc">${v.titulo} ${v.desc ? "• " + v.desc : ""}</div>
+              </div>
+            `;
+            valoresDiv.appendChild(div);
+          });
+        }
       })
       .catch(err => {
         console.error(err);
-        document.getElementById('preview-container').innerHTML = "<p>Error al cargar el encuentro.</p>";
+        document.getElementById('preview-container').innerHTML = 
+          '<div class="error-message">⚠️ Error al cargar el encuentro. Intenta nuevamente.</div>';
       });
   }
 </script>
 
 </body>
 </html>
+
+
