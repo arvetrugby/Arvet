@@ -113,20 +113,46 @@ function nuevoEncuentro() {
 
                 <div class="form-group">
                     <label>Nombre del encuentro *</label>
-                    <input type="text" id="encNombre" required placeholder="Ej: Encuentro de Veteranos 2024">
+                    <input type="text" id="encNombre" required placeholder="Ej: Encuentro Argentino - Santiago 2026">
                 </div>
 
-                <div class="form-group">
-                    <label>Tipo de encuentro *</label>
-                    <select id="encTipo" required onchange="toggleOtroTipo(this.value)">
-                        <option value="">Seleccionar...</option>
-                        <option value="Veteranos +35">Veteranos +35</option>
-                        <option value="Veteranos +50">Veteranos +50</option>
-                        <option value="otro">Otro (especificar)</option>
-                    </select>
-                    <input type="text" id="encTipoOtro" style="display: none; margin-top: 10px;" placeholder="Especificar tipo de encuentro">
-                </div>
-
+               <!-- TIPO DE ENCUENTRO - MÚLTIPLE SELECCIÓN -->
+<div class="form-group">
+    <label>Tipo de encuentro * (podés elegir varios)</label>
+    
+    <!-- Opciones predefinidas -->
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="encTipo" value="Veteranos +35" style="width: 18px; height: 18px;">
+            <span>Veteranos +35</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="encTipo" value="Veteranos +50" style="width: 18px; height: 18px;">
+            <span>Veteranos +50</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="encTipo" value="Senior" style="width: 18px; height: 18px;">
+            <span>Senior</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="encTipo" value="Juveniles" style="width: 18px; height: 18px;">
+            <span>Juveniles</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkOtro" value="otro" style="width: 18px; height: 18px;" onchange="toggleOtrosTipos()">
+            <span>Otro (especificar)</span>
+        </label>
+    </div>
+    
+    <!-- Container para otros tipos personalizados -->
+    <div id="containerOtrosTipos" style="display: none; flex-direction: column; gap: 10px; margin-left: 26px; padding-left: 15px; border-left: 3px solid #cbd5e1;">
+        <!-- Se agregan dinámicamente -->
+    </div>
+    
+    <button type="button" onclick="agregarOtroTipo()" class="btn-secondary" style="width: 100%; margin-top: 10px; display: none;" id="btnAgregarOtroTipo">
+        + Agregar otro término
+    </button>
+</div>
                 <div class="form-group">
                     <label>Lugar / Cancha *</label>
                     <input type="text" id="encLugar" required placeholder="Nombre y dirección de la cancha">
@@ -180,10 +206,39 @@ function nuevoEncuentro() {
     document.getElementById('inputFlyer').addEventListener('change', subirFlyer);
 }
 
-function toggleOtroTipo(valor) {
-    const inputOtro = document.getElementById('encTipoOtro');
-    inputOtro.style.display = valor === 'otro' ? 'block' : 'none';
-    if (valor !== 'otro') inputOtro.value = '';
+function toggleOtrosTipos() {
+    const chkOtro = document.getElementById('chkOtro');
+    const container = document.getElementById('containerOtrosTipos');
+    const btnAgregar = document.getElementById('btnAgregarOtroTipo');
+    
+    if (chkOtro.checked) {
+        container.style.display = 'flex';
+        btnAgregar.style.display = 'block';
+        // Agregar el primero automáticamente
+        if (container.children.length === 0) {
+            agregarOtroTipo();
+        }
+    } else {
+        container.style.display = 'none';
+        btnAgregar.style.display = 'none';
+        container.innerHTML = ''; // Limpiar al desmarcar
+    }
+}
+
+function agregarOtroTipo() {
+    const container = document.getElementById('containerOtrosTipos');
+    const index = container.children.length + 1;
+    
+    const div = document.createElement('div');
+    div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
+    div.innerHTML = `
+        <input type="text" class="otro-tipo-input" placeholder="Especificar tipo ${index}" required style="flex: 1;">
+        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">
+            ✕
+        </button>
+    `;
+    
+    container.appendChild(div);
 }
 
 // ============================================
@@ -309,10 +364,29 @@ async function subirFlyer() {
 function guardarEncuentro(e) {
     e.preventDefault();
     
-    let tipo = document.getElementById('encTipo').value;
-    if (tipo === 'otro') {
-        tipo = document.getElementById('encTipoOtro').value || 'Otro';
+    // Recolectar tipos seleccionados (MÚLTIPLE SELECCIÓN)
+    const tiposSeleccionados = [];
+    
+    // Checkboxes predefinidos
+    document.querySelectorAll('input[name="encTipo"]:checked').forEach(cb => {
+        tiposSeleccionados.push(cb.value);
+    });
+    
+    // Otros tipos personalizados
+    const otrosInputs = document.querySelectorAll('.otro-tipo-input');
+    otrosInputs.forEach(input => {
+        if (input.value.trim()) {
+            tiposSeleccionados.push(input.value.trim());
+        }
+    });
+    
+    if (tiposSeleccionados.length === 0) {
+        mostrarMensajeEncuentros('Debes seleccionar al menos un tipo de encuentro', 'error');
+        return;
     }
+    
+    // Guardar como string separado por comas
+    const tipoFinal = tiposSeleccionados.join(', ');
     
     const fechas = [];
     document.querySelectorAll('.dia-item').forEach(dia => {
@@ -368,7 +442,7 @@ function guardarEncuentro(e) {
         valoresJSON: JSON.stringify(valores),
         cupoMaximo: parseInt(document.getElementById('encCupo').value),
         lugar: document.getElementById('encLugar').value,
-        tipo: tipo,
+        tipo: tipoFinal,  // ← AHORA SOPORTA MÚLTIPLES TIPOS: "Veteranos +35, Senior, Otro"
         descripcion: document.getElementById('encDescripcion').value,
         estado: 'publicado'
     };
@@ -459,9 +533,11 @@ async function renderizarMisEncuentros() {
                             <span class="encuentro-estado ${estadoClass}" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: ${enc.estado === 'publicado' ? '#dcfce7' : '#fee2e2'}; color: ${enc.estado === 'publicado' ? '#166534' : '#991b1b'};">
                                 ${estadoTexto}
                             </span>
-                            <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 8px;">
-                                ${enc.tipo || 'Sin tipo'}
-                            </span>
+                            ${enc.tipo ? enc.tipo.split(', ').map(t => `
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 5px; margin-bottom: 5px;">
+                                    ${t}
+                                </span>
+                            `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-left: 8px;">Sin tipo</span>'}
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
@@ -580,9 +656,11 @@ async function renderizarInvitaciones() {
                             <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e;">
                                 Invitación disponible
                             </span>
-                            <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 8px;">
-                                ${enc.tipo || 'Sin tipo'}
-                            </span>
+                            ${enc.tipo ? enc.tipo.split(', ').map(t => `
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 5px; margin-bottom: 5px;">
+                                    ${t}
+                                </span>
+                            `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-left: 8px;">Sin tipo</span>'}
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 4px;">
@@ -625,7 +703,6 @@ async function renderizarInvitaciones() {
         mostrarMensajeEncuentros('Error de conexión', 'error');
     }
 }
-
 // ============================================
 // FUNCIONES DE ACCIÓN (ASYNC - USAN API)
 // ============================================
