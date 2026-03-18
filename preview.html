@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Preview del Encuentro</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .encuentro-preview-card { background: white; padding: 20px; border-radius: 10px; text-align: center; width: 300px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .preview-img { width: 100%; border-radius: 8px; margin-bottom: 15px; }
+        .btn { display: inline-block; padding: 10px 20px; margin-top: 15px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; }
+        .btn:hover { background: #4338ca; }
+    </style>
+</head>
+<body>
+
+<div id="preview-container">
+    <!-- La card del encuentro se genera aquí -->
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const encuentroId = params.get('encuentroId');
+
+if (!encuentroId) {
+    document.getElementById('preview-container').innerHTML = '<p>No se encontró el encuentro.</p>';
+} else {
+    // Traemos los datos del encuentro desde Google Sheets
+    fetch(`https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec?action=getEncuentro&encuentroId=${encuentroId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const encuentro = data.data;
+                document.getElementById('preview-container').innerHTML = `
+                    <div class="encuentro-preview-card">
+                        <img src="${encuentro.imagen}" alt="Foto del encuentro" class="preview-img">
+                        <h2>${encuentro.nombre}</h2>
+                        <p>Fecha: ${encuentro.fecha}</p>
+                        <p>Lugar: ${encuentro.lugar}</p>
+                        <a href="login.html" class="btn">Registrarme / Iniciar sesión</a>
+                    </div>
+                `;
+            } else {
+                document.getElementById('preview-container').innerHTML = '<p>Encuentro no encontrado.</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Error al cargar preview:', err);
+            document.getElementById('preview-container').innerHTML = '<p>Error al cargar el encuentro.</p>';
+        });
+}
+</script>
+
+</body>
+</html>
