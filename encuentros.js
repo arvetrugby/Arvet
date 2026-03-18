@@ -730,15 +730,14 @@ function obtenerUsuarioActual() {
     const usuarioDefault = {
         "id": "usr_123",
         "nombre": "Admin",
-        "equipoId": "eq_tigres",
+        "equipoId": "eq_tigres", 
         "equipoNombre": "Tigres RC",
         "rol": "admin"
     };
     
-    const stored = localStorage.getItem('arvet_usuario');
+    const stored = localStorage.getItem('arvet_user');  
     return stored ? JSON.parse(stored) : usuarioDefault;
 }
-
 function formatearFecha(fechaStr) {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString('es-AR', {
