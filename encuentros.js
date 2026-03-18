@@ -38,7 +38,17 @@ let encuentrosData = {
 
 document.addEventListener('DOMContentLoaded', function() {
     cargarEncuentros();
+const params = new URLSearchParams(window.location.search);
+const encuentroId = params.get('encuentroId');
 
+if (encuentroId) {
+    console.log('Link detectado:', encuentroId);
+
+    // Esperamos a que cargue todo
+    setTimeout(() => {
+        verDetalleEncuentro(encuentroId);
+    }, 800);
+}
     window.addEventListener('encuentrosTabChange', function(e) {
         if (e.detail === 'invitaciones') {
             cargarInvitaciones();
@@ -78,21 +88,7 @@ function showEncuentrosTab(tab) {
     } else {
         renderizarInvitaciones();
     }
-    const params = new URLSearchParams(window.location.search);
-    const encuentroId = params.get('encuentroId');
-
-    if (encuentroId) {
-    fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`)
-        .then(r => r.json())
-        .then(res => {
-            if (res.success) {
-                console.log('Encuentro desde link:', res.data);
-
-                // 👇 OPCIONAL (pero útil)
-                mostrarMensajeEncuentros(`Viendo: ${res.data.nombre}`, 'info');
-            }
-        });
-   }
+    
 }
 
 // ============================================
