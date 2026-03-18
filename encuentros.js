@@ -892,6 +892,13 @@ async function renderizarInvitaciones() {
                             <img src="${enc.flyerUrl}" style="max-width: 300px; border-radius: 8px; object-fit: cover;" alt="Flyer">
                         </div>
                     ` : ''}
+                    ${enc.telefonoOrganizador ? `
+    <a href="https://wa.me/${enc.telefonoOrganizador.replace(/[^0-9]/g, '')}" 
+       target="_blank" 
+       style="display: inline-flex; align-items: center; gap: 5px; color: #22c55e; text-decoration: none; font-weight: 500;">
+        📱 WhatsApp
+    </a>
+` : ''}
 
                     <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
@@ -901,13 +908,7 @@ async function renderizarInvitaciones() {
                             Me interesa
                         </button>
                         
-                        ${enc.telefonoOrganizador ? `
-    <a href="https://wa.me/${enc.telefonoOrganizador.replace(/[^0-9]/g, '')}" 
-       target="_blank" 
-       style="display: inline-flex; align-items: center; gap: 5px; color: #22c55e; text-decoration: none; font-weight: 500;">
-        📱 WhatsApp
-    </a>
-` : ''}
+                       
 
                     </div>
                 </div>
