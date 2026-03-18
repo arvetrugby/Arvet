@@ -900,6 +900,15 @@ async function renderizarInvitaciones() {
                         <button onclick="interesarEncuentro('${enc.id}')" class="btn-aceptar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #4f46e5; color: white; cursor: pointer; font-weight: 500;">
                             Me interesa
                         </button>
+                        
+                        ${enc.telefonoOrganizador ? `
+    <a href="https://wa.me/${enc.telefonoOrganizador.replace(/[^0-9]/g, '')}" 
+       target="_blank" 
+       style="display: inline-flex; align-items: center; gap: 5px; color: #22c55e; text-decoration: none; font-weight: 500;">
+        📱 WhatsApp
+    </a>
+` : ''}
+
                     </div>
                 </div>
             `;
