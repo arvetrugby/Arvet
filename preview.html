@@ -12,8 +12,8 @@
   }
 
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f8f9fa;
     min-height: 100vh;
     padding: 20px;
     display: flex;
@@ -22,22 +22,22 @@
   }
 
   .card {
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    max-width: 1000px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    max-width: 900px;
     width: 100%;
     overflow: hidden;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    animation: slideUp 0.6s ease-out;
-    position: relative;
+    grid-template-columns: 0.9fr 1.1fr;
+    animation: fadeIn 0.5s ease-out;
+    border: 1px solid #e9ecef;
   }
 
-  @keyframes slideUp {
+  @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -45,52 +45,59 @@
     }
   }
 
-  /* Imagen con overlay gradiente */
+  /* Sección de imagen - SIEMPRE COMPLETA */
   .image-section {
+    background: #f1f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
     position: relative;
-    min-height: 400px;
+  }
+
+  .image-wrapper {
+    width: 100%;
+    position: relative;
+    border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .image-wrapper:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   }
 
   .image-section img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
+    height: auto;
+    display: block;
     transition: transform 0.5s ease;
   }
 
-  .card:hover .image-section img {
-    transform: scale(1.05);
+  .image-wrapper:hover img {
+    transform: scale(1.02);
   }
 
-  .image-overlay {
+  /* Efecto de cinta/esquina para tipo de evento */
+  .event-type-ribbon {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    display: flex;
-    align-items: flex-end;
-    padding: 24px;
-  }
-
-  .event-type-badge {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    top: 16px;
+    right: -32px;
+    background: #212529;
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
+    padding: 6px 40px;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+    letter-spacing: 1px;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 10;
   }
 
-  /* Sección de datos */
+  /* Sección de contenido */
   .content-section {
     padding: 40px;
     display: flex;
@@ -99,217 +106,275 @@
   }
 
   .event-header {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
   }
 
   h2 {
-    font-size: 2.2rem;
-    color: #1a202c;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 1.9rem;
+    color: #212529;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
   }
 
-  .location {
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+
+  .meta-item svg {
+    width: 16px;
+    height: 16px;
+    color: #6c757d;
+  }
+
+  .creator-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #495057;
+    border: 1px solid #dee2e6;
+  }
+
+  /* Descripción */
+  .description-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    border-left: 4px solid #adb5bd;
+  }
+
+  .description-box p {
+    color: #495057;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  /* Secciones de datos */
+  .data-section {
+    margin-bottom: 24px;
+  }
+
+  .section-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #718096;
-    font-size: 1rem;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6c757d;
+    font-weight: 600;
   }
 
-  .location::before {
-    content: "📍";
+  .section-header svg {
+    width: 18px;
+    height: 18px;
+    color: #adb5bd;
   }
 
-  .creator-badge {
-    display: inline-flex;
-    align-items: center;
+  /* Fechas */
+  .dates-list {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
-    background: #f7fafc;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    color: #4a5568;
-    border: 2px solid #e2e8f0;
   }
 
-  .creator-badge::before {
-    content: "👤";
+  .date-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
   }
 
-  .description-box {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 20px;
-    border-radius: 16px;
-    margin: 24px 0;
+  .date-card:hover {
+    border-color: #adb5bd;
+    background: #f8f9fa;
+    transform: translateX(4px);
+  }
+
+  .date-icon {
+    width: 36px;
+    height: 36px;
+    background: #e9ecef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .date-content {
+    flex: 1;
+  }
+
+  .date-day {
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.95rem;
+  }
+
+  .date-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 2px;
+  }
+
+  /* Precios */
+  .prices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .price-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
   }
 
-  .description-box::before {
-    content: '"';
-    position: absolute;
-    top: -10px;
-    left: 10px;
-    font-size: 4rem;
-    color: rgba(102, 126, 234, 0.2);
-    font-family: Georgia, serif;
+  .price-card:hover {
+    border-color: #212529;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
 
-  .section-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #667eea;
-    font-weight: 700;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .price-card.featured {
+    border-color: #212529;
+    background: #212529;
+    color: white;
   }
 
-  .section-title::after {
-    content: "";
-    flex: 1;
-    height: 2px;
-    background: linear-gradient(to right, #667eea, transparent);
-    margin-left: 8px;
+  .price-card.featured .price-amount {
+    color: white;
   }
 
-  .dates-container, .prices-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .date-item, .price-item {
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-
-  .date-item:hover, .price-item:hover {
-    border-color: #667eea;
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-  }
-
-  .date-item::before {
-    content: "📅";
-    font-size: 1.2rem;
-  }
-
-  .price-item::before {
-    content: "🎫";
-    font-size: 1.2rem;
-  }
-
-  .date-info, .price-info {
-    flex: 1;
-  }
-
-  .date-main, .price-amount {
-    font-weight: 700;
-    color: #2d3748;
-    font-size: 1rem;
-  }
-
-  .date-desc, .price-desc {
-    font-size: 0.85rem;
-    color: #718096;
+  .price-card.featured .price-label {
+    color: rgba(255,255,255,0.8);
   }
 
   .price-amount {
-    color: #48bb78;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 4px;
   }
 
-  .cupo-badge {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-weight: 700;
-    color: #e53e3e;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    display: flex;
+  .price-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  /* Cupo */
+  .cupo-indicator {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    z-index: 10;
+    background: #fff3cd;
+    color: #856404;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 4px;
   }
 
-  .cupo-badge::before {
-    content: "🔥";
+  /* Footer */
+  .card-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #adb5bd;
   }
 
   .coordinates {
+    font-family: 'Courier New', monospace;
     font-size: 0.75rem;
-    color: #a0aec0;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
 
-  .coordinates::before {
-    content: "🌐";
-  }
-
-  /* Loading state */
+  /* Loading y Error */
   .loading {
     text-align: center;
-    color: white;
-    font-size: 1.2rem;
-    animation: pulse 1.5s infinite;
+    color: #6c757d;
+    font-size: 1.1rem;
+    padding: 40px;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  /* Error state */
   .error-message {
     background: white;
     padding: 40px;
-    border-radius: 20px;
+    border-radius: 16px;
     text-align: center;
-    color: #e53e3e;
-    font-size: 1.1rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    color: #dc3545;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 400px;
   }
 
-  /* Responsive: Móvil */
+  /* Responsive */
   @media (max-width: 768px) {
     body {
-      padding: 10px;
+      padding: 12px;
+      background: white;
     }
 
     .card {
       grid-template-columns: 1fr;
-      border-radius: 20px;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      max-width: 100%;
     }
 
     .image-section {
-      min-height: 250px;
+      padding: 16px;
+      background: white;
+    }
+
+    .image-wrapper {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .event-type-ribbon {
+      top: 12px;
+      right: -28px;
+      padding: 5px 35px;
+      font-size: 0.65rem;
     }
 
     .content-section {
@@ -317,73 +382,64 @@
     }
 
     h2 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
     }
 
-    .cupo-badge {
-      top: 10px;
-      right: 10px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
+    .prices-grid {
+      grid-template-columns: 1fr;
     }
 
-    .description-box {
-      margin: 16px 0;
-      padding: 16px;
+    .price-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
     }
 
-    .date-item, .price-item {
-      padding: 10px 12px;
+    .price-amount {
+      font-size: 1.1rem;
     }
   }
 
-  /* Efecto de brillo en hover */
-  .card::after {
+  /* Efecto de profundidad sutil */
+  .card {
+    position: relative;
+  }
+
+  .card::before {
     content: "";
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 70%
-    );
-    transform: rotate(45deg);
-    transition: all 0.6s;
-    opacity: 0;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
     pointer-events: none;
-  }
-
-  .card:hover::after {
-    animation: shine 0.6s ease-in-out;
-  }
-
-  @keyframes shine {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
   }
 </style>
 </head>
 <body>
 
 <div id="preview-container">
-  <p class="loading">✨ Cargando encuentro...</p>
+  <div class="loading">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; margin: 0 auto 12px; display: block;">
+      <circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"/>
+    </svg>
+    Cargando encuentro...
+  </div>
 </div>
 
 <script>
-  // 1️⃣ Leer el ID del encuentro desde la URL
   const params = new URLSearchParams(window.location.search);
   const encuentroId = params.get('id');
 
   if (!encuentroId) {
     document.getElementById('preview-container').innerHTML = 
-      '<div class="error-message">❌ Error: ID del encuentro no provisto.</div>';
+      '<div class="error-message">ID del encuentro no provisto</div>';
   } else {
-    // 2️⃣ Hacer fetch a tu API real usando action=getEncuentroById
     const API_URL = "https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec";
     const fetchUrl = `${API_URL}?action=getEncuentroById&id=${encuentroId}`;
 
@@ -392,72 +448,84 @@
       .then(res => {
         if (!res.success || !res.data) {
           document.getElementById('preview-container').innerHTML = 
-            '<div class="error-message">🔍 Encuentro no encontrado.</div>';
+            '<div class="error-message">Encuentro no encontrado</div>';
           return;
         }
 
         const enc = res.data;
-
-        // Generar HTML con todos los datos
         const container = document.getElementById('preview-container');
+        
         container.innerHTML = `
           <div class="card">
-            <div class="cupo-badge">
-              ${enc.cupoMaximo} cupos
-            </div>
-            
             <div class="image-section">
-              <img src="${enc.flyerUrl}" alt="Flyer del encuentro">
-              <div class="image-overlay">
-                <span class="event-type-badge">${enc.tipo}</span>
+              <div class="image-wrapper">
+                <div class="event-type-ribbon">${enc.tipo}</div>
+                <img src="${enc.flyerUrl}" alt="Flyer del encuentro" onerror="this.src='https://via.placeholder.com/400x600/f1f3f5/6c757d?text=Sin+imagen'">
               </div>
             </div>
 
             <div class="content-section">
               <div class="event-header">
                 <h2>${enc.nombre}</h2>
-                <div class="location">${enc.lugar}</div>
-                <div class="creator-badge">Organiza: ${enc.creadorNombre}</div>
+                <div class="meta-row">
+                  <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    ${enc.lugar}
+                  </div>
+                  <div class="creator-tag">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    ${enc.creadorNombre}
+                  </div>
+                </div>
+                ${enc.cupoMaximo ? `<div class="cupo-indicator">🎟️ ${enc.cupoMaximo} cupos disponibles</div>` : ''}
               </div>
 
+              ${enc.descripcion ? `
               <div class="description-box">
-                <div class="section-title">Sobre el evento</div>
-                <p>${enc.descripcion || "Sin descripción disponible"}</p>
+                <p>${enc.descripcion}</p>
+              </div>
+              ` : ''}
+
+              <div class="data-section">
+                <div class="section-header">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Fechas y Horarios
+                </div>
+                <div class="dates-list" id="fechas"></div>
               </div>
 
-              <div class="section-title">📅 Fechas y Horarios</div>
-              <div class="dates-container" id="fechas"></div>
+              <div class="data-section">
+                <div class="section-header">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  Entradas
+                </div>
+                <div class="prices-grid" id="valores"></div>
+              </div>
 
-              <div class="section-title">💰 Entradas</div>
-              <div class="prices-container" id="valores"></div>
-
-              <div class="coordinates">
-                Coordenadas: ${enc.lat}, ${enc.lng}
+              <div class="card-footer">
+                <span class="coordinates">📍 ${enc.lat}, ${enc.lng}</span>
               </div>
             </div>
           </div>
         `;
 
-        // Parsear y mostrar fechas
+        // Fechas
         let fechasArray = [];
-        try {
-          fechasArray = JSON.parse(enc.fechasJSON);
-        } catch (e) {
-          fechasArray = [];
-        }
+        try { fechasArray = JSON.parse(enc.fechasJSON); } catch (e) {}
         const fechasDiv = document.getElementById('fechas');
         
         if (fechasArray.length === 0) {
-          fechasDiv.innerHTML = '<div class="date-item"><span class="date-main">Próximamente</span></div>';
+          fechasDiv.innerHTML = '<div class="date-card"><div class="date-content"><div class="date-day">Fechas por confirmar</div></div></div>';
         } else {
           fechasArray.forEach(f => {
             f.horarios.forEach(h => {
               const div = document.createElement('div');
-              div.className = 'date-item';
+              div.className = 'date-card';
               div.innerHTML = `
-                <div class="date-info">
-                  <div class="date-main">${f.dia}</div>
-                  <div class="date-desc">${h.hora} - ${h.desc}</div>
+                <div class="date-icon">📅</div>
+                <div class="date-content">
+                  <div class="date-day">${f.dia}</div>
+                  <div class="date-time">${h.hora} • ${h.desc}</div>
                 </div>
               `;
               fechasDiv.appendChild(div);
@@ -465,26 +533,20 @@
           });
         }
 
-        // Parsear y mostrar valores
+        // Precios
         let valoresArray = [];
-        try {
-          valoresArray = JSON.parse(enc.valoresJSON);
-        } catch (e) {
-          valoresArray = [];
-        }
+        try { valoresArray = JSON.parse(enc.valoresJSON); } catch (e) {}
         const valoresDiv = document.getElementById('valores');
         
         if (valoresArray.length === 0) {
-          valoresDiv.innerHTML = '<div class="price-item"><span class="price-amount">Gratis</span></div>';
+          valoresDiv.innerHTML = '<div class="price-card"><div class="price-amount">Gratis</div><div class="price-label">Entrada libre</div></div>';
         } else {
-          valoresArray.forEach(v => {
+          valoresArray.forEach((v, idx) => {
             const div = document.createElement('div');
-            div.className = 'price-item';
+            div.className = `price-card ${idx === 0 ? 'featured' : ''}`;
             div.innerHTML = `
-              <div class="price-info">
-                <div class="price-amount">$${parseFloat(v.precio).toLocaleString('es-AR')}</div>
-                <div class="price-desc">${v.titulo} ${v.desc ? "• " + v.desc : ""}</div>
-              </div>
+              <div class="price-amount">$${parseFloat(v.precio).toLocaleString('es-AR')}</div>
+              <div class="price-label">${v.titulo}${v.desc ? ` • ${v.desc}` : ''}</div>
             `;
             valoresDiv.appendChild(div);
           });
@@ -493,12 +555,14 @@
       .catch(err => {
         console.error(err);
         document.getElementById('preview-container').innerHTML = 
-          '<div class="error-message">⚠️ Error al cargar el encuentro. Intenta nuevamente.</div>';
+          '<div class="error-message">Error al cargar el encuentro</div>';
       });
   }
 </script>
 
+<style>
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+
 </body>
 </html>
-
-
