@@ -32,34 +32,7 @@ let encuentrosData = {
     invitaciones: [],
     encuentroActivo: null
 };
-// Función para saber si hay usuario logueado
-function usuarioLogueado() {
-    return window.usuario && window.usuario.id; // true si hay usuario
-}
 
-// Función para mostrar la preview de un encuentro
-function mostrarPreviewEncuentro(encuentroId) {
-    fetchAPI(`https://script.google.com/macros/s/TU_SCRIPT/exec?action=getEncuentro&encuentroId=${encuentroId}`)
-        .then(res => {
-            if (res.success && res.data) {
-                const encuentro = res.data;
-
-                const container = document.getElementById('preview-container');
-                container.innerHTML = `
-                    <div class="encuentro-preview-card">
-                        <img src="${encuentro.imagen}" alt="Foto del encuentro" class="preview-img">
-                        <h2>${encuentro.nombre}</h2>
-                        <p>Fecha: ${encuentro.fecha}</p>
-                        <p>Lugar: ${encuentro.lugar}</p>
-                        <a href="login.html" class="btn">Registrarme / Iniciar sesión</a>
-                    </div>
-                `;
-            } else {
-                console.error('No se encontró el encuentro');
-            }
-        })
-        .catch(err => console.error('Error al cargar preview:', err));
-}
 // ============================================
 // INICIALIZACIÓN
 // ============================================
