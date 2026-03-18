@@ -32,32 +32,62 @@ let encuentrosData = {
     invitaciones: [],
     encuentroActivo: null
 };
+// Función para saber si hay usuario logueado
+function usuarioLogueado() {
+    return window.usuario && window.usuario.id; // true si hay usuario
+}
 
+// Función para mostrar la preview de un encuentro
+function mostrarPreviewEncuentro(encuentroId) {
+    fetchAPI(`https://script.google.com/macros/s/TU_SCRIPT/exec?action=getEncuentro&encuentroId=${encuentroId}`)
+        .then(res => {
+            if (res.success && res.data) {
+                const encuentro = res.data;
+
+                const container = document.getElementById('preview-container');
+                container.innerHTML = `
+                    <div class="encuentro-preview-card">
+                        <img src="${encuentro.imagen}" alt="Foto del encuentro" class="preview-img">
+                        <h2>${encuentro.nombre}</h2>
+                        <p>Fecha: ${encuentro.fecha}</p>
+                        <p>Lugar: ${encuentro.lugar}</p>
+                        <a href="login.html" class="btn">Registrarme / Iniciar sesión</a>
+                    </div>
+                `;
+            } else {
+                console.error('No se encontró el encuentro');
+            }
+        })
+        .catch(err => console.error('Error al cargar preview:', err));
+}
 // ============================================
 // INICIALIZACIÓN
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargamos los encuentros
-    cargarEncuentros().then(() => {
-        // Revisamos si viene encuentroId en el link
-        const params = new URLSearchParams(window.location.search);
-        const encuentroIdDesdeLink = params.get('encuentroId');
+    const params = new URLSearchParams(window.location.search);
+    const encuentroId = params.get('encuentroId');
 
-        if (encuentroIdDesdeLink) {
-            console.log('Link detectado:', encuentroIdDesdeLink);
-            verDetalleEncuentro(encuentroIdDesdeLink);
+    if (encuentroId) {
+        // Verificamos si el usuario está logueado
+        if (!usuarioLogueado()) {
+            // Mostrar preview pública
+            mostrarPreviewEncuentro(encuentroId);
+        } else {
+            // Usuario logueado: ver detalle completo
+            console.log('Link detectado:', encuentroId);
+            setTimeout(() => {
+                verDetalleEncuentro(encuentroId);
+            }, 800);
         }
-    });
+    }
 
-    // Escucha de cambio de pestañas
     window.addEventListener('encuentrosTabChange', function(e) {
         if (e.detail === 'invitaciones') {
             cargarInvitaciones();
         }
     });
 });
-
 // ============================================
 // NAVEGACIÓN DE TABS
 // ============================================
