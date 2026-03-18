@@ -14,12 +14,21 @@
   }
 
   :root {
-    --gold: #c9a227;
-    --gold-light: #f4d03f;
-    --gold-dark: #8b6914;
-    --blue-dark: #0a1628;
-    --blue-mid: #1a3a5c;
-  }
+  /* Crema/dorado suave con gradiente a blanco */
+  --cream: #f5f0e6;
+  --cream-light: #faf8f3;
+  --cream-dark: #e8e0d0;
+  --gold-gradient: linear-gradient(135deg, #f5f0e6 0%, #ffffff 50%, #f5f0e6 100%);
+  
+  /* Neutros en vez de azul */
+  --neutral-dark: #1a1a1a;
+  --neutral-mid: #2d2d2d;
+  --neutral-light: #3a3a3a;
+  
+  /* Resto mantenido en neutros */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+}
 
   body {
     font-family: 'Barlow Condensed', sans-serif;
@@ -450,6 +459,137 @@
     font-size: 1.5rem;
     letter-spacing: 5px;
   }
+
+  /* Hora destacada debajo del año */
+.hora-destacada {
+  font-family: 'Teko', sans-serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 400;
+  letter-spacing: 8px;
+  color: var(--cream-light);
+  margin-top: 10px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Oblea de info en el centro */
+.info-oblea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+  padding: 20px 40px;
+  background: rgba(26, 26, 26, 0.6);
+  border: 1px solid var(--cream-dark);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+}
+
+.oblea-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.oblea-num {
+  font-family: 'Teko', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.oblea-label {
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.oblea-divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--cream-dark), transparent);
+}
+
+.tipos {
+  flex-direction: row;
+  gap: 15px;
+}
+
+.tipo-tag {
+  font-family: 'Teko', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: var(--cream-light);
+  text-transform: uppercase;
+}
+
+/* Mobile ajustes */
+@media (max-width: 768px) {
+  .info-oblea {
+    flex-direction: column;
+    gap: 15px;
+    border-radius: 20px;
+    padding: 20px;
+  }
+  
+  .oblea-divider {
+    width: 60px;
+    height: 1px;
+  }
+  
+  .tipos {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Details grid en info section */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.detail-card {
+  background: rgba(45, 45, 45, 0.5);
+  border: 1px solid var(--neutral-light);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+  border-color: var(--cream-dark);
+  transform: translateY(-3px);
+}
+
+.detail-icon {
+  font-size: 1.5rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.detail-value {
+  font-family: 'Teko', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: white;
+}
 </style>
 </head>
 <body>
@@ -561,38 +701,35 @@ function formatDates(fechasJSON) {
 
 document.getElementById('app').innerHTML = `
   <div class="flyer-wrapper">
-    <!-- HERO SECTION -->
     <section class="hero-section">
       <div class="hero-bg">
         <img src="${enc.flyerUrl}" alt="Flyer" onerror="this.src='https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=1920&q=80'">
       </div>
       <div class="hero-overlay"></div>
       
-      <!-- Bordes dorados curvos -->
-      <div class="gold-border top"></div>
-      <div class="gold-border bottom"></div>
+      <div class="cream-border top"></div>
+      <div class="cream-border bottom"></div>
       
       <div class="hero-content">
-        <!-- HEADER: Logo + Nombre -->
+        <!-- HEADER -->
         <div class="hero-header">
           <div class="logo-container">
             <img src="https://i.ibb.co/gbRGZWyN/ARVET.png" alt="Logo" id="event-logo">
           </div>
           <div class="title-group">
-            <div class="edicion-tag">Edición: ${year}</div>
+            <div class="edicion-tag">Edición ${year}</div>
             <h1 class="event-name">${nombreSinYear}</h1>
           </div>
         </div>
         
-        <!-- CENTER: Fechas -->
+        <!-- CENTER: Fechas + Info clave -->
         <div class="hero-center">
-          <!-- Vista PC: Rango grande -->
           <div class="date-range-desktop">
             <div class="date-main">${fechasData.rango}</div>
             <div class="year-sub">${fechasData.year}</div>
+            ${fechasData.detalles[0]?.hora ? `<div class="hora-destacada">${fechasData.detalles[0].hora} HS</div>` : ''}
           </div>
           
-          <!-- Vista Mobile: Detalles individuales -->
           <div class="date-range-mobile">
             ${fechasData.detalles.map(d => `
               <div class="date-detail-item">
@@ -601,55 +738,96 @@ document.getElementById('app').innerHTML = `
               </div>
             `).join('')}
           </div>
+          
+          <!-- INFO CLAVE EN OBLEA -->
+          <div class="info-oblea">
+            ${enc.cupoMaximo ? `
+              <div class="oblea-item">
+                <span class="oblea-num">${enc.cupoMaximo}</span>
+                <span class="oblea-label">Equipos</span>
+              </div>
+            ` : ''}
+            ${tipos.length > 0 ? `
+              <div class="oblea-divider"></div>
+              <div class="oblea-item tipos">
+                ${tipos.map(t => `<span class="tipo-tag">${t}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
         </div>
         
-        <!-- BOTTOM: Lugar + Tags (CUPO Y TIPO) -->
+        <!-- BOTTOM: Lugar -->
         <div class="hero-bottom">
           <div class="location-box">
+            <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
             <div class="location-text">${enc.lugar || 'Lugar por confirmar'}</div>
-          </div>
-          
-          <div class="tags-row">
-            ${enc.cupoMaximo ? `<span class="tag cupo">${enc.cupoMaximo} Equipos</span>` : ''}
-            ${tipos.map(t => `<span class="tag">${t}</span>`).join('')}
           </div>
         </div>
       </div>
     </section>
 
-
-            <!-- INFO SECTION -->
-            <section class="info-section">
-              <div class="info-container">
-                ${enc.descripcion ? `
-                <div class="info-block">
-                  <h3 class="info-title">Sobre el Evento</h3>
-                  <p class="description-text">${enc.descripcion}</p>
-                </div>
-                ` : ''}
-                
-                ${precios.length > 0 ? `
-                <div class="info-block">
-                  <h3 class="info-title">Inversión</h3>
-                  <div class="pricing-row">
-                    ${precios.map(p => `
-                      <div class="price-item">
-                        <div class="price-value">$${parseFloat(p.precio).toLocaleString('es-AR')}</div>
-                        <div class="price-name">${p.titulo}</div>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-                ` : ''}
+    <!-- INFO SECTION -->
+    <section class="info-section">
+      <div class="info-container">
+        ${enc.descripcion ? `
+        <div class="info-block">
+          <h3 class="info-title">Sobre el Evento</h3>
+          <p class="description-text">${enc.descripcion}</p>
+        </div>
+        ` : ''}
+        
+        <!-- INFO ADICIONAL EN CARDS -->
+        <div class="info-block">
+          <h3 class="info-title">Detalles</h3>
+          <div class="details-grid">
+            ${enc.cupoMaximo ? `
+              <div class="detail-card">
+                <span class="detail-icon">🏉</span>
+                <span class="detail-label">Cupos</span>
+                <span class="detail-value">${enc.cupoMaximo} equipos</span>
               </div>
-            </section>
-
-            <!-- FOOTER -->
-            <footer class="footer-section">
-              <div class="org-info">Organiza: ${enc.creadorNombre || 'Organizador'}</div>
-            </footer>
+            ` : ''}
+            ${tipos.map(t => `
+              <div class="detail-card">
+                <span class="detail-icon">⚡</span>
+                <span class="detail-label">Modalidad</span>
+                <span class="detail-value">${t}</span>
+              </div>
+            `).join('')}
+            ${fechasData.detalles.length > 0 ? `
+              <div class="detail-card">
+                <span class="detail-icon">📅</span>
+                <span class="detail-label">Inicio</span>
+                <span class="detail-value">${fechasData.detalles[0].fecha} ${fechasData.detalles[0].hora}</span>
+              </div>
+            ` : ''}
           </div>
-        `;
+        </div>
+        
+        ${precios.length > 0 ? `
+        <div class="info-block">
+          <h3 class="info-title">Inversión</h3>
+          <div class="pricing-row">
+            ${precios.map(p => `
+              <div class="price-item">
+                <div class="price-value">$${parseFloat(p.precio).toLocaleString('es-AR')}</div>
+                <div class="price-name">${p.titulo}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    </section>
+
+    <footer class="footer-section">
+      <div class="org-info">Organiza: ${enc.creadorNombre || 'Organizador'}</div>
+    </footer>
+  </div>
+`;
       })
       .catch(err => {
         document.getElementById('app').innerHTML = '<div class="loading">EVENTO NO ENCONTRADO</div>';
