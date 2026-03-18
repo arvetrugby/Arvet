@@ -38,20 +38,19 @@ let encuentrosData = {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    cargarEncuentros();
+    // Cargamos los encuentros
+    cargarEncuentros().then(() => {
+        // Revisamos si viene encuentroId en el link
+        const params = new URLSearchParams(window.location.search);
+        const encuentroIdDesdeLink = params.get('encuentroId');
 
-    const params = new URLSearchParams(window.location.search);
-    const encuentroIdDesdeLink = params.get('encuentroId');
-
-    if (encuentroIdDesdeLink) {
-        console.log('Link detectado:', encuentroIdDesdeLink);
-
-        // Esperamos a que cargue todo
-        setTimeout(() => {
+        if (encuentroIdDesdeLink) {
+            console.log('Link detectado:', encuentroIdDesdeLink);
             verDetalleEncuentro(encuentroIdDesdeLink);
-        }, 800);
-    }
+        }
+    });
 
+    // Escucha de cambio de pestañas
     window.addEventListener('encuentrosTabChange', function(e) {
         if (e.detail === 'invitaciones') {
             cargarInvitaciones();
