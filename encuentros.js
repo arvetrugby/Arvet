@@ -1,3 +1,4 @@
+let encuentroIdDesdeLink = null;
 // ============================================
 // ARVET - SISTEMA DE ENCUENTROS/PARTIDOS
 // ============================================
@@ -39,7 +40,7 @@ let encuentrosData = {
 document.addEventListener('DOMContentLoaded', function() {
     cargarEncuentros();
 const params = new URLSearchParams(window.location.search);
-const encuentroId = params.get('encuentroId');
+encuentroIdDesdeLink = params.get('encuentroId');
 
 if (encuentroId) {
     console.log('Link detectado:', encuentroId);
@@ -84,10 +85,19 @@ function showEncuentrosTab(tab) {
     }
 
     if (tab === 'creados') {
-        renderizarMisEncuentros();
-    } else {
-        renderizarInvitaciones();
+    renderizarMisEncuentros();
+} else {
+    renderizarInvitaciones();
+
+    if (encuentroIdDesdeLink) {
+        console.log('Abriendo desde link:', encuentroIdDesdeLink);
+
+        setTimeout(() => {
+            verDetalleEncuentro(encuentroIdDesdeLink);
+            encuentroIdDesdeLink = null;
+        }, 500);
     }
+}
     
 }
 
