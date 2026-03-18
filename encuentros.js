@@ -723,7 +723,7 @@ async function renderizarMisEncuentros() {
 
                     ${enc.flyerUrl ? `
                         <div style="margin-bottom: 15px;">
-                            <img src="${enc.flyerUrl}" style="max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover;" alt="Flyer">
+                            <img src="${enc.flyerUrl}" style="max-width: 200px; border-radius: 8px; object-fit: cover;" alt="Flyer">
                         </div>
                     ` : ''}
 
