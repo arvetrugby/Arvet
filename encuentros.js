@@ -690,9 +690,9 @@ async function renderizarMisEncuentros() {
                 <div class="encuentro-card" style="border-left: 4px solid #4f46e5; margin-bottom: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div class="encuentro-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
                         <div>
-                            <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                                ${enc.nombre}
-                            </div>
+                           <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; line-height: 1.2;">
+    ${enc.nombre}
+</div>
                             <span class="encuentro-estado ${estadoClass}" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: ${enc.estado === 'publicado' ? '#dcfce7' : '#fee2e2'}; color: ${enc.estado === 'publicado' ? '#166534' : '#991b1b'};">
                                 ${estadoTexto}
                             </span>
@@ -863,16 +863,19 @@ async function renderizarInvitaciones() {
                         
                         <!-- CIERRE del div del título ↑ y APERTURA del div derecho ↓ -->
                         <div style="text-align: right; min-width: 80px; flex-shrink: 0;">
-                            <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
-                                0/${enc.cupoMaximo}
-                            </div>
-                            <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
-                                ${enc.cupoMaximo} plazas
-                            </div>
-                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 8px;">
-                                Organiza: <strong>${enc.creadorNombre || 'Equipo desconocido'}</strong>
-                            </div>
-                        </div>
+    <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
+        0/${enc.cupoMaximo}
+    </div>
+    <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
+        ${enc.cupoMaximo} plazas
+    </div>
+    <div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+        Organiza
+    </div>
+    <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">
+        ${enc.creadorNombre || 'Equipo desconocido'}
+    </div>
+</div>
                     </div> <!-- ESTE es el cierre de encuentro-header -->
                     
                     <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
