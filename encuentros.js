@@ -714,7 +714,7 @@ async function renderizarMisEncuentros() {
 
                     <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
                         ${fechasHTML}
-                        ${valores.length > 0 ? `<div style="margin-top: 10px;">💰 Desde $${Math.min(...valores.map(v => v.precio))}</div>` : ''}
+                        ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
                     </div>
 
                     ${mapaHTML}
@@ -872,7 +872,7 @@ async function renderizarInvitaciones() {
 
                     <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
                         ${fechasHTML}
-                        ${valores.length > 0 ? `<div style="margin-top: 10px;">💰 Desde $${Math.min(...valores.map(v => v.precio))}</div>` : ''}
+                       ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
                     </div>
 
                     ${mapaHTML}
