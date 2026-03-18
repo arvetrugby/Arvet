@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Encuentro Rugby Veterans</title>
+<title>Flyer Evento</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&family=Black+Ops+One&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
   
   * {
     margin: 0;
@@ -14,23 +14,20 @@
   }
 
   :root {
-    --neon-blue: #00f3ff;
-    --neon-pink: #ff006e;
-    --neon-gold: #ffd700;
-    --blood-red: #dc143c;
-    --dark-metal: #0a0a0f;
-    --grid-line: rgba(0, 243, 255, 0.1);
+    --gold: #d4af37;
+    --gold-light: #f4e5c2;
+    --dark-overlay: rgba(0, 20, 10, 0.4);
   }
 
   body {
-    font-family: 'Rajdhani', sans-serif;
-    background: var(--dark-metal);
-    min-height: 100vh;
-    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+    background: #0a0f0a;
     color: white;
+    line-height: 1.6;
   }
 
-  .flyer-container {
+  /* FLYER SECTION - Pantalla completa */
+  .flyer-hero {
     position: relative;
     width: 100%;
     min-height: 100vh;
@@ -39,9 +36,9 @@
     overflow: hidden;
   }
 
-  /* Background Image Layer */
-  .bg-layer {
-    position: fixed;
+  /* Background Image - Siempre completa */
+  .flyer-bg {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -49,661 +46,500 @@
     z-index: 0;
   }
 
-  .bg-layer img {
+  .flyer-bg img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: brightness(0.4) contrast(1.1) saturate(0.8);
-    transform: scale(1.1);
-    animation: slowZoom 20s ease-in-out infinite alternate;
+    object-position: center;
+    filter: brightness(0.7) contrast(1.1);
   }
 
-  @keyframes slowZoom {
-    to { transform: scale(1.2); }
-  }
-
-  /* Overlay Effects */
-  .overlay-fx {
-    position: fixed;
+  /* Overlay sutil para legibilidad */
+  .flyer-overlay {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: 1;
-    background: 
-      linear-gradient(180deg, rgba(10,10,15,0.3) 0%, rgba(10,10,15,0.6) 50%, rgba(10,10,15,0.9) 100%),
-      repeating-linear-gradient(0deg, transparent, transparent 2px, var(--grid-line) 2px, var(--grid-line) 4px),
-      repeating-linear-gradient(90deg, transparent, transparent 2px, var(--grid-line) 2px, var(--grid-line) 4px);
-    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 20, 10, 0.3) 0%,
+      rgba(0, 20, 10, 0.1) 40%,
+      rgba(0, 20, 10, 0.4) 70%,
+      rgba(0, 20, 10, 0.85) 100%
+    );
   }
 
-  /* Scanline effect */
-  .scanlines {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-    background-size: 100% 4px;
-    pointer-events: none;
-    opacity: 0.3;
-  }
-
-  /* Vignette */
-  .vignette {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 3;
-    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
-    pointer-events: none;
-  }
-
-  /* Content Layer */
-  .content-layer {
+  /* Content sobre la imagen */
+  .flyer-content {
     position: relative;
     z-index: 10;
-    width: 100%;
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    background: linear-gradient(180deg, 
-      rgba(10,10,15,0.2) 0%, 
-      rgba(10,10,15,0.1) 20%, 
-      rgba(10,10,15,0.3) 60%, 
-      rgba(10,10,15,0.95) 100%);
+    padding: 40px 60px;
+    justify-content: space-between;
   }
 
-  /* Header */
-  .event-header {
-    text-align: center;
-    padding-top: 40px;
-    position: relative;
+  /* HEADER - Logo y Nombre */
+  .flyer-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
   }
 
-  .event-type {
-    font-family: 'Black Ops One', cursive;
-    font-size: clamp(0.8rem, 2vw, 1.2rem);
-    letter-spacing: 8px;
-    color: var(--neon-blue);
-    text-shadow: 0 0 20px var(--neon-blue);
-    margin-bottom: 10px;
-    animation: flicker 3s infinite;
+  .logo-container {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    flex-shrink: 0;
   }
 
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-    52% { opacity: 0.3; }
-    54% { opacity: 1; }
+  .logo-container img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
   }
 
-  .main-title {
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(3rem, 12vw, 8rem);
-    font-weight: 700;
-    line-height: 0.9;
+  .event-title-group {
+    text-align: left;
+  }
+
+  .event-subtitle {
+    font-size: 0.9rem;
+    letter-spacing: 4px;
     text-transform: uppercase;
-    letter-spacing: -2px;
-    background: linear-gradient(180deg, #fff 0%, #a0a0a0 100%);
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+    font-weight: 300;
+  }
+
+  .event-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, #fff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.8));
-    position: relative;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    line-height: 1.1;
   }
 
-  .main-title::after {
-    content: attr(data-text);
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    z-index: -1;
-    background: linear-gradient(180deg, var(--neon-pink), var(--blood-red));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    opacity: 0.5;
-    filter: blur(2px);
+  /* CENTER INFO - Fechas */
+  .flyer-center {
+    text-align: center;
+    margin: auto 0;
   }
 
-  .subtitle {
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(1.5rem, 4vw, 3rem);
+  .date-range {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+
+  .date-range .gold-accent {
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+
+  .time-info {
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
     font-weight: 300;
-    letter-spacing: 10px;
-    color: var(--neon-gold);
-    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    margin-top: -10px;
-  }
-
-  /* VS Section */
-  .vs-section {
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.9);
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 20px;
-    margin: 30px 0;
+    justify-content: center;
+    gap: 15px;
     flex-wrap: wrap;
   }
 
-  .team-badge {
-    background: rgba(0, 243, 255, 0.1);
-    border: 2px solid var(--neon-blue);
-    padding: 15px 30px;
-    transform: skew(-10deg);
-    backdrop-filter: blur(10px);
+  .time-info::before,
+  .time-info::after {
+    content: '';
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
   }
 
-  .team-badge span {
-    display: block;
-    transform: skew(10deg);
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(1.2rem, 3vw, 2rem);
-    font-weight: 600;
+  /* BOTTOM INFO - Lugar y detalles */
+  .flyer-bottom {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .location-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 500;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  }
+
+  .location-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--gold);
+  }
+
+  /* Tags container */
+  .flyer-tags {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 0.85rem;
     letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .tag.cupo {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    font-weight: 600;
+  }
+
+  .tag.tipo {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold);
     color: white;
   }
 
-  .vs-text {
-    font-family: 'Black Ops One', cursive;
-    font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--neon-pink);
-    text-shadow: 0 0 30px var(--neon-pink);
-    animation: pulse 2s infinite;
+  /* INFO SECTION - Fuera de la imagen */
+  .info-section {
+    background: #0f1410;
+    padding: 60px 20px;
   }
 
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
-
-  /* Info Grid */
-  .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
+  .info-container {
     max-width: 800px;
     margin: 0 auto;
-    width: 100%;
   }
 
-  .info-card {
-    background: rgba(10, 10, 15, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-  }
-
-  .info-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
-    animation: scan 3s infinite;
-  }
-
-  @keyframes scan {
-    to { left: 100%; }
-  }
-
-  .info-card:hover {
-    border-color: var(--neon-blue);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 243, 255, 0.2);
-  }
-
-  .info-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    color: var(--neon-blue);
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
-
-  .info-value {
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(1.3rem, 3vw, 1.8rem);
-    font-weight: 500;
-    color: white;
-    line-height: 1.2;
-  }
-
-  /* Date Section */
-  .date-section {
-    text-align: center;
-    margin: 40px 0;
-    position: relative;
-  }
-
-  .date-big {
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(3rem, 8vw, 5rem);
-    font-weight: 700;
-    color: white;
-    line-height: 1;
-    text-shadow: 0 0 40px rgba(255,255,255,0.3);
-  }
-
-  .time-location {
-    font-size: clamp(1rem, 2.5vw, 1.3rem);
-    color: var(--neon-gold);
-    letter-spacing: 4px;
-    margin-top: 10px;
-    font-weight: 500;
-  }
-
-  /* Pricing Section */
-  .pricing-section {
-    margin: 30px auto;
-    max-width: 600px;
-    width: 100%;
+  .section-block {
+    margin-bottom: 40px;
   }
 
   .section-title {
-    text-align: center;
-    font-family: 'Black Ops One', cursive;
-    font-size: 0.9rem;
-    letter-spacing: 6px;
-    color: var(--neon-pink);
-    margin-bottom: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
     text-transform: uppercase;
-  }
-
-  .price-boxes {
+    color: var(--gold);
+    margin-bottom: 15px;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+
+  .description-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 300;
+  }
+
+  /* Pricing fuera de imagen */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
-    flex-wrap: wrap;
   }
 
-  .price-box {
-    background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), rgba(255, 0, 110, 0.2));
-    border: 2px solid var(--blood-red);
-    padding: 20px 30px;
+  .price-card {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(0, 0, 0, 0.3));
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    padding: 25px;
     text-align: center;
-    position: relative;
-    min-width: 140px;
-    clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%);
+    transition: all 0.3s ease;
   }
 
-  .price-box.featured {
-    background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(0, 243, 255, 0.05));
-    border-color: var(--neon-blue);
-    transform: scale(1.05);
+  .price-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
   }
 
   .price-amount {
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(2rem, 5vw, 2.5rem);
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
     font-weight: 700;
-    color: white;
-    line-height: 1;
+    color: var(--gold-light);
+    margin-bottom: 5px;
   }
 
   .price-label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: rgba(255,255,255,0.7);
-    margin-top: 5px;
+    letter-spacing: 1px;
   }
 
-  /* CTA Button */
-  .cta-section {
+  .price-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+  }
+
+  /* Footer */
+  .flyer-footer {
+    background: #0a0f0a;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 20px;
     text-align: center;
-    margin: 40px 0;
-  }
-
-  .cta-button {
-    display: inline-block;
-    background: linear-gradient(90deg, var(--neon-pink), var(--blood-red));
-    color: white;
-    font-family: 'Teko', sans-serif;
-    font-size: clamp(1.2rem, 3vw, 1.8rem);
-    font-weight: 600;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    padding: 20px 50px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-    transition: all 0.3s ease;
-    box-shadow: 0 0 30px rgba(255, 0, 110, 0.4);
-  }
-
-  .cta-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 40px rgba(255, 0, 110, 0.6);
-  }
-
-  .cta-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s;
-  }
-
-  .cta-button:hover::before {
-    left: 100%;
-  }
-
-  /* Footer Info */
-  .footer-info {
-    text-align: center;
-    padding: 20px;
-    margin-top: auto;
-    border-top: 1px solid rgba(255,255,255,0.1);
   }
 
   .creator-info {
     font-size: 0.9rem;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.5);
     letter-spacing: 2px;
   }
 
   .coordinates {
     font-family: 'Courier New', monospace;
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.3);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
     margin-top: 10px;
   }
 
-  /* Loading & Error States */
-  .loading-screen, .error-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--dark-metal);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    font-family: 'Teko', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 4px;
-  }
-
-  .loading-screen {
-    color: var(--neon-blue);
-  }
-
-  .error-screen {
-    color: var(--neon-pink);
-  }
-
-  .glitch-text {
-    position: relative;
-    animation: glitch 2s infinite;
-  }
-
-  @keyframes glitch {
-    0%, 100% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-  }
-
-  /* Mobile Optimizations */
+  /* MOBILE */
   @media (max-width: 768px) {
-    .content-layer {
-      padding: 15px;
-      justify-content: flex-start;
+    .flyer-content {
+      padding: 30px 20px;
     }
 
-    .event-header {
-      padding-top: 20px;
+    .flyer-header {
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 10px;
     }
 
-    .vs-section {
-      margin: 20px 0;
+    .event-title-group {
+      text-align: center;
     }
 
-    .info-grid {
-      grid-template-columns: repeat(2, 1fr);
+    .logo-container {
+      width: 80px;
+      height: 80px;
+    }
+
+    .time-info::before,
+    .time-info::after {
+      width: 30px;
+    }
+
+    .flyer-tags {
       gap: 10px;
     }
 
-    .info-card {
-      padding: 15px;
+    .tag {
+      padding: 6px 15px;
+      font-size: 0.75rem;
     }
 
-    .price-boxes {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .price-box {
-      width: 100%;
-      max-width: 250px;
-    }
-
-    .price-box.featured {
-      transform: scale(1);
-      order: -1;
+    .info-section {
+      padding: 40px 20px;
     }
   }
 
-  /* Large screens */
-  @media (min-width: 1200px) {
-    .content-layer {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-  }
-
-  /* Decorative elements */
-  .corner-decor {
-    position: fixed;
-    width: 100px;
-    height: 100px;
-    border: 2px solid var(--neon-blue);
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .corner-decor.top-left {
-    top: 20px;
-    left: 20px;
-    border-right: none;
-    border-bottom: none;
-  }
-
-  .corner-decor.top-right {
-    top: 20px;
-    right: 20px;
-    border-left: none;
-    border-bottom: none;
-  }
-
-  .corner-decor.bottom-left {
-    bottom: 20px;
-    left: 20px;
-    border-right: none;
-    border-top: none;
-  }
-
-  .corner-decor.bottom-right {
-    bottom: 20px;
-    right: 20px;
-    border-left: none;
-    border-top: none;
-  }
-
-  @media (max-width: 768px) {
-    .corner-decor {
-      width: 50px;
-      height: 50px;
-    }
+  /* Loading */
+  .loading {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0f0a;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    letter-spacing: 3px;
   }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <div class="loading-screen">
-    <div class="glitch-text">CARGANDO EVENTO...</div>
-  </div>
+  <div class="loading">CARGANDO EVENTO...</div>
 </div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
   const encuentroId = params.get('id');
 
+  // Función para formatear fechas
+  function formatDateRange(fechasJSON) {
+    let fechas = [];
+    try { fechas = JSON.parse(fechasJSON); } catch(e) {}
+    
+    if (fechas.length === 0) return 'FECHA POR CONFIRMAR';
+    
+    // Extraer días únicos
+    const dias = fechas.map(f => f.dia);
+    const diasUnicos = [...new Set(dias)];
+    
+    if (diasUnicos.length === 1) {
+      return diasUnicos[0].toUpperCase();
+    } else {
+      // Formato: 25, 26 Y 27 DE ENERO
+      const diasFormateados = diasUnicos.map((d, i) => {
+        // Extraer solo el número del día asumiendo formato "25 de Enero"
+        const numero = d.match(/\d+/);
+        return numero ? numero[0] : d;
+      });
+      
+      if (diasFormateados.length === 2) {
+        return `${diasFormateados[0]} Y ${diasFormateados[1]}`.toUpperCase();
+      } else {
+        const ultimo = diasFormateados.pop();
+        return `${diasFormateados.join(', ')} Y ${ultimo}`.toUpperCase();
+      }
+    }
+  }
+
+  function getHoraInicio(fechasJSON) {
+    let fechas = [];
+    try { fechas = JSON.parse(fechasJSON); } catch(e) {}
+    
+    if (fechas.length > 0 && fechas[0].horarios.length > 0) {
+      return fechas[0].horarios[0].hora;
+    }
+    return '';
+  }
+
   if (!encuentroId) {
-    document.getElementById('app').innerHTML = `
-      <div class="error-screen">
-        <div class="glitch-text">ERROR: ID NO ENCONTRADO</div>
-      </div>
-    `;
+    document.getElementById('app').innerHTML = '<div class="loading">ERROR: ID NO ENCONTRADO</div>';
   } else {
     const API_URL = "https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec";
     
     fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`)
       .then(res => res.json())
       .then(res => {
-        if (!res.success || !res.data) {
-          throw new Error('Not found');
-        }
-
+        if (!res.success || !res.data) throw new Error('Not found');
+        
         const enc = res.data;
+        const fechaDisplay = formatDateRange(enc.fechasJSON);
+        const horaDisplay = getHoraInicio(enc.fechasJSON);
         
-        // Parse dates
-        let fechas = [];
-        try { fechas = JSON.parse(enc.fechasJSON); } catch(e) {}
+        // Parsear tipos (puede ser array o string separado por comas)
+        const tipos = enc.tipo ? enc.tipo.split(',').map(t => t.trim()) : ['EVENTO'];
         
-        // Parse prices
+        // Parsear precios
         let precios = [];
         try { precios = JSON.parse(enc.valoresJSON); } catch(e) {}
 
-        // Format date display
-        let fechaDisplay = 'PRÓXIMAMENTE';
-        let horaDisplay = '';
-        
-        if (fechas.length > 0) {
-          const primera = fechas[0];
-          fechaDisplay = primera.dia.toUpperCase();
-          if (primera.horarios.length > 0) {
-            horaDisplay = `${primera.horarios[0].hora} HS | ${enc.lugar}`;
-          }
-        }
-
         document.getElementById('app').innerHTML = `
-          <div class="flyer-container">
-            <!-- Background -->
-            <div class="bg-layer">
-              <img src="${enc.flyerUrl}" alt="Background" onerror="this.src='https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=1920&q=80'">
+          <!-- FLYER HERO -->
+          <section class="flyer-hero">
+            <div class="flyer-bg">
+              <img src="${enc.flyerUrl}" alt="Flyer" onerror="this.src='https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=1920&q=80'">
             </div>
+            <div class="flyer-overlay"></div>
             
-            <!-- Effects -->
-            <div class="overlay-fx"></div>
-            <div class="scanlines"></div>
-            <div class="vignette"></div>
-            
-            <!-- Corner Decorations -->
-            <div class="corner-decor top-left"></div>
-            <div class="corner-decor top-right"></div>
-            <div class="corner-decor bottom-left"></div>
-            <div class="corner-decor bottom-right"></div>
-            
-            <!-- Content -->
-            <div class="content-layer">
-              <header class="event-header">
-                <div class="event-type">/// ${enc.tipo || 'ENCUENTRO'} ///</div>
-                <h1 class="main-title" data-text="${enc.nombre}">${enc.nombre}</h1>
-                <div class="subtitle">VETERANOS RUGBY</div>
-              </header>
-
-              <div class="vs-section">
-                <div class="team-badge"><span>OLD BOYS</span></div>
-                <div class="vs-text">VS</div>
-                <div class="team-badge" style="border-color: var(--neon-pink); background: rgba(255, 0, 110, 0.1);">
-                  <span style="color: var(--neon-pink);">RIVALES</span>
+            <div class="flyer-content">
+              <!-- Header: Logo + Nombre -->
+              <div class="flyer-header">
+                <div class="logo-container">
+                  <img src="https://i.ibb.co/placeholder-logo.png" alt="Logo" id="event-logo">
+                </div>
+                <div class="event-title-group">
+                  <div class="event-subtitle">Encuentro de Veteranos</div>
+                  <h1 class="event-name">${enc.nombre}</h1>
                 </div>
               </div>
-
-              <div class="info-grid">
-                <div class="info-card">
-                  <div class="info-label">Cupo</div>
-                  <div class="info-value">${enc.cupoMaximo || 'ILIMITADO'}</div>
+              
+              <!-- Center: Fechas -->
+              <div class="flyer-center">
+                <div class="date-range">${fechaDisplay}</div>
+                ${horaDisplay ? `<div class="time-info">${horaDisplay} HS</div>` : ''}
+              </div>
+              
+              <!-- Bottom: Lugar y Tags -->
+              <div class="flyer-bottom">
+                <div class="location-main">
+                  <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  ${enc.lugar || 'Lugar por confirmar'}
                 </div>
-                <div class="info-card">
-                  <div class="info-label">Formato</div>
-                  <div class="info-value">10 VS 10</div>
-                </div>
-                <div class="info-card">
-                  <div class="info-label">Categoría</div>
-                  <div class="info-value">+35 AÑOS</div>
-                </div>
-                <div class="info-card">
-                  <div class="info-label">Organiza</div>
-                  <div class="info-value">${enc.creadorNombre}</div>
+                
+                <div class="flyer-tags">
+                  ${enc.cupoMaximo ? `<span class="tag cupo">${enc.cupoMaximo} Equipos</span>` : ''}
+                  ${tipos.map(t => `<span class="tag tipo">${t}</span>`).join('')}
                 </div>
               </div>
+            </div>
+          </section>
 
-              <div class="date-section">
-                <div class="date-big">${fechaDisplay}</div>
-                <div class="time-location">${horaDisplay}</div>
+          <!-- INFO SECTION (fuera de imagen) -->
+          <section class="info-section">
+            <div class="info-container">
+              ${enc.descripcion ? `
+              <div class="section-block">
+                <h3 class="section-title">Sobre el Evento</h3>
+                <p class="description-text">${enc.descripcion}</p>
               </div>
-
+              ` : ''}
+              
               ${precios.length > 0 ? `
-              <div class="pricing-section">
-                <div class="section-title">/// Entradas ///</div>
-                <div class="price-boxes">
-                  ${precios.map((p, i) => `
-                    <div class="price-box ${i === 0 ? 'featured' : ''}">
+              <div class="section-block">
+                <h3 class="section-title">Inversión</h3>
+                <div class="pricing-grid">
+                  ${precios.map(p => `
+                    <div class="price-card">
                       <div class="price-amount">$${parseFloat(p.precio).toLocaleString('es-AR')}</div>
                       <div class="price-label">${p.titulo}</div>
+                      ${p.desc ? `<div class="price-desc">${p.desc}</div>` : ''}
                     </div>
                   `).join('')}
                 </div>
               </div>
               ` : ''}
-
-              <div class="cta-section">
-                <button class="cta-button" onclick="alert('Inscripción próximamente')">
-                  Reservar Lugar
-                </button>
-              </div>
-
-              <footer class="footer-info">
-                <div class="creator-info">ORGANIZA: ${enc.creadorNombre}</div>
-                <div class="coordinates">${enc.lat}, ${enc.lng}</div>
-              </footer>
             </div>
-          </div>
+          </section>
+
+          <!-- FOOTER -->
+          <footer class="flyer-footer">
+            <div class="creator-info">ORGANIZA: ${enc.creadorNombre || 'Organizador'}</div>
+            <div class="coordinates">${enc.lat}, ${enc.lng}</div>
+          </footer>
         `;
       })
       .catch(err => {
-        document.getElementById('app').innerHTML = `
-          <div class="error-screen">
-            <div class="glitch-text">EVENTO NO ENCONTRADO</div>
-          </div>
-        `;
+        document.getElementById('app').innerHTML = '<div class="loading">EVENTO NO ENCONTRADO</div>';
       });
   }
 </script>
