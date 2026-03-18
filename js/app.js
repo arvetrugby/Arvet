@@ -577,6 +577,23 @@ function activarDragEquipos(){
         slider.scrollLeft = scrollLeft - walk;
 
     });
+    const params = new URLSearchParams(window.location.search);
+const encuentroId = params.get('encuentroId');
+
+if (encuentroId) {
+    console.log('ID desde URL:', encuentroId);
+
+    fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                console.log('Encuentro desde link:', res.data);
+
+                // 🚀 redirigir a admin con el mismo parámetro
+                window.location.href = `admin.html?encuentroId=${encuentroId}`;
+            }
+        });
+}
 
 }
 // ============================================
