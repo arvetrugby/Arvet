@@ -196,7 +196,7 @@ function nuevoEncuentro() {
 
                 <div class="form-group">
                     <label>Descripción general</label>
-                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, reglas especiales, premios..."></textarea>
+                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, Fechas limites y formas de pago etc.. Menú 3er tiempo, todo lo que concideres necesario"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
