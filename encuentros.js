@@ -1,9 +1,11 @@
 let encuentroIdDesdeLink = null;
+// Arriba de todo en encuentros.js
 
 // ============================================
 // ARVET - SISTEMA DE ENCUENTROS/PARTIDOS
 // ============================================
 
+// Función de mensajes propia (renombrada para evitar conflictos con app.js)
 function mostrarMensajeEncuentros(texto, tipo = 'info') {
     let overlay = document.getElementById('msgOverlayEncuentros');
     if (!overlay) {
@@ -58,6 +60,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ============================================
+    // FIX: Renderizar cuando la sección se activa
+    // ============================================
+    
+    // Primera carga: intentar renderizar si ya está activo
     setTimeout(() => {
         const sectionEncuentros = document.getElementById('encuentros');
         if (sectionEncuentros && sectionEncuentros.classList.contains('active')) {
@@ -65,10 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 100);
 
+    // Observar cambios para renderizar cuando se active la sección
     const observer = new MutationObserver((mutations) => {
         const sectionEncuentros = document.getElementById('encuentros');
         if (sectionEncuentros && sectionEncuentros.classList.contains('active')) {
             const container = document.getElementById('listaMisEncuentros');
+            // Solo si está vacío (no volver a renderizar si ya hay datos)
             if (container && container.children.length === 0 && encuentrosData.misEncuentros.length === 0) {
                 console.log('Sección encuentros activada, renderizando...');
                 renderizarMisEncuentros();
@@ -82,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
         attributeFilter: ['class']
     });
 });
-
 // ============================================
 // NAVEGACIÓN DE TABS
 // ============================================
@@ -111,18 +119,20 @@ function showEncuentrosTab(tab) {
     }
 
     if (tab === 'creados') {
-        renderizarMisEncuentros();
-    } else {
-        renderizarInvitaciones();
+    renderizarMisEncuentros();
+} else {
+    renderizarInvitaciones();
 
-        if (encuentroIdDesdeLink) {
-            console.log('Abriendo desde link:', encuentroIdDesdeLink);
-            setTimeout(() => {
-                verDetalleEncuentro(encuentroIdDesdeLink);
-                encuentroIdDesdeLink = null;
-            }, 500);
-        }
+    if (encuentroIdDesdeLink) {
+        console.log('Abriendo desde link:', encuentroIdDesdeLink);
+
+        setTimeout(() => {
+            verDetalleEncuentro(encuentroIdDesdeLink);
+            encuentroIdDesdeLink = null;
+        }, 500);
     }
+}
+    
 }
 
 // ============================================
@@ -161,6 +171,7 @@ function nuevoEncuentro() {
                     <input type="text" id="encNombre" required placeholder="Ej: Encuentro Argentino - Santiago 2026">
                 </div>
 
+                <!-- TIPO DE ENCUENTRO - MÚLTIPLE SELECCIÓN -->
                 <div class="form-group">
                     <label>Tipo de encuentro * (podés elegir varios)</label>
                     
@@ -188,23 +199,28 @@ function nuevoEncuentro() {
                     </button>
                 </div>
 
+                <!-- UBICACIÓN DEL ENCUENTRO CON MAPA -->
                 <div class="form-group">
                     <label>Ubicación del encuentro *</label>
                     <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">
-                        📍 Arrastrá el pin rojo para marcar exactamente dónde se juega
+                        📍 Arrastrá el pin rojo para marcar exactamente dónde se juega (puede ser diferente a tu club)
                     </p>
                     
+                    <!-- Mapa selector -->
                     <div id="mapaEncuentro" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0;"></div>
                     
+                    <!-- Campos ocultos para coordenadas y ubicación -->
                     <input type="hidden" id="encLat" value="">
                     <input type="hidden" id="encLng" value="">
                     <input type="hidden" id="encPaisId" value="">
                     <input type="hidden" id="encProvinciaId" value="">
                     <input type="hidden" id="encCiudadId" value="">
                     
+                    <!-- Dirección escrita (se completa automáticamente pero editable) -->
                     <label style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Dirección completa *</label>
                     <input type="text" id="encDireccion" required placeholder="Calle, número, ciudad, país..." style="margin-bottom: 10px;">
                     
+                    <!-- Info de ubicación detectada -->
                     <div id="encUbicacionInfo" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px; font-size: 12px; color: #166534;">
                         ✅ Ubicación confirmada: <span id="encPaisNombre"></span> > <span id="encProvinciaNombre"></span> > <span id="encCiudadNombre"></span>
                     </div>
@@ -235,7 +251,7 @@ function nuevoEncuentro() {
 
                 <div class="form-group">
                     <label>Descripción general</label>
-                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, fechas límites, formas de pago, menú 3er tiempo, etc."></textarea>
+                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, Fechas limites y formas de pago etc.. Menú 3er tiempo, todo lo que concideres necesario"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
@@ -252,6 +268,7 @@ function nuevoEncuentro() {
     
     document.body.appendChild(modal);
     
+    // Inicializar mapa
     setTimeout(() => initMapaEncuentro(), 100);
     
     agregarDia();
@@ -259,7 +276,6 @@ function nuevoEncuentro() {
     
     document.getElementById('inputFlyer').addEventListener('change', subirFlyer);
 }
-
 function toggleOtrosTipos() {
     const chkOtro = document.getElementById('chkOtro');
     const container = document.getElementById('containerOtrosTipos');
@@ -268,12 +284,14 @@ function toggleOtrosTipos() {
     if (chkOtro.checked) {
         container.style.display = 'flex';
         btnAgregar.style.display = 'block';
-        if (container.children.length <= 1) {
+        // Agregar el primero automáticamente si está vacío
+        if (container.children.length <= 1) { // 1 porque hay el texto de ayuda
             agregarOtroTipo();
         }
     } else {
         container.style.display = 'none';
         btnAgregar.style.display = 'none';
+        // Limpiar los inputs personalizados al desmarcar
         const inputs = container.querySelectorAll('.otro-tipo-input');
         inputs.forEach(input => input.parentElement.remove());
     }
@@ -281,7 +299,7 @@ function toggleOtrosTipos() {
 
 function agregarOtroTipo() {
     const container = document.getElementById('containerOtrosTipos');
-    const index = container.querySelectorAll('.otro-tipo-input').length + 1;
+    const index = container.children.length + 1;
     
     const div = document.createElement('div');
     div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
@@ -295,18 +313,24 @@ function agregarOtroTipo() {
     container.appendChild(div);
 }
 
+
+
 let mapaEncuentro, markerEncuentro;
 
 function initMapaEncuentro() {
+    // Coordenadas por defecto (Argentina/Buenos Aires) o usar la del club si está disponible
     const defaultLat = -34.6037;
     const defaultLng = -58.3816;
     
+    // Crear mapa
     mapaEncuentro = L.map('mapaEncuentro').setView([defaultLat, defaultLng], 13);
     
+    // Agregar capa de OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(mapaEncuentro);
     
+    // Crear marker draggable
     markerEncuentro = L.marker([defaultLat, defaultLng], {
         draggable: true,
         icon: L.icon({
@@ -317,16 +341,19 @@ function initMapaEncuentro() {
         })
     }).addTo(mapaEncuentro);
     
+    // Evento cuando se arrastra el marker
     markerEncuentro.on('dragend', async function() {
         const pos = markerEncuentro.getLatLng();
         await actualizarUbicacionEncuentro(pos.lat, pos.lng);
     });
     
+    // Click en el mapa para mover el marker
     mapaEncuentro.on('click', async function(e) {
         markerEncuentro.setLatLng(e.latlng);
         await actualizarUbicacionEncuentro(e.latlng.lat, e.latlng.lng);
     });
     
+    // Geolocalización del usuario (opcional)
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -337,6 +364,7 @@ function initMapaEncuentro() {
                 actualizarUbicacionEncuentro(lat, lng);
             },
             () => {
+                // Si falla, usar default
                 actualizarUbicacionEncuentro(defaultLat, defaultLng);
             }
         );
@@ -345,17 +373,20 @@ function initMapaEncuentro() {
     }
 }
 
+// Función para obtener datos de ubicación desde coordenadas (reverse geocoding)
 async function actualizarUbicacionEncuentro(lat, lng) {
     document.getElementById('encLat').value = lat;
     document.getElementById('encLng').value = lng;
     
     try {
+        // Usar OpenStreetMap Nominatim para reverse geocoding (gratuito)
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         const data = await response.json();
         
         if (data && data.address) {
             const addr = data.address;
             
+            // Completar dirección
             const direccionParts = [];
             if (addr.road) direccionParts.push(addr.road);
             if (addr.house_number) direccionParts.push(addr.house_number);
@@ -365,10 +396,12 @@ async function actualizarUbicacionEncuentro(lat, lng) {
             const direccionCompleta = direccionParts.join(', ') || data.display_name || '';
             document.getElementById('encDireccion').value = direccionCompleta;
             
+            // Guardar IDs de ubicación (simplificado - en producción deberías mapear a tus IDs reales)
             document.getElementById('encPaisId').value = addr.country_code || '';
             document.getElementById('encProvinciaId').value = addr.state || addr.province || '';
             document.getElementById('encCiudadId').value = addr.city || addr.town || addr.village || '';
             
+            // Mostrar info
             document.getElementById('encPaisNombre').textContent = addr.country || 'Desconocido';
             document.getElementById('encProvinciaNombre').textContent = addr.state || addr.province || '';
             document.getElementById('encCiudadNombre').textContent = addr.city || addr.town || addr.village || '';
@@ -376,8 +409,12 @@ async function actualizarUbicacionEncuentro(lat, lng) {
         }
     } catch (err) {
         console.error('Error obteniendo ubicación:', err);
+        // Dejar los campos para que el usuario complete manualmente
     }
 }
+// ============================================
+// FECHAS DINÁMICAS
+// ============================================
 
 function agregarDia() {
     const container = document.getElementById('containerFechas');
@@ -420,6 +457,10 @@ function agregarHorario(btn) {
     horariosContainer.appendChild(horarioDiv);
 }
 
+// ============================================
+// VALORES DINÁMICOS
+// ============================================
+
 function agregarValor() {
     const container = document.getElementById('containerValores');
     
@@ -436,6 +477,10 @@ function agregarValor() {
     
     container.appendChild(valorDiv);
 }
+
+// ============================================
+// SUBIR FLYER A IMGBB
+// ============================================
 
 async function subirFlyer() {
     const input = document.getElementById('inputFlyer');
@@ -490,11 +535,13 @@ async function subirFlyer() {
 function guardarEncuentro(e) {
     e.preventDefault();
     
+    // Validar ubicación
     if (!document.getElementById('encLat').value || !document.getElementById('encLng').value) {
         mostrarMensajeEncuentros('⚠️ Por favor marcá la ubicación en el mapa', 'error');
         return;
     }
     
+    // Recolectar tipos seleccionados
     const tiposSeleccionados = [];
     document.querySelectorAll('input[name="encTipo"]:checked').forEach(cb => {
         tiposSeleccionados.push(cb.value);
@@ -514,6 +561,7 @@ function guardarEncuentro(e) {
     
     const tipoFinal = tiposSeleccionados.join(', ');
     
+    // Fechas
     const fechas = [];
     document.querySelectorAll('.dia-item').forEach(dia => {
         const fechaInput = dia.querySelector('.dia-fecha');
@@ -539,6 +587,7 @@ function guardarEncuentro(e) {
         return;
     }
     
+    // Valores
     const valores = [];
     document.querySelectorAll('#containerValores > div').forEach(v => {
         const titulo = v.querySelector('.valor-titulo').value;
@@ -567,12 +616,15 @@ function guardarEncuentro(e) {
         fechasJSON: JSON.stringify(fechas),
         valoresJSON: JSON.stringify(valores),
         cupoMaximo: parseInt(document.getElementById('encCupo').value),
-        lugar: document.getElementById('encDireccion').value,
+        
+        // Ubicación completa del encuentro
+        direccion: document.getElementById('encDireccion').value,
         lat: document.getElementById('encLat').value,
         lng: document.getElementById('encLng').value,
         paisId: document.getElementById('encPaisId').value,
         provinciaId: document.getElementById('encProvinciaId').value,
         ciudadId: document.getElementById('encCiudadId').value,
+        
         tipo: tipoFinal,
         descripcion: document.getElementById('encDescripcion').value,
         estado: 'publicado'
@@ -598,10 +650,10 @@ function guardarEncuentro(e) {
     });
 }
 
-// ============================================
-// RENDERIZAR MIS ENCUENTROS
-// ============================================
 
+// ============================================
+// RENDERIZAR MIS ENCUENTROS (desde API)
+// ============================================
 async function renderizarMisEncuentros() {
     const container = document.getElementById('listaMisEncuentros');
     const empty = document.getElementById('emptyCreados');
@@ -620,6 +672,8 @@ async function renderizarMisEncuentros() {
         }
         
         const encuentros = result.data || [];
+        
+        // 🔥 ORDENAR: Último creado primero
         encuentros.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
 
         if (encuentros.length === 0) {
@@ -686,6 +740,7 @@ async function renderizarMisEncuentros() {
                                enc.estado === 'borrador' ? 'Borrador' : 
                                enc.estado === 'cancelado' ? 'Cancelado' : enc.estado;
 
+            // 🔥 BOTONES SEGÚN ESTADO
             const botonesHTML = enc.estado === 'cancelado' ? `
                 <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
                     Ver detalle
@@ -760,13 +815,429 @@ async function renderizarMisEncuentros() {
     }
 }
 
+function compartirEncuentro(id) {
+    const url = `https://arvetrugby.github.io/Arvet/preview.html?action=getEncuentroById&id=${id}`;
+    navigator.clipboard.writeText(url)
+        .then(() => alert('Link copiado al portapapeles:\n' + url))
+        .catch(err => alert('No se pudo copiar el link: ' + err));
+}
 // ============================================
-// VER DETALLE (CON LISTADO DE EQUIPOS)
+// RENDERIZAR INVITACIONES (encuentros de otros equipos)
+// ============================================
+
+async function renderizarInvitaciones() {
+  const container = document.getElementById('listaInvitaciones');
+  const empty = document.getElementById('emptyInvitaciones');
+  const badge = document.getElementById('badgeInvitaciones');
+
+  if (!container) return;
+
+  const usuario = obtenerUsuarioActual();
+  
+  try {
+    // Cargar ambas listas en paralelo
+    const [respuestaAceptados, respuestaPendientes] = await Promise.all([
+      fetch(`${API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`).then(r => r.json()),
+      fetch(`${API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`).then(r => r.json())
+    ]);
+    
+    const aceptados = respuestaAceptados.success ? respuestaAceptados.data : [];
+    const todosPendientes = respuestaPendientes.success ? respuestaPendientes.data : [];
+    
+    // Filtrar pendientes: excluir los que ya aceptamos o rechazamos
+    const idsRespondidos = new Set();
+    
+    // Buscar también rechazados
+    const respuestasSheet = await fetch(`${API_URL}?action=getRespuestasEncuentro&encuentroId=todos`).then(r => r.json()).catch(() => ({data:[]}));
+    // No hay endpoint para "todos", así que filtramos local por ahora
+    
+    // Mejor: verificar uno por uno o cargar desde getEncuentrosAceptados que ya tenemos
+    // Por simplicidad, usamos los aceptados que ya cargamos y filtramos del otro listado
+    
+    const idsAceptados = new Set(aceptados.map(a => a.id));
+    const pendientes = todosPendientes.filter(p => !idsAceptados.has(p.id));
+    
+    // Actualizar badge (solo pendientes)
+    if (badge) {
+      if (pendientes.length > 0) {
+        badge.textContent = pendientes.length;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    if (aceptados.length === 0 && pendientes.length === 0) {
+      container.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+
+    if (empty) empty.style.display = 'none';
+
+    // HTML de ACEPTADOS
+    const aceptadosHTML = aceptados.length > 0 ? `
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: #059669; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
+          Invitaciones aceptadas (${aceptados.length})
+        </h3>
+        ${aceptados.map(enc => generarCardEncuentro(enc, 'aceptado')).join('')}
+      </div>
+    ` : '';
+
+    // HTML de PENDIENTES
+    const pendientesHTML = pendientes.length > 0 ? `
+      <div>
+        <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
+          Invitaciones pendientes (${pendientes.length})
+        </h3>
+        ${pendientes.map(enc => generarCardEncuentro(enc, 'pendiente')).join('')}
+      </div>
+    ` : '';
+
+    container.innerHTML = aceptadosHTML + pendientesHTML;
+        
+  } catch (err) {
+    console.error('Error cargando invitaciones:', err);
+    mostrarMensajeEncuentros('Error de conexión', 'error');
+  }
+}
+
+// Función auxiliar para generar el HTML de una card
+function generarCardEncuentro(enc, estado) {
+  let fechas = [];
+  let valores = [];
+  try {
+    fechas = JSON.parse(enc.fechasJSON || '[]');
+    valores = JSON.parse(enc.valoresJSON || '[]');
+  } catch(e) {
+    console.error('Error parseando JSON:', e);
+  }
+  
+  const fechasHTML = fechas.map(f => {
+    const horariosHTML = f.horarios.map(h => `
+      <span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px;">
+        ${h.hora}hs - ${h.desc}
+      </span>
+    `).join('');
+    
+    return `
+      <div style="margin-bottom: 8px;">
+        <strong>📅 ${formatearFecha(f.dia)}</strong>
+        <div style="margin-top: 4px; margin-left: 24px;">
+          ${horariosHTML}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const mapaHTML = (enc.lat && enc.lng) ? `
+    <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;">
+      <iframe 
+        width="100%" 
+        height="150" 
+        frameborder="0" 
+        scrolling="no" 
+        marginheight="0" 
+        marginwidth="0" 
+        src="https://www.openstreetmap.org/export/embed.html?bbox=${enc.lng-0.01}%2C${enc.lat-0.01}%2C${enc.lng+0.01}%2C${enc.lat+0.01}&layer=mapnik&marker=${enc.lat}%2C${enc.lng}" 
+        style="border: 0;">
+      </iframe>
+      <div style="background: #f8fafc; padding: 8px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span>📍 ${enc.lugar || 'Ubicación marcada'}</span>
+        <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; text-decoration: none; font-weight: 500;">
+          Abrir mapa →
+        </a>
+      </div>
+    </div>
+  ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.lugar || 'Sin ubicación'}</div>`;
+
+  // Botones según estado
+  const botonesHTML = estado === 'aceptado' ? `
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <span style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
+        ✓ Aceptado
+      </span>
+      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
+        Ver detalle
+      </button>
+      ${enc.telefonoOrganizador ? `
+        <a href="https://wa.me/${String(enc.telefonoOrganizador).replace(/[^0-9]/g, '')}" 
+           target="_blank" 
+           style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="white">
+            <path d="M16 .4C7.2.4.4 7.2.4 16c0 2.8.7 5.5 2.1 7.9L.4 32l8.3-2.1c2.3 1.3 4.9 2 7.6 2 8.8 0 15.6-6.8 15.6-15.6S24.8.4 16 .4zm0 28.6c-2.4 0-4.7-.6-6.7-1.8l-.5-.3-4.9 1.2 1.3-4.8-.3-.5C3.6 20.7 3 18.4 3 16 3 8.8 8.8 3 16 3s13 5.8 13 13-5.8 13-13 13zm7.2-9.8c-.4-.2-2.3-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.2.4-.9 1.2-1.1 1.5-.2.3-.4.3-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.9-1.8-2.2-.2-.3 0-.5.2-.7.2-.2.4-.4.6-.6.2-.2.3-.4.4-.6.1-.2 0-.4 0-.6 0-.2-.8-2-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.1 3.1 1.3 3.3c.2.2 2.2 3.4 5.4 4.7.8.3 1.4.5 1.9.6.8.2 1.5.2 2 .1.6-.1 2.3-.9 2.6-1.8.3-.9.3-1.7.2-1.8-.1-.1-.4-.2-.8-.4z"/>
+          </svg>
+          WhatsApp Organizador
+        </a>
+      ` : ''}
+    </div>
+  ` : `
+    <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
+        Ver detalle
+      </button>
+      <button onclick="aceptarInvitacion('${enc.id}')" class="btn-aceptar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #4f46e5; color: white; cursor: pointer; font-weight: 500;">
+        Aceptar invitación
+      </button>
+      <button onclick="rechazarInvitacion('${enc.id}')" class="btn-rechazar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">
+        Rechazar
+      </button>
+    </div>
+  `;
+
+  const badgeEstado = estado === 'aceptado' ? 
+    `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-left: 5px;">Aceptado</span>` :
+    `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e; margin-left: 5px;">Invitación disponible</span>`;
+
+  return `
+    <div class="encuentro-card ${estado === 'aceptado' ? 'invitacion-aceptada' : 'invitacion-pendiente'}" style="${estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : ''}">
+      <div class="encuentro-header">
+        <div>
+          <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+            ${enc.nombre}
+          </div>
+          ${badgeEstado}
+          ${enc.tipo ? enc.tipo.split(', ').map(t => `
+            <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 5px; margin-bottom: 5px;">
+              ${t}
+            </span>
+          `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-left: 8px;">Sin tipo</span>'}
+        </div>
+        
+        <div style="text-align: right; min-width: 80px; flex-shrink: 0;">
+          <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
+            0/${enc.cupoMaximo}
+          </div>
+          <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
+            ${enc.cupoMaximo} plazas
+          </div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Organiza
+          </div>
+          <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">
+            ${enc.creadorNombre || 'Equipo desconocido'}
+          </div>
+        </div>
+      </div>
+      
+      <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
+        ${fechasHTML}
+        ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
+      </div>
+
+      ${mapaHTML}
+
+      ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
+
+      ${enc.flyerUrl ? `
+        <div style="margin-bottom: 15px;">
+          <img src="${enc.flyerUrl}" style="max-width: 300px; border-radius: 8px; object-fit: cover;" alt="Flyer">
+        </div>
+      ` : ''}
+
+      ${botonesHTML}
+    </div>
+  `;
+}
+// ============================================
+// FUNCIONES DE ACCIÓN (ASYNC - USAN API)
+// ============================================
+
+async function obtenerEncuentroPorId(id) {
+    try {
+        const response = await fetch(`${API_URL}?action=getEncuentroById&id=${id}`);
+        const result = await response.json();
+        return result.success ? result.data : null;
+    } catch (err) {
+        console.error('Error obteniendo encuentro:', err);
+        return null;
+    }
+}
+
+async function actualizarEncuentro(encuentro) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'updateEncuentro',
+                ...encuentro
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            mostrarMensajeEncuentros('Encuentro actualizado', 'success');
+        }
+        return result.success;
+    } catch (err) {
+        mostrarMensajeEncuentros('Error al actualizar', 'error');
+        return false;
+    }
+}
+
+async function editarEncuentro(encuentroId) {
+    const encuentro = await obtenerEncuentroPorId(encuentroId);
+    if (!encuentro) {
+        mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
+        return;
+    }
+
+    const usuario = obtenerUsuarioActual();
+    if (encuentro.equipoCreadorId !== usuario.equipoId) {
+        mostrarMensajeEncuentros('Solo el creador puede editar este encuentro', 'error');
+        return;
+    }
+
+    mostrarMensajeEncuentros('Función de edición en desarrollo', 'info');
+}
+
+async function cancelarEncuentro(encuentroId) {
+    const encuentro = await obtenerEncuentroPorId(encuentroId);
+    if (!encuentro) {
+        mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
+        return;
+    }
+
+    const usuario = obtenerUsuarioActual();
+    if (encuentro.equipoCreadorId !== usuario.equipoId) {
+        mostrarMensajeEncuentros('Solo el creador puede cancelar', 'error');
+        return;
+    }
+
+    if (!confirm('¿Seguro que querés cancelar este encuentro? Se notificará a todos los equipos invitados.')) {
+        return;
+    }
+
+    encuentro.estado = 'cancelado';
+    const actualizado = await actualizarEncuentro(encuentro);
+    
+    if (actualizado) {
+        mostrarMensajeEncuentros('Encuentro cancelado', 'info');
+        renderizarMisEncuentros();
+    }
+}
+
+async function verDetalleEncuentro(encuentroId) {
+    const encuentro = await obtenerEncuentroPorId(encuentroId);
+    if (!encuentro) {
+        mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
+        return;
+    }
+
+    mostrarMensajeEncuentros('Vista detallada en desarrollo', 'info');
+}
+
+function invitarEquipos(encuentroId) {
+    mostrarMensajeEncuentros('Función de invitar equipos en desarrollo', 'info');
+}
+
+async function aceptarInvitacion(encuentroId) {
+  const usuario = obtenerUsuarioActual();
+  
+  // Usar GET en lugar de POST (evita problemas de CORS)
+  const params = new URLSearchParams({
+    action: 'responderEncuentro',
+    encuentroId: encuentroId,
+    equipoId: usuario.equipoId,
+    estado: 'aceptado'
+  });
+  
+  const url = `${API_URL}?${params.toString()}`;
+  console.log('URL:', url);
+  
+  try {
+    const response = await fetch(url);
+    const result = await response.json();
+    console.log('Result:', result);
+    
+    if (result.success) {
+      mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
+      setTimeout(() => renderizarInvitaciones(), 300);
+    } else {
+      mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    mostrarMensajeEncuentros('Error de conexión', 'error');
+  }
+}
+
+async function rechazarInvitacion(encuentroId) {
+  if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
+  
+  const usuario = obtenerUsuarioActual();
+  
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'responderEncuentro',
+        encuentroId: encuentroId,
+        equipoId: usuario.equipoId,
+        estado: 'rechazado'
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      mostrarMensajeEncuentros('Invitación rechazada', 'info');
+      setTimeout(() => renderizarInvitaciones(), 300);
+    }
+  } catch (err) {
+    mostrarMensajeEncuentros('Error de conexión', 'error');
+  }
+}
+
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+function obtenerUsuarioActual() {
+    const usuarioDefault = {
+        "id": "usr_123",
+        "nombre": "Admin",
+        "equipoId": "eq_tigres", 
+        "equipoNombre": "Tigres RC",
+        "rol": "admin"
+    };
+    
+    const stored = localStorage.getItem('arvet_user');  
+    return stored ? JSON.parse(stored) : usuarioDefault;
+}
+function formatearFecha(fechaStr) {
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString('es-AR', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+    });
+}
+
+function cargarEncuentros() {
+    renderizarMisEncuentros();
+}
+
+function cargarInvitaciones() {
+    renderizarInvitaciones();
+}
+
+function cerrarModalEncuentro() {
+    const modal = document.getElementById('modalEncuentro');
+    if (modal) {
+        modal.remove();
+    }
+}
+// ============================================
+// VER DETALLE CON LISTADO DE EQUIPOS
 // ============================================
 
 async function verDetalleEncuentro(encuentroId) {
     try {
-        // Obtener datos del encuentro
         const [respEncuentro, respDetalle] = await Promise.all([
             fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`).then(r => r.json()),
             fetch(`${API_URL}?action=getDetalleEncuentroCompleto&encuentroId=${encuentroId}`).then(r => r.json())
@@ -806,7 +1277,7 @@ async function verDetalleEncuentro(encuentroId) {
             `;
         }).join('');
 
-        // Generar listas de equipos
+        // Lista de aceptados
         const listaAceptados = detalle.aceptados.length > 0 ? detalle.aceptados.map(eq => `
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
                 <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
@@ -823,6 +1294,7 @@ async function verDetalleEncuentro(encuentroId) {
             </div>
         `).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha aceptado aún</p>';
 
+        // Lista de rechazados
         const listaRechazados = detalle.rechazados.length > 0 ? detalle.rechazados.map(eq => `
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; opacity: 0.8;">
                 <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
@@ -834,6 +1306,7 @@ async function verDetalleEncuentro(encuentroId) {
             </div>
         `).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha rechazado</p>';
 
+        // Lista de pendientes
         const listaPendientes = detalle.pendientes.length > 0 ? detalle.pendientes.map(eq => `
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
                 <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
@@ -853,7 +1326,7 @@ async function verDetalleEncuentro(encuentroId) {
             <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
                 <div class="modal-header">
                     <h2>${enc.nombre}</h2>
-                    <button class="btn-cerrar" onclick="cerrarModalDetalle()">×</button>
+                    <button class="btn-cerrar" onclick="document.getElementById('modalDetalleEncuentro').remove()">×</button>
                 </div>
                 
                 <div style="padding: 20px;">
@@ -882,19 +1355,6 @@ async function verDetalleEncuentro(encuentroId) {
                             </p>
                         </div>
                     </div>
-
-                    ${enc.tipo ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">🏷️ Tipos</h4>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                ${enc.tipo.split(', 'map(t => `
-                                    <span style="background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 500;">
-                                        ${t}
-                                    </span>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
 
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">📅 Fechas y horarios</h4>
@@ -980,11 +1440,6 @@ async function verDetalleEncuentro(encuentroId) {
     }
 }
 
-function cerrarModalDetalle() {
-    const modal = document.getElementById('modalDetalleEncuentro');
-    if (modal) modal.remove();
-}
-
 // ============================================
 // EDITAR ENCUENTRO
 // ============================================
@@ -1011,15 +1466,6 @@ async function editarEncuentro(encuentroId) {
             return;
         }
 
-        let fechas = [];
-        let valores = [];
-        try {
-            fechas = JSON.parse(enc.fechasJSON || '[]');
-            valores = JSON.parse(enc.valoresJSON || '[]');
-        } catch(e) {
-            console.error('Error parseando JSON:', e);
-        }
-
         const modal = document.createElement('div');
         modal.className = 'modal-overlay active';
         modal.id = 'modalEditarEncuentro';
@@ -1028,7 +1474,7 @@ async function editarEncuentro(encuentroId) {
             <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
                 <div class="modal-header">
                     <h2>Editar Encuentro</h2>
-                    <button class="btn-cerrar" onclick="cerrarModalEditar()">×</button>
+                    <button class="btn-cerrar" onclick="document.getElementById('modalEditarEncuentro').remove()">×</button>
                 </div>
                 
                 <form id="formEditarEncuentro" onsubmit="guardarEdicionEncuentro(event, '${encuentroId}')">
@@ -1071,7 +1517,7 @@ async function editarEncuentro(encuentroId) {
                     </div>
 
                     <div style="display: flex; gap: 15px; margin-top: 25px;">
-                        <button type="button" onclick="cerrarModalEditar()" class="btn-secondary" style="flex: 1;">
+                        <button type="button" onclick="document.getElementById('modalEditarEncuentro').remove()" class="btn-secondary" style="flex: 1;">
                             Cancelar
                         </button>
                         <button type="submit" class="btn-primary" style="flex: 2;" id="btnGuardarEdicion">
@@ -1084,6 +1530,7 @@ async function editarEncuentro(encuentroId) {
         
         document.body.appendChild(modal);
         
+        // Handler para subir nuevo flyer
         document.getElementById('editInputFlyer').addEventListener('change', async function() {
             const file = this.files[0];
             if (!file) return;
@@ -1154,7 +1601,7 @@ async function guardarEdicionEncuentro(e, encuentroId) {
         const result = await response.json();
         
         if (result.success) {
-            cerrarModalEditar();
+            document.getElementById('modalEditarEncuentro').remove();
             mostrarMensajeEncuentros('Encuentro actualizado correctamente', 'success');
             renderizarMisEncuentros();
         } else {
@@ -1164,11 +1611,6 @@ async function guardarEdicionEncuentro(e, encuentroId) {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error de conexión', 'error');
     }
-}
-
-function cerrarModalEditar() {
-    const modal = document.getElementById('modalEditarEncuentro');
-    if (modal) modal.remove();
 }
 
 // ============================================
@@ -1213,309 +1655,3 @@ function compartirEncuentro(id) {
         .then(() => mostrarMensajeEncuentros('Link copiado al portapapeles', 'success'))
         .catch(err => mostrarMensajeEncuentros('No se pudo copiar el link', 'error'));
 }
-
-// ============================================
-// RENDERIZAR INVITACIONES (SIN CAMBIOS)
-// ============================================
-
-async function renderizarInvitaciones() {
-    const container = document.getElementById('listaInvitaciones');
-    const empty = document.getElementById('emptyInvitaciones');
-    const badge = document.getElementById('badgeInvitaciones');
-
-    if (!container) return;
-
-    const usuario = obtenerUsuarioActual();
-    
-    try {
-        const [respuestaAceptados, respuestaPendientes] = await Promise.all([
-            fetch(`${API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`).then(r => r.json()),
-            fetch(`${API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`).then(r => r.json())
-        ]);
-        
-        const aceptados = respuestaAceptados.success ? respuestaAceptados.data : [];
-        const todosPendientes = respuestaPendientes.success ? respuestaPendientes.data : [];
-        
-        const idsAceptados = new Set(aceptados.map(a => a.id));
-        const pendientes = todosPendientes.filter(p => !idsAceptados.has(p.id));
-        
-        if (badge) {
-            if (pendientes.length > 0) {
-                badge.textContent = pendientes.length;
-                badge.style.display = 'inline';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        if (aceptados.length === 0 && pendientes.length === 0) {
-            container.innerHTML = '';
-            if (empty) empty.style.display = 'block';
-            return;
-        }
-
-        if (empty) empty.style.display = 'none';
-
-        const aceptadosHTML = aceptados.length > 0 ? `
-            <div style="margin-bottom: 30px;">
-                <h3 style="color: #059669; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
-                    Invitaciones aceptadas (${aceptados.length})
-                </h3>
-                ${aceptados.map(enc => generarCardEncuentro(enc, 'aceptado')).join('')}
-            </div>
-        ` : '';
-
-        const pendientesHTML = pendientes.length > 0 ? `
-            <div>
-                <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
-                    Invitaciones pendientes (${pendientes.length})
-                </h3>
-                ${pendientes.map(enc => generarCardEncuentro(enc, 'pendiente')).join('')}
-            </div>
-        ` : '';
-
-        container.innerHTML = aceptadosHTML + pendientesHTML;
-        
-    } catch (err) {
-        console.error('Error cargando invitaciones:', err);
-        mostrarMensajeEncuentros('Error de conexión', 'error');
-    }
-}
-
-function generarCardEncuentro(enc, estado) {
-    let fechas = [];
-    let valores = [];
-    try {
-        fechas = JSON.parse(enc.fechasJSON || '[]');
-        valores = JSON.parse(enc.valoresJSON || '[]');
-    } catch(e) {
-        console.error('Error parseando JSON:', e);
-    }
-    
-    const fechasHTML = fechas.map(f => {
-        const horariosHTML = f.horarios.map(h => `
-            <span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px;">
-                ${h.hora}hs - ${h.desc}
-            </span>
-        `).join('');
-        
-        return `
-            <div style="margin-bottom: 8px;">
-                <strong>📅 ${formatearFecha(f.dia)}</strong>
-                <div style="margin-top: 4px; margin-left: 24px;">
-                    ${horariosHTML}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    const mapaHTML = (enc.lat && enc.lng) ? `
-        <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;">
-            <iframe 
-                width="100%" 
-                height="150" 
-                frameborder="0" 
-                scrolling="no" 
-                marginheight="0" 
-                marginwidth="0" 
-                src="https://www.openstreetmap.org/export/embed.html?bbox=${enc.lng-0.01}%2C${enc.lat-0.01}%2C${enc.lng+0.01}%2C${enc.lat+0.01}&layer=mapnik&marker=${enc.lat}%2C${enc.lng}" 
-                style="border: 0;">
-            </iframe>
-            <div style="background: #f8fafc; padding: 8px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
-                <span>📍 ${enc.lugar || 'Ubicación marcada'}</span>
-                <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; text-decoration: none; font-weight: 500;">
-                    Abrir mapa →
-                </a>
-            </div>
-        </div>
-    ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.lugar || 'Sin ubicación'}</div>`;
-
-    const botonesHTML = estado === 'aceptado' ? `
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
-                ✓ Aceptado
-            </span>
-            <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-                Ver detalle
-            </button>
-            ${enc.telefonoOrganizador ? `
-                <a href="https://wa.me/${String(enc.telefonoOrganizador).replace(/[^0-9]/g, '')}" 
-                   target="_blank" 
-                   style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                    WhatsApp Organizador
-                </a>
-            ` : ''}
-        </div>
-    ` : `
-        <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-                Ver detalle
-            </button>
-            <button onclick="aceptarInvitacion('${enc.id}')" class="btn-aceptar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #4f46e5; color: white; cursor: pointer; font-weight: 500;">
-                Aceptar invitación
-            </button>
-            <button onclick="rechazarInvitacion('${enc.id}')" class="btn-rechazar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">
-                Rechazar
-            </button>
-        </div>
-    `;
-
-    const badgeEstado = estado === 'aceptado' ? 
-        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-left: 5px;">Aceptado</span>` :
-        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e; margin-left: 5px;">Invitación disponible</span>`;
-
-    return `
-        <div class="encuentro-card ${estado === 'aceptado' ? 'invitacion-aceptada' : 'invitacion-pendiente'}" style="${estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : ''}">
-            <div class="encuentro-header">
-                <div>
-                    <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        ${enc.nombre}
-                    </div>
-                    ${badgeEstado}
-                    ${enc.tipo ? enc.tipo.split(', ').map(t => `
-                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 5px; margin-bottom: 5px;">
-                            ${t}
-                        </span>
-                    `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-left: 8px;">Sin tipo</span>'}
-                </div>
-                
-                <div style="text-align: right; min-width: 80px; flex-shrink: 0;">
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
-                        0/${enc.cupoMaximo}
-                    </div>
-                    <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
-                        ${enc.cupoMaximo} plazas
-                    </div>
-                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Organiza
-                    </div>
-                    <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">
-                        ${enc.creadorNombre || 'Equipo desconocido'}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
-                ${fechasHTML}
-                ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
-            </div>
-
-            ${mapaHTML}
-
-            ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
-
-            ${enc.flyerUrl ? `
-                <div style="margin-bottom: 15px;">
-                    <img src="${enc.flyerUrl}" style="max-width: 300px; border-radius: 8px; object-fit: cover;" alt="Flyer">
-                </div>
-            ` : ''}
-
-            ${botonesHTML}
-        </div>
-    `;
-}
-
-// ============================================
-// FUNCIONES DE ACCIÓN
-// ============================================
-
-async function aceptarInvitacion(encuentroId) {
-    const usuario = obtenerUsuarioActual();
-    
-    const params = new URLSearchParams({
-        action: 'responderEncuentro',
-        encuentroId: encuentroId,
-        equipoId: usuario.equipoId,
-        estado: 'aceptado'
-    });
-    
-    const url = `${API_URL}?${params.toString()}`;
-    
-    try {
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
-            setTimeout(() => renderizarInvitaciones(), 300);
-        } else {
-            mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
-        }
-    } catch (err) {
-        console.error('Error:', err);
-        mostrarMensajeEncuentros('Error de conexión', 'error');
-    }
-}
-
-async function rechazarInvitacion(encuentroId) {
-    if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
-    
-    const usuario = obtenerUsuarioActual();
-    
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'responderEncuentro',
-                encuentroId: encuentroId,
-                equipoId: usuario.equipoId,
-                estado: 'rechazado'
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarMensajeEncuentros('Invitación rechazada', 'info');
-            setTimeout(() => renderizarInvitaciones(), 300);
-        }
-    } catch (err) {
-        mostrarMensajeEncuentros('Error de conexión', 'error');
-    }
-}
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
-
-function obtenerUsuarioActual() {
-    const stored = localStorage.getItem('arvet_user');  
-    return stored ? JSON.parse(stored) : null;
-}
-
-function formatearFecha(fechaStr) {
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleDateString('es-AR', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short'
-    });
-}
-
-function cargarEncuentros() {
-    renderizarMisEncuentros();
-}
-
-function cargarInvitaciones() {
-    renderizarInvitaciones();
-}
-
-function cerrarModalEncuentro() {
-    const modal = document.getElementById('modalEncuentro');
-    if (modal) modal.remove();
-}
-
-function usuarioLogueado() {
-    return localStorage.getItem('arvet_user') !== null;
-}
-
-function mostrarPreviewEncuentro(encuentroId) {
-    console.log('Mostrando preview para no logueado:', encuentroId);
-}
-
-
-
-
