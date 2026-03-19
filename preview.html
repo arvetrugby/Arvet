@@ -17,7 +17,7 @@
   --cream: #f5f0e6;
   --cream-light: #faf8f3;
   --cream-dark: #d4c4a8;
-  --gold-gradient: linear-gradient(135deg, #f5f0e6 0%, #ffffff 50%, #f5f0e6 100%);
+  --gold-gradient: linear-gradient(90deg, #d4c4a8 0%, #f5f0e6 25%, #ffffff 50%, #f5f0e6 75%, #d4c4a8 100%);
   --neutral-dark: #1a1a1a;
   --neutral-mid: #2d2d2d;
 }
@@ -79,33 +79,40 @@ body {
     linear-gradient(to bottom, rgba(26,26,26,0.3) 0%, transparent 30%, transparent 60%, rgba(26,26,26,0.95) 100%);
 }
 
-/* Bordes curvos crema */
+/* BORDES CURVOS CON ONDA */
 .cream-border {
   position: absolute;
   z-index: 2;
   pointer-events: none;
+  left: -20%;
+  right: -20%;
+  width: 140%;
 }
 
 .cream-border.top {
-  top: -100px;
-  left: -10%;
-  right: -10%;
-  height: 300px;
-  border-bottom: 2px solid var(--cream-dark);
+  top: -150px;
+  height: 400px;
+  border-bottom: 3px solid transparent;
+  border-image: var(--gold-gradient) 1;
   border-radius: 0 0 50% 50%;
-  background: linear-gradient(to bottom, rgba(26,26,26,0.9), transparent);
-  opacity: 0.8;
+  background: linear-gradient(to bottom, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.7) 40%, transparent 100%);
+  box-shadow: 
+    0 20px 60px rgba(212, 196, 168, 0.15),
+    0 10px 30px rgba(0,0,0,0.5);
+  filter: drop-shadow(0 5px 15px rgba(245, 240, 230, 0.2));
 }
 
 .cream-border.bottom {
-  bottom: -100px;
-  left: -10%;
-  right: -10%;
-  height: 300px;
-  border-top: 2px solid var(--cream-dark);
+  bottom: -150px;
+  height: 400px;
+  border-top: 3px solid transparent;
+  border-image: var(--gold-gradient) 1;
   border-radius: 50% 50% 0 0;
-  background: linear-gradient(to top, rgba(26,26,26,0.95), transparent);
-  opacity: 0.8;
+  background: linear-gradient(to top, rgba(26,26,26,0.98) 0%, rgba(26,26,26,0.8) 40%, transparent 100%);
+  box-shadow: 
+    0 -20px 60px rgba(212, 196, 168, 0.15),
+    0 -10px 30px rgba(0,0,0,0.5);
+  filter: drop-shadow(0 -5px 15px rgba(245, 240, 230, 0.2));
 }
 
 /* Contenido */
@@ -159,8 +166,11 @@ body {
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 3px;
-  color: white;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
 }
 
 /* Center - Fechas */
@@ -168,7 +178,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   margin: auto 0;
 }
 
@@ -187,17 +197,24 @@ body {
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   font-weight: 400;
   letter-spacing: 8px;
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--cream-light);
+  text-shadow: 0 0 20px rgba(245, 240, 230, 0.3);
+  position: relative;
+}
+
+.hora-inicio::before,
+.hora-inicio::after {
+  content: '—';
+  margin: 0 15px;
+  color: var(--cream-dark);
+  opacity: 0.5;
 }
 
 .tags-subtle {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-top: 20px;
+  margin-top: 25px;
   font-family: 'Teko', sans-serif;
   font-size: clamp(0.9rem, 1.5vw, 1.1rem);
   letter-spacing: 3px;
@@ -219,12 +236,13 @@ body {
   letter-spacing: 2px;
   color: var(--cream-dark);
   text-transform: uppercase;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .lugar-discreto svg {
   width: 14px;
   height: 14px;
+  stroke: var(--cream);
 }
 
 /* Info section */
@@ -248,7 +266,10 @@ body {
   font-weight: 500;
   letter-spacing: 5px;
   text-transform: uppercase;
-  color: var(--cream);
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -259,7 +280,8 @@ body {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--cream-dark), transparent);
+  background: var(--gold-gradient);
+  opacity: 0.5;
 }
 
 .description-text {
@@ -278,19 +300,32 @@ body {
 }
 
 .price-item {
-  background: linear-gradient(135deg, rgba(245, 240, 230, 0.1), rgba(26, 26, 26, 0.5));
+  background: linear-gradient(135deg, rgba(245, 240, 230, 0.05), rgba(26, 26, 26, 0.5));
   border: 1px solid var(--cream-dark);
   border-radius: 12px;
   padding: 30px 40px;
   text-align: center;
   min-width: 200px;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.price-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gold-gradient);
+  opacity: 0.3;
 }
 
 .price-item:hover {
   transform: translateY(-5px);
   border-color: var(--cream);
-  box-shadow: 0 10px 30px rgba(245, 240, 230, 0.1);
+  box-shadow: 0 10px 40px rgba(245, 240, 230, 0.1);
 }
 
 .price-value {
@@ -315,7 +350,7 @@ body {
 /* Footer */
 .footer-section {
   background: #050505;
-  border-top: 1px solid rgba(245, 240, 230, 0.2);
+  border-top: 1px solid rgba(245, 240, 230, 0.1);
   padding: 30px 20px;
   text-align: center;
 }
@@ -343,7 +378,7 @@ body {
   
   .cream-border.top,
   .cream-border.bottom {
-    height: 200px;
+    height: 250px;
   }
   
   .fecha-principal {
@@ -353,6 +388,11 @@ body {
   .hora-inicio {
     font-size: clamp(1.2rem, 5vw, 1.8rem);
     letter-spacing: 4px;
+  }
+  
+  .hora-inicio::before,
+  .hora-inicio::after {
+    margin: 0 8px;
   }
 }
 
@@ -368,7 +408,6 @@ body {
   font-size: 1.5rem;
   letter-spacing: 5px;
 }
-
   </style>
 </head>
 <body>
