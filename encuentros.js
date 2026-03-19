@@ -1781,8 +1781,8 @@ async function guardarEdicionEncuentro(e, encuentroId) {
     
     const usuario = obtenerUsuarioActual();
     
-    // Usar GET
-    const params = new URLSearchParams({
+    // 🔥 USAR POST con mode: 'no-cors' (igual que crear)
+    const data = {
         action: 'actualizarEncuentro',
         id: encuentroId,
         equipoId: usuario.equipoId,
@@ -1795,25 +1795,26 @@ async function guardarEdicionEncuentro(e, encuentroId) {
         paisId: document.getElementById('editPaisId').value,
         provinciaId: document.getElementById('editProvinciaId').value,
         ciudadId: document.getElementById('editCiudadId').value,
-        cupoMaximo: document.getElementById('editCupo').value,
+        cupoMaximo: parseInt(document.getElementById('editCupo').value),
         fechasJSON: JSON.stringify(fechas),
         valoresJSON: JSON.stringify(valores),
         descripcion: document.getElementById('editDescripcion').value
-    });
-    
-    const url = `${API_URL}?${params.toString()}`;
+    };
     
     try {
-        const response = await fetch(url);
-        const result = await response.json();
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
         
-        if (result.success) {
-            document.getElementById('modalEditarEncuentro').remove();
-            mostrarMensajeEncuentros('Encuentro actualizado correctamente', 'success');
-            renderizarMisEncuentros();
-        } else {
-            mostrarMensajeEncuentros(result.error || 'Error al actualizar', 'error');
-        }
+        // Como usamos no-cors, no podemos leer la respuesta
+        // Asumimos que fue exitoso si no hay error
+        document.getElementById('modalEditarEncuentro').remove();
+        mostrarMensajeEncuentros('Encuentro actualizado correctamente', 'success');
+        setTimeout(() => renderizarMisEncuentros(), 500);
+        
     } catch (err) {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error de conexión', 'error');
@@ -1830,25 +1831,24 @@ async function cancelarEncuentro(encuentroId) {
     
     const usuario = obtenerUsuarioActual();
     
-    // Usar GET en lugar de POST
-    const params = new URLSearchParams({
+    // 🔥 USAR POST con mode: 'no-cors'
+    const data = {
         action: 'cancelarEncuentro',
         encuentroId: encuentroId,
         equipoId: usuario.equipoId
-    });
-    
-    const url = `${API_URL}?${params.toString()}`;
+    };
     
     try {
-        const response = await fetch(url);
-        const result = await response.json();
+        await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
         
-        if (result.success) {
-            mostrarMensajeEncuentros('Encuentro cancelado', 'success');
-            renderizarMisEncuentros();
-        } else {
-            mostrarMensajeEncuentros(result.error || 'Error al cancelar', 'error');
-        }
+        mostrarMensajeEncuentros('Encuentro cancelado', 'success');
+        setTimeout(() => renderizarMisEncuentros(), 500);
+        
     } catch (err) {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error de conexión', 'error');
