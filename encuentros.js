@@ -1131,24 +1131,22 @@ function invitarEquipos(encuentroId) {
 
 async function aceptarInvitacion(encuentroId) {
   const usuario = obtenerUsuarioActual();
-  // DEBUG
-  console.log('API_URL:', typeof API_URL, API_URL);
-  console.log('usuario:', usuario);
-  console.log('encuentroId:', encuentroId);
+  
+  // Usar GET en lugar de POST (evita problemas de CORS)
+  const params = new URLSearchParams({
+    action: 'responderEncuentro',
+    encuentroId: encuentroId,
+    equipoId: usuario.equipoId,
+    estado: 'aceptado'
+  });
+  
+  const url = `${API_URL}?${params.toString()}`;
+  console.log('URL:', url);
   
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'responderEncuentro',
-        encuentroId: encuentroId,
-        equipoId: usuario.equipoId,
-        estado: 'aceptado'
-      })
-    });
-    
+    const response = await fetch(url);
     const result = await response.json();
+    console.log('Result:', result);
     
     if (result.success) {
       mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
@@ -1156,10 +1154,10 @@ async function aceptarInvitacion(encuentroId) {
     } else {
       mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
     }
-    } catch (err) {
-    console.error('Error completo:', err);
-    mostrarMensajeEncuentros('Error: ' + err.message, 'error');
-    }
+  } catch (err) {
+    console.error('Error:', err);
+    mostrarMensajeEncuentros('Error de conexión', 'error');
+  }
 }
 
 async function rechazarInvitacion(encuentroId) {
