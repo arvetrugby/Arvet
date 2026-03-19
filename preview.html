@@ -395,33 +395,36 @@ height:180px;
 }
 
 }
+.download-btn{
+display:block;
+margin:40px auto;
+padding:14px 35px;
 
-  .download-buttons{
-display:flex;
-gap:15px;
-justify-content:center;
-flex-wrap:wrap;
-margin:40px 0;
-}
-
-.download-buttons button{
-font-family:'Teko';
+font-family:'Teko',sans-serif;
+font-size:20px;
 letter-spacing:2px;
-font-size:16px;
-padding:12px 25px;
-background:linear-gradient(135deg,#c9a227,#f4d03f);
-border:none;
-border-radius:30px;
-cursor:pointer;
+
 color:#0a1628;
-font-weight:600;
-transition:all .3s;
+background:linear-gradient(135deg,#c9a227,#f4d03f);
+
+border:none;
+border-radius:40px;
+
+cursor:pointer;
+
+transition:all .25s ease;
 }
 
-.download-buttons button:hover{
+.download-btn:hover{
 transform:translateY(-3px);
-box-shadow:0 10px 20px rgba(201,162,39,.4);
+box-shadow:0 8px 20px rgba(201,162,39,0.5);
 }
+
+.download-btn:active{
+transform:translateY(0);
+box-shadow:0 4px 10px rgba(201,162,39,0.3);
+}
+
 </style>
 </head>
 <body>
@@ -593,11 +596,9 @@ function formatDates(fechasJSON) {
             </section>
 <div class="download-buttons">
 
-<button onclick="descargarHistoria()">Descargar Historia</button>
-
-<button onclick="descargarPost()">Descargar Post</button>
-
-<button onclick="descargarFlyer()">Descargar Flyer</button>
+<button class="download-btn" onclick="descargarFlyer()">
+DESCARGAR FLYER
+</button>
 
 </div>
             <!-- INFO SECTION -->
@@ -639,60 +640,26 @@ function formatDates(fechasJSON) {
   }
 </script>
   <script>
-  function capturarElemento(width,height,nombre){
+function descargarFlyer(){
 
-const flyer=document.querySelector(".hero-section");
-
-const originalWidth=flyer.style.width;
-
-flyer.style.width=width+"px";
-
-setTimeout(()=>{
+const flyer = document.querySelector(".hero-section");
 
 html2canvas(flyer,{
 scale:4,
 useCORS:true
 }).then(canvas=>{
 
-let finalCanvas=document.createElement("canvas");
-finalCanvas.width=width;
-finalCanvas.height=height;
+const link=document.createElement("a");
 
-let ctx=finalCanvas.getContext("2d");
+link.download="flyer.jpg";
 
-ctx.fillStyle="#000";
-ctx.fillRect(0,0,width,height);
-
-ctx.drawImage(canvas,0,0,width,height);
-
-let link=document.createElement("a");
-
-link.download=nombre+".jpg";
-
-link.href=finalCanvas.toDataURL("image/jpeg",0.95);
+link.href=canvas.toDataURL("image/jpeg",0.95);
 
 link.click();
 
-flyer.style.width=originalWidth;
-
 });
 
-},300);
-
 }
-
-function descargarHistoria(){
-capturarElemento(1080,1920,"flyer-historia");
-}
-
-function descargarPost(){
-capturarElemento(1080,1350,"flyer-post");
-}
-
-function descargarFlyer(){
-capturarElemento(430,800,"flyer-celular");
-}
-
   </script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
