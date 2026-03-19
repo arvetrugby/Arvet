@@ -395,6 +395,33 @@ height:180px;
 }
 
 }
+
+  .download-buttons{
+display:flex;
+gap:15px;
+justify-content:center;
+flex-wrap:wrap;
+margin:40px 0;
+}
+
+.download-buttons button{
+font-family:'Teko';
+letter-spacing:2px;
+font-size:16px;
+padding:12px 25px;
+background:linear-gradient(135deg,#c9a227,#f4d03f);
+border:none;
+border-radius:30px;
+cursor:pointer;
+color:#0a1628;
+font-weight:600;
+transition:all .3s;
+}
+
+.download-buttons button:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(201,162,39,.4);
+}
 </style>
 </head>
 <body>
@@ -564,7 +591,15 @@ function formatDates(fechasJSON) {
                 </div>
               </div>
             </section>
+<div class="download-buttons">
 
+<button onclick="descargarHistoria()">Descargar Historia</button>
+
+<button onclick="descargarPost()">Descargar Post</button>
+
+<button onclick="descargarFlyer()">Descargar Flyer</button>
+
+</div>
             <!-- INFO SECTION -->
             <section class="info-section">
               <div class="info-container">
@@ -603,6 +638,62 @@ function formatDates(fechasJSON) {
       });
   }
 </script>
+  <script>
+  function capturarElemento(width,height,nombre){
 
+const flyer=document.querySelector(".hero-section");
+
+const originalWidth=flyer.style.width;
+
+flyer.style.width=width+"px";
+
+setTimeout(()=>{
+
+html2canvas(flyer,{
+scale:4,
+useCORS:true
+}).then(canvas=>{
+
+let finalCanvas=document.createElement("canvas");
+finalCanvas.width=width;
+finalCanvas.height=height;
+
+let ctx=finalCanvas.getContext("2d");
+
+ctx.fillStyle="#000";
+ctx.fillRect(0,0,width,height);
+
+ctx.drawImage(canvas,0,0,width,height);
+
+let link=document.createElement("a");
+
+link.download=nombre+".jpg";
+
+link.href=finalCanvas.toDataURL("image/jpeg",0.95);
+
+link.click();
+
+flyer.style.width=originalWidth;
+
+});
+
+},300);
+
+}
+
+function descargarHistoria(){
+capturarElemento(1080,1920,"flyer-historia");
+}
+
+function descargarPost(){
+capturarElemento(1080,1350,"flyer-post");
+}
+
+function descargarFlyer(){
+capturarElemento(430,800,"flyer-celular");
+}
+
+  </script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
