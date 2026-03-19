@@ -1076,31 +1076,34 @@ async function aceptarInvitacion(encuentroId) {
 }
 
 async function rechazarInvitacion(encuentroId) {
-  if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
-  
-  const usuario = obtenerUsuarioActual();
-  
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
+    
+    const usuario = obtenerUsuarioActual();
+    
+    // Usar GET en lugar de POST (igual que aceptarInvitacion)
+    const params = new URLSearchParams({
         action: 'responderEncuentro',
         encuentroId: encuentroId,
         equipoId: usuario.equipoId,
         estado: 'rechazado'
-      })
     });
     
-    const result = await response.json();
+    const url = `${API_URL}?${params.toString()}`;
     
-    if (result.success) {
-      mostrarMensajeEncuentros('Invitación rechazada', 'info');
-      setTimeout(() => renderizarInvitaciones(), 300);
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+            mostrarMensajeEncuentros('Invitación rechazada', 'info');
+            setTimeout(() => renderizarInvitaciones(), 300);
+        } else {
+            mostrarMensajeEncuentros(result.error || 'Error al rechazar', 'error');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+        mostrarMensajeEncuentros('Error de conexión', 'error');
     }
-  } catch (err) {
-    mostrarMensajeEncuentros('Error de conexión', 'error');
-  }
 }
 
 // ============================================
