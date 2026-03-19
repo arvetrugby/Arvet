@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    setTimeout(() => {
+        const sectionEncuentros = document.getElementById('encuentros');
+        if (sectionEncuentros && sectionEncuentros.classList.contains('active')) {
+            showEncuentrosTab('creados');
+        }
+    }, 100);
+
     window.addEventListener('encuentrosTabChange', function(e) {
         if (e.detail === 'invitaciones') {
             cargarInvitaciones();
