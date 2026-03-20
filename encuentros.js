@@ -617,7 +617,7 @@ function guardarEncuentro(e) {
         fechasJSON: JSON.stringify(fechas),
         valoresJSON: JSON.stringify(valores),
         cupoMaximo: parseInt(document.getElementById('encCupo').value),
-        direccion: document.getElementById('encDireccion').value,
+        lugar: document.getElementById('encDireccion').value,
         lat: document.getElementById('encLat').value,
         lng: document.getElementById('encLng').value,
         paisId: document.getElementById('encPaisId').value,
