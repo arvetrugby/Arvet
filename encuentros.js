@@ -608,7 +608,8 @@ function guardarEncuentro(e) {
     }
     
     const usuario = obtenerUsuarioActual();
-    const encuentro = {
+    const params = new URLSearchParams({
+        action: 'crearEncuentro',
         equipoCreadorId: usuario.equipoId,
         creadorNombre: usuario.equipoNombre,
         nombre: document.getElementById('encNombre').value,
@@ -616,41 +617,33 @@ function guardarEncuentro(e) {
         fechasJSON: JSON.stringify(fechas),
         valoresJSON: JSON.stringify(valores),
         cupoMaximo: parseInt(document.getElementById('encCupo').value),
-        
-        // Ubicación completa del encuentro
         direccion: document.getElementById('encDireccion').value,
         lat: document.getElementById('encLat').value,
         lng: document.getElementById('encLng').value,
         paisId: document.getElementById('encPaisId').value,
         provinciaId: document.getElementById('encProvinciaId').value,
         ciudadId: document.getElementById('encCiudadId').value,
-        
         tipo: tipoFinal,
         descripcion: document.getElementById('encDescripcion').value,
         estado: 'publicado'
-    };
+    });
     
-    fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'crearEncuentro',
-            ...encuentro
-        })
-    })
-    .then(() => {
-        cerrarModalEncuentro();
-        mostrarMensajeEncuentros('Encuentro creado correctamente', 'success');
-        renderizarMisEncuentros();
+    fetch(`${API_URL}?${params.toString()}`)
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            cerrarModalEncuentro();
+            mostrarMensajeEncuentros('Encuentro creado correctamente', 'success');
+            renderizarMisEncuentros();
+        } else {
+            mostrarMensajeEncuentros(result.error || 'Error al crear encuentro', 'error');
+        }
     })
     .catch(err => {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error al crear encuentro', 'error');
     });
 }
-
-
 // ============================================
 // RENDERIZAR MIS ENCUENTROS (desde API)
 // ============================================
