@@ -1967,9 +1967,6 @@ function compartirEncuentro(id) {
                 mensaje += `\n📝 ${enc.descripcion.substring(0, 100)}${enc.descripcion.length > 100 ? '...' : ''}\n`;
             }
             
-            if (enc.flyerUrl) {
-                mensaje += `\n🖼️ ${enc.flyerUrl}\n`;
-            }
             
             mensaje += `\n🔗 ${linkEncuentro}`;
             
