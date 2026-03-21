@@ -954,7 +954,7 @@ document.addEventListener("click", function(e){
 
         if(!usuario){
             alert("Para participar necesitás tener un equipo creado.");
-            window.location.href = "crear-equipo.html";
+            window.location.href = "registro.html";
             return;
         }
 
@@ -963,7 +963,7 @@ document.addEventListener("click", function(e){
         } 
         else if(usuario.tipo === "jugador"){
             alert("Sos jugador. Tenés que unirte a un equipo para participar.");
-            window.location.href = "mis-equipos.html";
+            window.location.href = "panel-jugador.html";
         }
     }
 });
