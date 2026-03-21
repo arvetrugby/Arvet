@@ -25,6 +25,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    padding-top: 80px;
 }
 .box{
     background:white;
@@ -187,10 +188,40 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .numInputWrapper input {
     color: #111;
 }
+    .logo-top {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.logo-top img {
+    height: 50px;
+    object-fit: contain;
+}
+    .extra-links {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.extra-links a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.extra-links a:hover {
+    opacity: 0.7;
+}
 </style>
 </head>
 <body>
-
+<div class="logo-top">
+    <img src="https://arvetrugby.github.io/Arvet/images/ARVET.png" alt="ARVET">
+</div>
 <div class="box">
 <h2>Crear Equipo</h2>
 <p class="subtitle">Comienza a gestionar tu club en ARVET</p>
@@ -313,6 +344,10 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <div id="loading" class="loading">Creando equipo...</div>
 
 </form>
+    <div class="extra-links">
+    <a href="index.html">← Volver a ARVET</a>
+    <a href="login.html">Ya tengo equipo → Iniciar sesión</a>
+</div>
 </div>
    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
