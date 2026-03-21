@@ -1241,18 +1241,25 @@
            <div class="footer-links">
     <h4>Soporte</h4>
 
-    <a href="#" onclick="abrirModal('ayuda')">Ayuda</a>
-    <a href="#" onclick="abrirModal('contacto')">Contacto</a>
-    <a href="#" onclick="abrirModal('terminos')">Términos y condiciones</a>
-    <a href="#" onclick="abrirModal('privacidad')">Privacidad</a>
+    <a href="#" onclick="event.preventDefault(); abrirModal('ayuda')">Ayuda</a>
+    <a href="#" onclick="event.preventDefault(); abrirModal('contacto')">Contacto</a>
+    <a href="#" onclick="event.preventDefault(); abrirModal('terminos')">Términos y condiciones</a>
+    <a href="#" onclick="event.preventDefault(); abrirModal('privacidad')">Privacidad</a>
 </div>
-            
           <div class="footer-links">
     <h4>Comunidad</h4>
 
-    <a href="#" onclick="abrirModal('historias')">Historias de equipos</a>
-    <a href="#" onclick="abrirModal('blog')">Blog</a>
-    <a href="#" onclick="abrirModal('faq')">Preguntas frecuentes</a>
+    <a href="#" onclick="event.preventDefault(); abrirModal('historias')">
+        Historias de equipos
+    </a>
+
+    <a href="#" onclick="event.preventDefault(); abrirModal('blog')">
+        Blog
+    </a>
+
+    <a href="#" onclick="event.preventDefault(); abrirModal('faq')">
+        Preguntas frecuentes
+    </a>
 </div>
         </div>
         
