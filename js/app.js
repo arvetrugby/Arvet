@@ -612,7 +612,7 @@ function initRegistro() {
     // Inicializar selector internacional de teléfono
 const inputTelefono = document.querySelector("#telefono");
 
-const iti = window.intlTelInput(inputTelefono, {
+window.iti = window.intlTelInput(inputTelefono, {
     initialCountry: "auto",
     nationalMode: false,
     geoIpLookup: function(callback) {
@@ -1106,7 +1106,7 @@ function initRegistroJugador() {
 
 const inputTelefono = document.querySelector("#telefono");
 
-const iti = window.intlTelInput(inputTelefono, {
+window.iti = window.intlTelInput(inputTelefono, {
     initialCountry: "auto",
     nationalMode: false,
     geoIpLookup: function(callback) {
@@ -2832,8 +2832,8 @@ const mapPaisCodigo = {
     'Paraguay': 'py'
 };
 
-if (typeof iti !== "undefined" && mapPaisCodigo[pais]) {
-    iti.setCountry(mapPaisCodigo[pais]);
+if (window.iti && mapPaisCodigo[pais]) {
+    window.iti.setCountry(mapPaisCodigo[pais]);
 }
             
             // Mostrar en pantalla
