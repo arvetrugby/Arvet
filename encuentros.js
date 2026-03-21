@@ -850,28 +850,24 @@ async function renderizarInvitaciones() {
   const usuario = obtenerUsuarioActual();
   
   try {
-    // Cargar ambas listas en paralelo
-    const [respuestaAceptados, respuestaPendientes] = await Promise.all([
+    // 🔥 Cargar TRES listas en paralelo
+    const [respuestaAceptados, respuestaPendientes, respuestaRechazados] = await Promise.all([
       fetch(`${API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`).then(r => r.json()),
-      fetch(`${API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`).then(r => r.json())
+      fetch(`${API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`).then(r => r.json()),
+      fetch(`${API_URL}?action=getEncuentrosRechazados&equipoId=${usuario.equipoId}`).then(r => r.json())
     ]);
     
     const aceptados = respuestaAceptados.success ? respuestaAceptados.data : [];
     const todosPendientes = respuestaPendientes.success ? respuestaPendientes.data : [];
+    const rechazados = respuestaRechazados.success ? respuestaRechazados.data : [];
     
-    // Filtrar pendientes: excluir los que ya aceptamos o rechazamos
-    const idsRespondidos = new Set();
-    
-    // Buscar también rechazados
-    const respuestasSheet = await fetch(`${API_URL}?action=getRespuestasEncuentro&encuentroId=todos`).then(r => r.json()).catch(() => ({data:[]}));
-    // No hay endpoint para "todos", así que filtramos local por ahora
-    
-    // Mejor: verificar uno por uno o cargar desde getEncuentrosAceptados que ya tenemos
-    // Por simplicidad, usamos los aceptados que ya cargamos y filtramos del otro listado
-    
-    const idsAceptados = new Set(aceptados.map(a => a.id));
-    const pendientes = todosPendientes.filter(p => !idsAceptados.has(p.id));
-    
+    // Filtrar pendientes: excluir los que ya respondimos (aceptados o rechazados)
+    const idsRespondidos = new Set([
+      ...aceptados.map(a => a.id),
+      ...rechazados.map(r => r.id)
+    ]);
+    const pendientes = todosPendientes.filter(p => !idsRespondidos.has(p.id));
+
     // Actualizar badge (solo pendientes)
     if (badge) {
       if (pendientes.length > 0) {
@@ -882,7 +878,8 @@ async function renderizarInvitaciones() {
       }
     }
 
-    if (aceptados.length === 0 && pendientes.length === 0) {
+    // Si no hay nada, mostrar empty state
+    if (aceptados.length === 0 && pendientes.length === 0 && rechazados.length === 0) {
       container.innerHTML = '';
       if (empty) empty.style.display = 'block';
       return;
@@ -901,6 +898,17 @@ async function renderizarInvitaciones() {
       </div>
     ` : '';
 
+    // 🔥 HTML de RECHAZADOS (NUEVO)
+    const rechazadosHTML = rechazados.length > 0 ? `
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: #991b1b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <span style="width: 8px; height: 8px; background: #991b1b; border-radius: 50%;"></span>
+          Invitaciones rechazadas (${rechazados.length})
+        </h3>
+        ${rechazados.map(enc => generarCardEncuentro(enc, 'rechazado')).join('')}
+      </div>
+    ` : '';
+
     // HTML de PENDIENTES
     const pendientesHTML = pendientes.length > 0 ? `
       <div>
@@ -912,7 +920,8 @@ async function renderizarInvitaciones() {
       </div>
     ` : '';
 
-    container.innerHTML = aceptadosHTML + pendientesHTML;
+    // Orden: Aceptados → Rechazados → Pendientes
+    container.innerHTML = aceptadosHTML + rechazadosHTML + pendientesHTML;
         
   } catch (err) {
     console.error('Error cargando invitaciones:', err);
@@ -969,7 +978,7 @@ function generarCardEncuentro(enc, estado) {
     </div>
   ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.lugar || 'Sin ubicación'}</div>`;
 
-  // Botones según estado
+  // 🔥 BOTONES SEGÚN ESTADO (con case para 'rechazado')
   const botonesHTML = estado === 'aceptado' ? `
     <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
       <span style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
@@ -989,6 +998,15 @@ function generarCardEncuentro(enc, estado) {
         </a>
       ` : ''}
     </div>
+  ` : estado === 'rechazado' ? `
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <span style="display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
+        ✕ Rechazado
+      </span>
+      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
+        Ver detalle
+      </button>
+    </div>
   ` : `
     <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
       <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
@@ -1003,12 +1021,20 @@ function generarCardEncuentro(enc, estado) {
     </div>
   `;
 
+  // Badge según estado
   const badgeEstado = estado === 'aceptado' ? 
     `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-left: 5px;">Aceptado</span>` :
+    estado === 'rechazado' ?
+    `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fee2e2; color: #991b1b; margin-left: 5px;">Rechazado</span>` :
     `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e; margin-left: 5px;">Invitación disponible</span>`;
 
+  // Borde según estado
+  const borderStyle = estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : 
+                      estado === 'rechazado' ? 'border-left: 4px solid #ef4444; opacity: 0.85;' : 
+                      '';
+
   return `
-    <div class="encuentro-card ${estado === 'aceptado' ? 'invitacion-aceptada' : 'invitacion-pendiente'}" style="${estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : ''}">
+    <div class="encuentro-card ${estado === 'aceptado' ? 'invitacion-aceptada' : estado === 'rechazado' ? 'invitacion-rechazada' : 'invitacion-pendiente'}" style="${borderStyle}">
       <div class="encuentro-header">
         <div>
           <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
@@ -1057,8 +1083,6 @@ function generarCardEncuentro(enc, estado) {
     </div>
   `;
 }
-
-
 async function aceptarInvitacion(encuentroId) {
   const usuario = obtenerUsuarioActual();
   
