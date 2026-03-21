@@ -649,6 +649,57 @@
       padding: 30px 20px;
     }
   }
+
+  /* CTA EVENTO */
+.evento-cta {
+    max-width: 600px;
+    margin: 0 auto 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+}
+
+.evento-cta button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* BOTON PRINCIPAL */
+#btnParticipar {
+    background: linear-gradient(135deg, #d4af37, #f4e4ba, #d4af37);
+    color: #0a0f1a;
+}
+
+#btnParticipar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(212, 175, 55, 0.3);
+}
+
+/* BOTON SECUNDARIO */
+#btnVolver {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#btnVolver:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.evento-nota {
+    margin-top: 10px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+}
 </style>
 </head>
 <body>
@@ -854,6 +905,15 @@
             </section>
 
             <footer class="footer-section">
+            <div class="evento-cta">
+    <button id="btnParticipar">Participar</button>
+    <button id="btnVolver">← Volver a ARVET</button>
+
+    <p class="evento-nota">
+        Para participar necesitás tener un equipo creado.<br>
+        Si sos jugador, iniciá sesión o buscá tu equipo y registrate dentro del mismo.
+    </p>
+</div>
               <div class="org-info">Organiza: ${enc.creadorNombre || 'Organizador'}</div>
             </footer>
           </div>
@@ -866,6 +926,39 @@
           </div>`;
       });
   }
+
+  // ==========================
+// BOTON PARTICIPAR
+// ==========================
+document.addEventListener("click", function(e){
+    if(e.target.id === "btnParticipar"){
+
+        const usuario = JSON.parse(localStorage.getItem("arvet_user"));
+
+        if(!usuario){
+            alert("Para participar necesitás tener un equipo creado.");
+            window.location.href = "crear-equipo.html";
+            return;
+        }
+
+        if(usuario.tipo === "equipo"){
+            inscribirEquipo(usuario);
+        } 
+        else if(usuario.tipo === "jugador"){
+            alert("Sos jugador. Tenés que unirte a un equipo para participar.");
+            window.location.href = "mis-equipos.html";
+        }
+    }
+});
+
+
+// ==========================
+// INSCRIPCION (base)
+// ==========================
+function inscribirEquipo(usuario){
+    alert("Equipo inscripto correctamente 🏉");
+    console.log("Equipo:", usuario);
+}
 </script>
 </body>
 </html>
