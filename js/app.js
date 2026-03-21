@@ -1106,19 +1106,37 @@ function initRegistroJugador() {
 
 const inputTelefono = document.querySelector("#telefono");
 
-// Solo crear si no existe (evitar pisar el de registro)
-if (!window.iti) {
-    window.iti = window.intlTelInput(inputTelefono, {
-        initialCountry: "auto",
-        nationalMode: false,
-        geoIpLookup: function(callback) {
-            fetch("https://ipapi.co/json")
-                .then(res => res.json())
-                .then(data => callback(data.country_code))
-                .catch(() => callback("ar"));
-        },
-        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
-    });
+// 🔥 OBTENER PAÍS DEL EQUIPO si ya fue cargado por registro-jugador.html
+const paisDesdeEquipo = window.paisEquipo || window.equipoData?.pais;
+const mapPaisCodigo = {
+    'Argentina': 'ar', 'Uruguay': 'uy', 'Brasil': 'br', 'Chile': 'cl',
+    'Paraguay': 'py', 'Bolivia': 'bo', 'Perú': 'pe', 'Peru': 'pe',
+    'Colombia': 'co', 'Ecuador': 'ec', 'Venezuela': 've',
+    'México': 'mx', 'Mexico': 'mx', 'España': 'es', 'Spain': 'es',
+    'Estados Unidos': 'us', 'United States': 'us'
+};
+
+const codigoInicial = paisDesdeEquipo ? (mapPaisCodigo[paisDesdeEquipo] || 'ar') : 'auto';
+
+window.iti = window.intlTelInput(inputTelefono, {
+    initialCountry: codigoInicial,  // ← usa país del equipo o auto
+    nationalMode: false,
+    preferredCountries: [codigoInicial !== 'auto' ? codigoInicial : 'ar', 'ar', 'uy', 'br', 'cl'],
+    geoIpLookup: function(callback) {
+        // Si ya tenemos país del equipo, usarlo directamente
+        if (paisDesdeEquipo && mapPaisCodigo[paisDesdeEquipo]) {
+            callback(mapPaisCodigo[paisDesdeEquipo]);
+            return;
+        }
+        // Si no, detectar por IP
+        fetch("https://ipapi.co/json")
+            .then(res => res.json())
+            .then(data => callback(data.country_code))
+            .catch(() => callback("ar"));
+    },
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+});
+
 } else {
     // Si ya existe, solo actualizar el input
     window.iti.setInput(inputTelefono);
