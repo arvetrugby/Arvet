@@ -524,38 +524,75 @@
 .jugadores-badge {
     animation: fadeIn 0.3s ease;
 }
-
-    /* Botón sticky al hacer scroll */
+/* ===== BOTÓN STICKY ===== */
 #btnCrearEquipoSticky {
     position: fixed;
-    top: 70px; /* Ajustá según la altura de tu navbar */
+    top: 70px;
     left: 0;
     right: 0;
     width: 100%;
     max-width: 100%;
     border-radius: 0;
+
+    display: flex;
     justify-content: center;
+    align-items: center;
+
+    padding: 12px 20px;
+
     z-index: 100;
     transform: translateY(-100%);
     opacity: 0;
     transition: all 0.3s ease;
+
     box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
 }
 
-/* Cuando tiene la clase visible (se agrega con JS) */
+/* Visible cuando hace scroll */
 #btnCrearEquipoSticky.visible {
     transform: translateY(0);
     opacity: 1;
 }
 
-/* El texto centrado y angosto */
-#btnCrearEquipoSticky span:first-child {
-    max-width: 350px;
-    text-align: center;
-    line-height: 1.2;
+/* ===== CONTENIDO INTERNO (NUEVO) ===== */
+.btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
 }
 
-/* En el hero normal (sin scroll) */
+/* Texto */
+.btn-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Flecha */
+.icono-flecha {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    animation: bounceRight 1.5s infinite;
+}
+
+.icono-flecha svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* Animación más sutil */
+@keyframes bounceRight {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(3px); }
+}
+
+/* ===== HERO (IMPORTANTE: mantener esto) ===== */
 .hero-cta #btnCrearEquipoSticky {
     position: relative;
     top: auto;
@@ -568,18 +605,9 @@
     box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3);
 }
 
-/* Ocultar el botón del hero cuando el sticky está visible */
+/* Ocultar botón del hero cuando aparece sticky */
 #btnCrearEquipoSticky.visible-en-hero {
     display: none;
-}
-    .icono-flecha {
-    display: inline-flex;
-    animation: bounceRight 1.5s infinite;
-}
-
-@keyframes bounceRight {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(4px); }
 }
     .footer {
     background: #020617;
@@ -899,13 +927,14 @@
                 </p>
                 <div class="hero-cta">
                     <a href="registro.html" class="btn-primary-large" id="btnCrearEquipoSticky">
-    <span>Sumate!</span>
-    <span>
+    <span class="btn-content">
+        <span class="btn-text">Sumate! Crear equipo</span>
         <span class="icono-flecha">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke="white"/>
-        </svg>
-    </span> <span>Crear equipo</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+        </span>
+    </span>
 </a>
                     <a href="#como-funciona" class="btn-secondary-large">
                         Mirá las soluciones
