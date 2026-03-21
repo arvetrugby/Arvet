@@ -1104,6 +1104,7 @@ function initRegistroJugador() {
 
     // Inicializar selector internacional de teléfono
 
+// Inicializar selector internacional de teléfono
 const inputTelefono = document.querySelector("#telefono");
 
 // 🔥 OBTENER PAÍS DEL EQUIPO si ya fue cargado por registro-jugador.html
@@ -1118,48 +1119,48 @@ const mapPaisCodigo = {
 
 const codigoInicial = paisDesdeEquipo ? (mapPaisCodigo[paisDesdeEquipo] || 'ar') : 'auto';
 
-window.iti = window.intlTelInput(inputTelefono, {
-    initialCountry: codigoInicial,  // ← usa país del equipo o auto
-    nationalMode: false,
-    preferredCountries: [codigoInicial !== 'auto' ? codigoInicial : 'ar', 'ar', 'uy', 'br', 'cl'],
-    geoIpLookup: function(callback) {
-        // Si ya tenemos país del equipo, usarlo directamente
-        if (paisDesdeEquipo && mapPaisCodigo[paisDesdeEquipo]) {
-            callback(mapPaisCodigo[paisDesdeEquipo]);
-            return;
-        }
-        // Si no, detectar por IP
-        fetch("https://ipapi.co/json")
-            .then(res => res.json())
-            .then(data => callback(data.country_code))
-            .catch(() => callback("ar"));
-    },
-    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
-});
-
-} else {
-    // Si ya existe, solo actualizar el input
-    window.iti.setInput(inputTelefono);
+// ✅ SOLO CREAR SI NO EXISTE
+if (!window.iti) {
+    window.iti = window.intlTelInput(inputTelefono, {
+        initialCountry: codigoInicial,
+        nationalMode: false,
+        preferredCountries: [codigoInicial !== 'auto' ? codigoInicial : 'ar', 'ar', 'uy', 'br', 'cl'],
+        geoIpLookup: function(callback) {
+            if (paisDesdeEquipo && mapPaisCodigo[paisDesdeEquipo]) {
+                callback(mapPaisCodigo[paisDesdeEquipo]);
+                return;
+            }
+            fetch("https://ipapi.co/json")
+                .then(res => res.json())
+                .then(data => callback(data.country_code))
+                .catch(() => callback("ar"));
+        },
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+    });
+} else if (paisDesdeEquipo && mapPaisCodigo[paisDesdeEquipo]) {
+    // Si ya existe, solo cambiar el país
+    window.iti.setCountry(mapPaisCodigo[paisDesdeEquipo]);
 }
 
- }   
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Validar contraseñas
-        const password = document.getElementById('password').value;
-        const passwordConfirm = document.getElementById('passwordConfirm').value;
-        
-        if (password !== passwordConfirm) {
-            mostrarMensaje('Las contraseñas no coinciden', 'error');
-            return;
-        }
-        
-        // Mostrar loading
-        btn.disabled = true;
-        btnText.style.display = 'none';
-        loading.style.display = 'block';
-        msg.style.display = 'none';
+// Manejar envío del formulario (SOLO UNO, no duplicar)
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validar contraseñas
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('passwordConfirm').value;
+    
+    if (password !== passwordConfirm) {
+        mostrarMensaje('Las contraseñas no coinciden', 'error');
+        return;
+    }
+    
+    // Mostrar loading
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    loading.style.display = 'block';
+    msg.style.display = 'none';
+    
         
         const data = {
             nombre: document.getElementById('nombre').value.trim(),
