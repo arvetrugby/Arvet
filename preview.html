@@ -927,7 +927,24 @@
       });
   }
 
-  // ==========================
+// ==========================
+// BOTON VOLVER (FUNCIONA SI O SI)
+// ==========================
+document.addEventListener("click", function(e){
+    if(e.target.id === "btnVolver"){
+
+        const seccion = localStorage.getItem("arvet_last_section");
+
+        if(seccion){
+            window.location.href = `https://arvetrugby.github.io/Arvet/index.html#${seccion}`;
+        } else {
+            window.location.href = "https://arvetrugby.github.io/Arvet/index.html#partidos";
+        }
+    }
+});
+
+
+// ==========================
 // BOTON PARTICIPAR
 // ==========================
 document.addEventListener("click", function(e){
@@ -953,11 +970,11 @@ document.addEventListener("click", function(e){
 
 
 // ==========================
-// INSCRIPCION (base)
+// FUNCION INSCRIPCION
 // ==========================
 function inscribirEquipo(usuario){
     alert("Equipo inscripto correctamente 🏉");
-    console.log("Equipo:", usuario);
+    console.log(usuario);
 }
 </script>
 </body>
