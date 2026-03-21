@@ -405,11 +405,6 @@ async function cargarPaises() {
           <div class="pais-equipos">${pais.cantidadEquipos} equipos</div>
         </div>
       `).join('');
-        // 👇 contador después de renderizar
-      const contador = document.getElementById("contadorEquipos");
-      if (contador) {
-        animarContador(contador, totalEquipos);
-    }
     }
   } catch (error) {
     container.innerHTML = '<p>Error al cargar países</p>';
