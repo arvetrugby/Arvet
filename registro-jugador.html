@@ -352,7 +352,9 @@ async function cargarDatosEquipo() {
         }
         
         const data = resultado.data;
-
+// ✅ EXPONER PAÍS GLOBALMENTE PARA QUE app.js LO USE
+window.paisEquipo = data.pais;
+window.equipoData = data; // por si acaso
         // ✅ APLICAR COLOR DEL EQUIPO AL BODY
         const colorPrimario = data.colorPrimario || '#1e293b';
         document.body.style.background = colorPrimario;
