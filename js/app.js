@@ -1027,20 +1027,27 @@ function initRegistroJugador() {
     const urlParams = new URLSearchParams(window.location.search);
     const equipoId = urlParams.get('equipo');
     const esAdmin = urlParams.get('admin') === '1';
-
+    
+    // ✅ PAÍS DESDE URL (nuevo)
+    const paisDesdeURL = urlParams.get('pais');
+    const paisDesdeEquipo = paisDesdeURL || window.paisEquipo || window.equipoData?.pais;
+    
     console.log('Equipo ID:', equipoId);
     console.log('¿Viene del admin?', esAdmin);
-
+    console.log('País detectado:', paisDesdeEquipo); // útil para debug
+    
     // 🔥 Cerrar sesión SOLO si NO viene del admin
     if (!esAdmin) {
         localStorage.removeItem('arvet_user');
     }
+    
     // 🔥 AVATAR DEFAULT
-    let avatarUrl = "https://i.ibb.co/hb0x9zc/avatar1.png";
+    let avatarUrl = "https://i.ibb.co/hb0x9zc/avatar1.png"; // sin espacio al final
 
     const avatarPreview = document.getElementById('avatarPreview');
     const avatarOptions = document.querySelectorAll('.avatar-option');
     const avatarUpload = document.getElementById('avatarUpload');
+
 
     // Selección avatar predefinido
     avatarOptions.forEach(img => {
@@ -1480,9 +1487,9 @@ async function cargarEquipo(slug) {
         await Promise.all(tareas);
 
         // ----- BOTÓN UNIRSE -----
-        const btnUnirse = document.getElementById('btnUnirse');
-        if (btnUnirse) btnUnirse.href = `registro-jugador.html?equipo=${window.currentEquipoId}`;
-
+        const paisEquipo = window.currentEquipo?.pais || 'Argentina';
+btnUnirse.href = `registro-jugador.html?equipo=${window.currentEquipoId}&pais=${encodeURIComponent(paisEquipo)}`;
+        
     } catch (error) {
         console.error('❌ Error en cargarEquipo:', error);
         if (header) header.innerHTML = '<div class="error">Error de conexión</div>';
