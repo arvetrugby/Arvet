@@ -1114,8 +1114,7 @@ function initRegistroJugador() {
 // Inicializar selector internacional de teléfono
 const inputTelefono = document.querySelector("#telefono");
 
-// 🔥 OBTENER PAÍS DEL EQUIPO si ya fue cargado por registro-jugador.html
-const paisDesdeEquipo = window.paisEquipo || window.equipoData?.pais;
+
 const mapPaisCodigo = {
     'Argentina': 'ar', 'Uruguay': 'uy', 'Brasil': 'br', 'Chile': 'cl',
     'Paraguay': 'py', 'Bolivia': 'bo', 'Perú': 'pe', 'Peru': 'pe',
