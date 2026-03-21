@@ -1019,7 +1019,6 @@ function checkExistingSession() {
 // ============================================
 // PÁGINA: REGISTRO JUGADOR
 // ============================================
-
 function initRegistroJugador() {
     console.log('=== INICIO REGISTRO JUGADOR ===');
 
@@ -1028,13 +1027,14 @@ function initRegistroJugador() {
     const equipoId = urlParams.get('equipo');
     const esAdmin = urlParams.get('admin') === '1';
     
-    // ✅ PAÍS DESDE URL (nuevo)
+    // ✅ PAÍS - SOLO UNA DECLARACIÓN
     const paisDesdeURL = urlParams.get('pais');
-    const paisDesdeEquipo = paisDesdeURL || window.paisEquipo || window.equipoData?.pais;
+    let paisDesdeEquipo = paisDesdeURL || window.paisEquipo || window.equipoData?.pais;
     
     console.log('Equipo ID:', equipoId);
     console.log('¿Viene del admin?', esAdmin);
-    console.log('País detectado:', paisDesdeEquipo); // útil para debug
+    console.log('País detectado:', paisDesdeEquipo);
+    
     
     // 🔥 Cerrar sesión SOLO si NO viene del admin
     if (!esAdmin) {
