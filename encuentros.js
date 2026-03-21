@@ -535,6 +535,16 @@ async function subirFlyer() {
 function guardarEncuentro(e) {
     e.preventDefault();
     
+    // 🔥 PREVENIR DOBLE SUBMIT
+    const btnGuardar = document.getElementById('btnGuardarEncuentro');
+    if (btnGuardar.disabled) return; // Ya se envió, ignorar
+    
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Creando encuentro...';
+    btnGuardar.style.opacity = '0.7';
+    btnGuardar.style.cursor = 'not-allowed';
+    
+    
     // Validar ubicación
     if (!document.getElementById('encLat').value || !document.getElementById('encLng').value) {
         mostrarMensajeEncuentros('⚠️ Por favor marcá la ubicación en el mapa', 'error');
@@ -631,7 +641,13 @@ fechas.push({
     
     fetch(`${API_URL}?${params.toString()}`)
     .then(response => response.json())
-    .then(result => {
+   .then(result => {
+        // Restaurar botón
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = 'Crear encuentro';
+        btnGuardar.style.opacity = '1';
+        btnGuardar.style.cursor = 'pointer';
+        
         if (result.success) {
             cerrarModalEncuentro();
             mostrarMensajeEncuentros('Encuentro creado correctamente', 'success');
@@ -641,6 +657,11 @@ fechas.push({
         }
     })
     .catch(err => {
+         btnGuardar.disabled = false;
+        btnGuardar.textContent = 'Crear encuentro';
+        btnGuardar.style.opacity = '1';
+        btnGuardar.style.cursor = 'pointer';
+        
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error al crear encuentro', 'error');
     });
