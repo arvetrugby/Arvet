@@ -685,46 +685,46 @@
 }
 
  
-/* Container con sombras a los costados - igual que equipos/países */
-.encuentros-slider-container {
+/* Wrapper con sombras - FUERA del slider, color del body */
+.slider-wrapper {
     position: relative;
     margin-top: 30px;
 }
 
-.encuentros-slider-container::before,
-.encuentros-slider-container::after {
+.slider-wrapper::before,
+.slider-wrapper::after {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 100px;
+    width: 80px;
     pointer-events: none;
-    z-index: 2;
+    z-index: 10;
 }
 
-.encuentros-slider-container::before {
+/* Color del fondo de la sección (#0f172a) */
+.slider-wrapper::before {
     left: 0;
     background: linear-gradient(to right, #0f172a 0%, transparent 100%);
 }
 
-.encuentros-slider-container::after {
+.slider-wrapper::after {
     right: 0;
     background: linear-gradient(to left, #0f172a 0%, transparent 100%);
 }
 
-/* Slider horizontal - igual estilo que equipos-slider */
+/* Slider - igual que equipos/países */
 .encuentros-slider {
     display: flex;
     gap: 20px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    padding: 20px 40px;
+    padding: 20px 0;
     scrollbar-width: thin;
     scrollbar-color: #38bdf8 #1e293b;
 }
 
-/* Webkit scrollbar */
 .encuentros-slider::-webkit-scrollbar {
     height: 8px;
 }
@@ -739,7 +739,7 @@
     border-radius: 4px;
 }
 
-/* Mobile: scrollbar nativo */
+/* Mobile */
 @media (max-width: 768px) {
     .encuentros-slider {
         scrollbar-width: none;
@@ -750,13 +750,13 @@
         display: none;
     }
     
-    .encuentros-slider-container::before,
-    .encuentros-slider-container::after {
-        width: 50px;
+    .slider-wrapper::before,
+    .slider-wrapper::after {
+        width: 40px;
     }
 }
 
-/* Card de encuentro */
+/* Cards */
 .encuentro-slide {
     flex: 0 0 auto;
     scroll-snap-align: start;
@@ -764,17 +764,14 @@
     border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease;
     background: #1e293b;
-    position: relative;
 }
 
 .encuentro-slide:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
-/* Imagen completa sin recortar */
 .encuentro-slide img {
     width: 100%;
     height: auto;
@@ -784,7 +781,6 @@
     display: block;
 }
 
-/* Fallback */
 .encuentro-slide-fallback {
     width: 100%;
     height: 300px;
@@ -795,7 +791,6 @@
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
-/* Info del encuentro */
 .encuentro-slide-info {
     padding: 16px;
     background: rgba(30, 41, 59, 0.95);
@@ -1034,11 +1029,13 @@
     </div>
 </section>
     
-   <section id="partidos" class="partidos-section">
+  <section id="partidos" class="partidos-section">
     <div class="container">
         <h2>PRÓXIMOS ENCUENTROS</h2>
         <p>Deslizá para ver los encuentros publicados.</p>
-        <div class="encuentros-slider-container">
+        
+        <!-- Wrapper fuera, con sombras del color del fondo -->
+        <div class="slider-wrapper">
             <div id="encuentrosSlider" class="encuentros-slider"></div>
         </div>
     </div>
