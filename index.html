@@ -942,7 +942,8 @@
                 </div>
                 <div class="hero-trust">
                     <div class="hero-trust-icons">
-                        <div class="trust-avatar">+50</div>
+                        <div class="trust-avatar" id="contadorEquipos">0</div>
+                           
                     </div>
                     <span>equipos ya están usando ARVET</span>
                 </div>
@@ -1339,6 +1340,41 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(mostrarTexto, 2000);
 });
 </script>  
+    <script>
+function animarContador(elemento, valorFinal, duracion = 1500) {
+    let inicio = 0;
+    const incremento = valorFinal / (duracion / 16);
+
+    function actualizar() {
+        inicio += incremento;
+
+        if (inicio < valorFinal) {
+            elemento.textContent = Math.floor(inicio);
+            requestAnimationFrame(actualizar);
+        } else {
+            elemento.textContent = valorFinal;
+        }
+    }
+
+    actualizar();
+}
+
+function iniciarContadorEquipos() {
+    const contador = document.getElementById("contadorEquipos");
+    if (!contador) return;
+
+    const totalEquipos = document.querySelectorAll('.equipo-card').length;
+
+    if (totalEquipos > 0) {
+        animarContador(contador, totalEquipos);
+    }
+}
+
+/* Esperar a que carguen los equipos */
+window.addEventListener("load", () => {
+    setTimeout(iniciarContadorEquipos, 800);
+});
+</script>
 </body>
 </html>
 
