@@ -445,14 +445,127 @@ function ocultarLoader() {
       }
       
       // Tanto jugadores como admins (del mismo equipo) ven los encuentros
+           // Cargar encuentros donde el equipo fue invitado Y aceptó
       if (typeof cargarEncuentrosParaJugador === 'function') {
           console.log('Llamando a cargarEncuentrosParaJugador...');
           await cargarEncuentrosParaJugador(user.equipoId, jugadorId, 'panelJugadorEncuentros');
+      }
+      
+      // 🔥 NUEVO: Cargar encuentros creados por este equipo (para que el creador vea sus propios encuentros)
+      try {
+          const responseCreador = await fetch(`${API_URL}?action=getEncuentrosCreadorParaJugador&equipoId=${user.equipoId}&jugadorId=${jugadorId}`);
+          const resultCreador = await responseCreador.json();
+          
+          if (resultCreador.success && resultCreador.data && resultCreador.data.length > 0) {
+              console.log('Encuentros creador encontrados:', resultCreador.data.length);
+              
+              // Si ya hay contenido, agregamos un separador
+              const container = document.getElementById('panelJugadorEncuentros');
+              const tieneContenido = container.innerHTML.trim() !== '' && !container.innerHTML.includes('No tenés encuentros');
+              
+              if (tieneContenido) {
+                  container.innerHTML += `
+                      <div style="margin: 30px 0 20px 0; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                          <h3 style="color: #4f46e5; font-size: 1rem; margin: 0;">🏆 Encuentros que organizo</h3>
+                      </div>
+                  `;
+              } else {
+                  container.innerHTML = '';
+              }
+              
+              // Renderizar cada encuentro creado
+              for (const enc of resultCreador.data) {
+                  const cardHTML = generarCardEncuentroPanel(enc, true); // true = es creador
+                  container.innerHTML += cardHTML;
+              }
+          }
+      } catch (err) {
+          console.error('Error cargando encuentros creador:', err);
       } else {
           console.log('❌ cargarEncuentrosParaJugador no es una función');
           container.innerHTML = '<p style="color: #dc2626;">Error: función no disponible</p>';
       }
   }
+
+  // ==========================================
+// GENERAR CARD DE ENCUENTRO PARA PANEL JUGADOR
+// ==========================================
+function generarCardEncuentroPanel(enc, esCreador) {
+    let fechas = [];
+    try {
+        fechas = JSON.parse(enc.fechasJSON || '[]');
+    } catch(e) { fechas = []; }
+    
+    const fechaPrincipal = fechas[0] ? formatearFecha(fechas[0].dia) : 'Fecha a confirmar';
+    const horarioPrincipal = fechas[0]?.horarios?.[0]?.hora || '';
+    
+    // Estado visual
+    let estadoHTML = '';
+    let botonesHTML = '';
+    
+    if (enc.miRespuesta === 'voy') {
+        estadoHTML = `<span style="background: #dcfce7; color: #166534; padding: 6px 16px; border-radius: 20px; font-weight: 600;">✓ VOY</span>`;
+        botonesHTML = `
+            <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" 
+                style="flex: 1; padding: 12px; border: 2px solid #fee2e2; border-radius: 8px; background: white; color: #991b1b; font-weight: 600; cursor: pointer;">
+                Cambiar a NO VOY
+            </button>
+        `;
+    } else if (enc.miRespuesta === 'no_voy') {
+        estadoHTML = `<span style="background: #fee2e2; color: #991b1b; padding: 6px 16px; border-radius: 20px; font-weight: 600;">✕ NO VOY</span>`;
+        botonesHTML = `
+            <button onclick="guardarAsistencia('${enc.id}', 'voy')" 
+                style="flex: 1; padding: 12px; border: 2px solid #dcfce7; border-radius: 8px; background: white; color: #166534; font-weight: 600; cursor: pointer;">
+                Cambiar a VOY
+            </button>
+        `;
+    } else {
+        estadoHTML = `<span style="background: #fef3c7; color: #92400e; padding: 6px 16px; border-radius: 20px; font-weight: 600;">⏳ PENDIENTE</span>`;
+        botonesHTML = `
+            <button onclick="guardarAsistencia('${enc.id}', 'voy')" 
+                style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #16a34a; color: white; font-weight: 600; cursor: pointer;">
+                ✓ VOY
+            </button>
+            <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" 
+                style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #dc2626; color: white; font-weight: 600; cursor: pointer;">
+                ✕ NO VOY
+            </button>
+        `;
+    }
+    
+    const badgeCreador = esCreador ? `<span style="background: #4f46e5; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">👑 ORGANIZADOR</span>` : '';
+    
+    return `
+        <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 2px solid #4f46e5; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 1.2rem;">${enc.nombre}</h3>
+                    ${badgeCreador}
+                    <p style="margin: 8px 0 0 0; color: #64748b; font-size: 0.9rem;">
+                        📅 ${fechaPrincipal} ${horarioPrincipal ? `• ${horarioPrincipal}hs` : ''}
+                    </p>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;">
+                        Organiza: ${enc.creadorNombre || 'Mi equipo'}
+                    </p>
+                </div>
+                ${estadoHTML}
+            </div>
+            
+            <div style="background: #f8fafc; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
+                    📍 ${enc.lugar || 'Ubicación a confirmar'}
+                </p>
+                <p style="margin: 5px 0 0 0; color: #4f46e5; font-size: 0.85rem; font-weight: 600;">
+                    👥 Cupo: ${enc.equiposAceptados || 1}/${enc.cupoMaximo} equipos
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                ${botonesHTML}
+            </div>
+        </div>
+    `;
+}
   // ==========================================
   // INICIAR
   // ==========================================
