@@ -1289,72 +1289,140 @@ async function verDetalleEncuentro(encuentroId) {
         `).join('') : '<p style="color: #64748b; font-style: italic;">No hay equipos pendientes</p>';
 
         // Obtener asistencias de jugadores
-        let asistenciasHTML = '';
-        try {
-            const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasEncuentro&encuentroId=${encuentroId}`);
-            const asistenciasData = await respAsistencias.json();
+        const usuario = obtenerUsuarioActual();
+const esCreador = enc.equipoCreadorId === usuario.equipoId;
+
+let asistenciasHTML = '';
+
+if (esCreador) {
+  // CREADOR: Ver todos los jugadores de todos los equipos con datos completos
+  try {
+    const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
+    const asistenciasData = await respAsistencias.json();
+    
+    if (asistenciasData.success && asistenciasData.data && asistenciasData.data.length > 0) {
+      const totalJugadores = asistenciasData.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
+      const totalVoy = asistenciasData.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
+      
+      asistenciasHTML = `
+        <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span>📋</span> Confirmación de jugadores
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">
+              (${totalVoy} van de ${totalJugadores} jugadores)
+            </span>
+            <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
+              style="margin-left: auto; padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+              📥 Descargar listado completo
+            </button>
+          </h3>
+          
+          ${asistenciasData.data.map(eq => {
+            const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
+            const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
+            const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
             
-            if (asistenciasData.success && asistenciasData.data && asistenciasData.data.length > 0) {
-                asistenciasHTML = `
-                    <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-                        <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                            <span>📋</span> Confirmación de jugadores
-                            <button onclick="descargarAsistenciasCSV('${encuentroId}')" 
-                                style="margin-left: auto; padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
-                                📥 Descargar CSV
-                            </button>
-                        </h3>
-                        
-                        ${asistenciasData.data.map(eq => {
-                            const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
-                            const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
-                            const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
-                            
-                            return `
-                                <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                        <h4 style="margin: 0; color: #1e293b;">${eq.equipoNombre}</h4>
-                                        <div style="display: flex; gap: 15px; font-size: 0.9rem;">
-                                            <span style="color: #16a34a; font-weight: 600;">✓ ${voy.length} VOY</span>
-                                            <span style="color: #dc2626; font-weight: 600;">✕ ${noVoy.length} NO VOY</span>
-                                            <span style="color: #64748b;">⏳ ${pendiente.length} pendientes</span>
-                                        </div>
-                                    </div>
-                                    
-                                    ${voy.length > 0 ? `
-                                        <div style="margin-bottom: 15px;">
-                                            <h5 style="margin: 0 0 10px 0; color: #16a34a; font-size: 0.85rem;">Van:</h5>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                                ${voy.map(j => `
-                                                    <span style="padding: 6px 12px; background: #dcfce7; border-radius: 20px; font-size: 0.85rem; color: #166534;">
-                                                        ${j.jugadorNombre}
-                                                    </span>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${noVoy.length > 0 ? `
-                                        <div style="margin-bottom: 15px;">
-                                            <h5 style="margin: 0 0 10px 0; color: #dc2626; font-size: 0.85rem;">No van:</h5>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                                ${noVoy.map(j => `
-                                                    <span style="padding: 6px 12px; background: #fee2e2; border-radius: 20px; font-size: 0.85rem; color: #991b1b;">
-                                                        ${j.jugadorNombre}
-                                                    </span>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `;
-                        }).join('')}
+            return `
+              <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
+                  <h4 style="margin: 0; color: #1e293b; font-size: 1.1rem;">${eq.equipoNombre}</h4>
+                  <div style="display: flex; gap: 15px; font-size: 0.9rem;">
+                    <span style="color: #16a34a; font-weight: 600; background: #dcfce7; padding: 4px 12px; border-radius: 20px;">✓ ${voy.length} VOY</span>
+                    <span style="color: #dc2626; font-weight: 600; background: #fee2e2; padding: 4px 12px; border-radius: 20px;">✕ ${noVoy.length} NO VOY</span>
+                    <span style="color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">⏳ ${pendiente.length} pendientes</span>
+                  </div>
+                </div>
+                
+                ${eq.jugadores.length > 0 ? `
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                    ${eq.jugadores.map(j => `
+                      <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 8px; border-left: 3px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
+                        <div style="flex: 1;">
+                          <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                          <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                            ${j.respuesta === 'voy' ? '✓ Va' : j.respuesta === 'no_voy' ? '✕ No va' : '⏳ Pendiente'}
+                          </div>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : '<p style="color: #64748b; font-style: italic;">Sin jugadores confirmados</p>'}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error('Error cargando asistencias completas:', err);
+  }
+} else {
+  // EQUIPO ACEPTADO: Ver y editar solo sus jugadores
+  try {
+    const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
+    const asistenciasData = await respAsistencias.json();
+    
+    if (asistenciasData.success && asistenciasData.data && asistenciasData.data.length > 0) {
+      const voy = asistenciasData.data.filter(j => j.respuesta === 'voy');
+      const noVoy = asistenciasData.data.filter(j => j.respuesta === 'no_voy');
+      const pendientes = asistenciasData.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+      
+      // Verificar si es admin/capitán/manager
+      const puedeEditar = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
+      
+      asistenciasHTML = `
+        <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span>📋</span> Mi equipo - Confirmaciones
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">
+              (${voy.length} van, ${noVoy.length} no van, ${pendientes.length} pendientes)
+            </span>
+            ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.8rem; color: #4f46e5; background: #e0e7ff; padding: 4px 12px; border-radius: 20px;">Podés editar</span>` : ''}
+          </h3>
+          
+          <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #e2e8f0;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+              ${asistenciasData.data.map(j => `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
+                  <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1e293b;">${j.nombreCompleto}</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
+                      ${j.dni ? `DNI: ${j.dni} • ` : ''}
+                      ${j.telefono ? `Tel: ${j.telefono}` : ''}
                     </div>
-                `;
-            }
-        } catch (err) {
-            console.error('Error cargando asistencias:', err);
-        }
+                    <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 4px; font-weight: 600;">
+                      ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
+                    </div>
+                  </div>
+                  
+                  ${puedeEditar ? `
+                    <div style="display: flex; gap: 6px;">
+                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" 
+                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                        VOY
+                      </button>
+                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" 
+                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                        NO
+                      </button>
+                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'pendiente')" 
+                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${!j.respuesta || j.respuesta === 'pendiente' ? '#f59e0b' : '#fef3c7'}; color: ${!j.respuesta || j.respuesta === 'pendiente' ? 'white' : '#92400e'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                        ?
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error('Error cargando asistencias del equipo:', err);
+  }
+}
+
 
         const modal = document.createElement('div');
         modal.className = 'modal-overlay active';
@@ -2213,4 +2281,67 @@ async function guardarAsistencia(encuentroId, respuesta) {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error de conexión', 'error');
     }
+}
+// Admin cambia asistencia de su jugador
+async function adminCambiarAsistencia(encuentroId, jugadorId, equipoId, respuesta) {
+  const usuario = obtenerUsuarioActual();
+  
+  const params = new URLSearchParams({
+    action: 'adminEditarAsistencia',
+    encuentroId: encuentroId,
+    jugadorId: jugadorId,
+    equipoId: equipoId,
+    respuesta: respuesta,
+    adminId: usuario.id
+  });
+  
+  try {
+    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      mostrarMensajeEncuentros('Asistencia actualizada', 'success');
+      // Recargar el modal
+      verDetalleEncuentro(encuentroId);
+    } else {
+      mostrarMensajeEncuentros(result.error || 'Error al actualizar', 'error');
+    }
+  } catch (err) {
+    mostrarMensajeEncuentros('Error de conexión', 'error');
+  }
+}
+
+// Descargar CSV completo con datos de contacto
+function descargarAsistenciasCompletasCSV(encuentroId) {
+  const usuario = obtenerUsuarioActual();
+  
+  fetch(`${API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`)
+    .then(r => r.json())
+    .then(result => {
+      if (!result.success) {
+        mostrarMensajeEncuentros('Error al cargar datos', 'error');
+        return;
+      }
+      
+      // CSV con todos los datos
+      let csv = 'Equipo,Nombre,Apellido,DNI,CUIT/CUIL,Email,Teléfono,Fecha Nacimiento,Respuesta,Fecha Respuesta\n';
+      
+      result.data.forEach(eq => {
+        eq.jugadores.forEach(j => {
+          csv += `"${eq.equipoNombre}","${j.nombre}","${j.apellido}","${j.dni || ''}","${j.cuitCuil || ''}","${j.email || ''}","${j.telefono || ''}","${j.fechaNacimiento || ''}","${j.respuesta || 'pendiente'}","${j.fechaRespuesta || ''}"\n`;
+        });
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `asistencias_completas_${encuentroId}.csv`;
+      link.click();
+      
+      mostrarMensajeEncuentros('CSV descargado', 'success');
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      mostrarMensajeEncuentros('Error al descargar', 'error');
+    });
 }
