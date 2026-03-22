@@ -398,7 +398,7 @@ function ocultarLoader() {
   }
 }
    
-  // ==========================================
+   // ==========================================
   // CARGAR ENCUENTROS DEL JUGADOR
   // ==========================================
   async function cargarEncuentrosJugador() {
