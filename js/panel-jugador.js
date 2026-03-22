@@ -619,7 +619,7 @@ async function guardarAsistencia(encuentroId, respuesta) {
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
-        }
+        
         } else {
             mostrarMensaje(result.error || 'Error al guardar', 'error');
         }
