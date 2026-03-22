@@ -709,7 +709,7 @@ async function renderizarMisEncuentros() {
                 console.error('Error parseando JSON:', e);
             }
             
-            const equiposConfirmados = 0;
+            const equiposConfirmados = 1;
             const plazasLibres = enc.cupoMaximo - equiposConfirmados;
             
             const fechasHTML = fechas.map(f => {
@@ -1247,23 +1247,26 @@ async function verDetalleEncuentro(encuentroId) {
             `;
         }).join('');
 
-        // Lista de aceptados
-        const listaAceptados = detalle.aceptados.length > 0 ? detalle.aceptados.map(eq => `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e;">
-                <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #166534;">${eq.nombre}</div>
-                    <div style="font-size: 0.85rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-                </div>
-                ${eq.telefonoContacto ? `
-                    <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
-                        WhatsApp
-                    </a>
-                ` : ''}
-                <span style="background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">✓ Aceptado</span>
+        / Lista de aceptados (incluye al creador automáticamente)
+const listaAceptados = detalle.aceptados.length > 0 ? detalle.aceptados.map(eq => `
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 8px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'};">
+        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+        <div style="flex: 1;">
+            <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'};">
+                ${eq.nombre} ${eq.esCreador ? '👑 (Organizador)' : ''}
             </div>
-        `).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha aceptado aún</p>';
-
+            <div style="font-size: 0.85rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+        </div>
+        ${eq.telefonoContacto && !eq.esCreador ? `
+            <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
+                WhatsApp
+            </a>
+        ` : ''}
+        <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+            ${eq.esCreador ? '★ CREADOR' : '✓ Aceptado'}
+        </span>
+    </div>
+`).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha aceptado aún</p>';
         // Lista de rechazados
         const listaRechazados = detalle.rechazados.length > 0 ? detalle.rechazados.map(eq => `
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; opacity: 0.8;">
@@ -1291,6 +1294,8 @@ async function verDetalleEncuentro(encuentroId) {
         // Obtener asistencias de jugadores
         const usuario = obtenerUsuarioActual();
 const esCreador = enc.equipoCreadorId === usuario.equipoId;
+const esAdminDeEquipo = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
+
 
 let asistenciasHTML = '';
 
