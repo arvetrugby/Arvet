@@ -1101,12 +1101,18 @@ async function aceptarInvitacion(encuentroId) {
     
     if (result.success) {
       mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
-        try {
+      
+      // Crear asistencias para el plantel (silencioso, no afecta la invitación)
+      try {
         await fetch(`${API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
       } catch (err) {
         console.error('Error creando asistencias:', err);
         // No mostramos error al usuario porque la invitación ya se aceptó
+      }
+      
+      // Recargar lista de invitaciones
       setTimeout(() => renderizarInvitaciones(), 300);
+      
     } else {
       mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
     }
