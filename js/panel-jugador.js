@@ -567,7 +567,39 @@ function generarCardEncuentroPanel(enc, esCreador) {
         </div>
     `;
 }
-
+// ==========================================
+// GUARDAR ASISTENCIA (copiado de encuentros.js para funcionar en panel)
+// ==========================================
+async function guardarAsistencia(encuentroId, respuesta) {
+    // Usar la variable user que ya está definida en el scope
+    const params = new URLSearchParams({
+        action: 'guardarAsistenciaJugador',
+        encuentroId: encuentroId,
+        jugadorId: jugadorId, // ya está definido arriba en el archivo
+        jugadorNombre: user?.nombre || '',
+        equipoId: user?.equipoId || '',
+        respuesta: respuesta
+    });
+    
+    try {
+        const response = await fetch(`${API_URL}?${params.toString()}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            mostrarMensaje(`Confirmado: ${respuesta === 'voy' ? 'VOY ✓' : 'NO VOY ✕'}`, 'ok');
+            
+            // Recargar el panel
+            setTimeout(() => {
+                cargarEncuentrosJugador();
+            }, 300);
+        } else {
+            mostrarMensaje(result.error || 'Error al guardar', 'error');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+        mostrarMensaje('Error de conexión', 'error');
+    }
+}
   // ==========================================
   // INICIAR
   // ==========================================
