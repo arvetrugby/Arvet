@@ -400,24 +400,31 @@ function ocultarLoader() {
     // ==========================================
   // CARGAR ENCUENTROS DEL JUGADOR
   // ==========================================
-
-  async function cargarEncuentrosJugador() {
-      const container = document.getElementById('panelJugadorEncuentros');
-      if (!container) return;
-      
-      // Verificar que sea jugador (no admin editando)
-      if (esAdminEditando) {
-          container.innerHTML = '<p style="color: #64748b;">Modo administrador: no se muestran encuentros</p>';
-          return;
-      }
-      
-      // Usar la función de encuentros.js si está disponible
-      if (typeof cargarEncuentrosParaJugador === 'function') {
-          await cargarEncuentrosParaJugador(user.equipoId, jugadorId, 'panelJugadorEncuentros');
-      } else {
-          container.innerHTML = '<p style="color: #64748b;">Cargando encuentros...</p>';
-      }
-  }
+async function cargarEncuentrosJugador() {
+    const container = document.getElementById('panelJugadorEncuentros');
+    if (!container) {
+        console.log('❌ No existe el contenedor panelJugadorEncuentros');
+        return;
+    }
+    
+    console.log('✅ Contenedor encontrado');
+    console.log('esAdminEditando:', esAdminEditando);
+    console.log('user:', user);
+    console.log('typeof cargarEncuentrosParaJugador:', typeof cargarEncuentrosParaJugador);
+    
+    if (esAdminEditando) {
+        container.innerHTML = '<p style="color: #64748b;">Modo administrador: no se muestran encuentros</p>';
+        return;
+    }
+    
+    if (typeof cargarEncuentrosParaJugador === 'function') {
+        console.log('Llamando a cargarEncuentrosParaJugador...');
+        await cargarEncuentrosParaJugador(user.equipoId, jugadorId, 'panelJugadorEncuentros');
+    } else {
+        console.log('❌ cargarEncuentrosParaJugador no es una función');
+        container.innerHTML = '<p style="color: #dc2626;">Error: función no disponible</p>';
+    }
+}
 
   // ==========================================
   // INICIAR
