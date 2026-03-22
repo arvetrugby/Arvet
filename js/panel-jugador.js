@@ -398,9 +398,7 @@ function ocultarLoader() {
   }
 }
    
-   // ==========================================
-  // CARGAR ENCUENTROS DEL JUGADOR
-  // ==========================================
+   
      // ==========================================
   // CARGAR ENCUENTROS DEL JUGADOR
   // ==========================================
@@ -502,7 +500,7 @@ function ocultarLoader() {
           console.error('Error cargando encuentros creador:', err);
       }
       
-      // 3. Insertar todo el HTML de una vez
+          // 3. Insertar todo el HTML de una vez
       if (tieneContenido) {
           container.innerHTML = htmlAcumulado;
       } else {
@@ -515,6 +513,8 @@ function ocultarLoader() {
               </div>
           `;
       }
+  } // ← CIERRE de cargarEncuentrosJugador()
+
 // ==========================================
 // GENERAR CARD DE ENCUENTRO PARA PANEL JUGADOR
 // ==========================================
