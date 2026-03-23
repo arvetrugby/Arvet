@@ -2351,7 +2351,7 @@ function descargarAsistenciasCompletasCSV(encuentroId) {
     });
 }
 // ============================================
-// SECCIÓN PRÓXIMOS PARTIDOS - EQUIPO.HTML
+// SECCIÓN PRÓXIMOS PARTIDOS - SOLO FLYERS
 // ============================================
 
 async function cargarProximosPartidosEquipo() {
@@ -2374,49 +2374,43 @@ async function cargarProximosPartidosEquipo() {
         const creados = respCreados.success ? respCreados.data : [];
         const aceptados = respAceptados.success ? respAceptados.data : [];
         
-        // Combinar y filtrar solo publicados (no cancelados/borradores)
+        // Combinar y filtrar solo publicados
         const partidosRelevantes = [
             ...creados.filter(e => e.estado === 'publicado').map(e => ({...e, esCreador: true})),
             ...aceptados.filter(e => e.estado === 'publicado').map(e => ({...e, esCreador: false}))
         ];
         
-        // Ordenar por fecha (más próximo primero)
+        // Ordenar por fecha
         partidosRelevantes.sort((a, b) => {
             const fechaA = extraerFechaPrincipal(a);
             const fechaB = extraerFechaPrincipal(b);
             return new Date(fechaA) - new Date(fechaB);
         });
         
-        // Solo próximos (fecha >= hoy) o todos si no hay próximos
+        // Solo próximos
         const hoy = new Date().toISOString().split('T')[0];
         let proximosPartidos = partidosRelevantes.filter(p => extraerFechaPrincipal(p) >= hoy);
         
-        // Si no hay próximos, mostrar los 3 más recientes pasados
         if (proximosPartidos.length === 0 && partidosRelevantes.length > 0) {
-            proximosPartidos = partidosRelevantes.slice(0, 3);
+            proximosPartidos = partidosRelevantes.slice(0, 3); // Últimos 3 si no hay futuros
         }
         
-        // Limitar a 5
-        proximosPartidos = proximosPartidos.slice(0, 5);
+        proximosPartidos = proximosPartidos.slice(0, 6); // Máximo 6 flyers
         
         if (proximosPartidos.length === 0) {
-            mostrarEmptyStatePartidos(container);
+            mostrarEmptyStateFlyers(container);
             return;
         }
         
-        renderizarPartidosEquipo(container, proximosPartidos, partidosRelevantes.length);
+        renderizarFlyersPartidos(container, proximosPartidos, partidosRelevantes.length);
         
     } catch (err) {
-        console.error('Error cargando próximos partidos:', err);
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #dc2626;">
-                <p>Error al cargar partidos. Intentá recargar la página.</p>
-            </div>
-        `;
+        console.error('Error cargando partidos:', err);
+        container.innerHTML = '<p style="text-align: center; color: #dc2626;">Error al cargar partidos</p>';
     }
 }
 
-// Helper: extraer fecha principal del encuentro
+// Helper: extraer fecha principal
 function extraerFechaPrincipal(encuentro) {
     try {
         const fechas = JSON.parse(encuentro.fechasJSON || '[]');
@@ -2426,141 +2420,112 @@ function extraerFechaPrincipal(encuentro) {
     }
 }
 
-// Empty state cuando no hay partidos
-function mostrarEmptyStatePartidos(container) {
+// Empty state
+function mostrarEmptyStateFlyers(container) {
     container.innerHTML = `
-        <div style="text-align: center; padding: 50px 20px; color: #64748b;">
+        <div style="text-align: center; padding: 60px 20px; color: #64748b;">
             <div style="font-size: 4rem; margin-bottom: 20px;">🏉</div>
-            <h3 style="margin: 0 0 10px 0; color: #1e293b; font-size: 1.3rem;">No hay próximos partidos</h3>
-            <p style="margin: 0 0 25px 0; line-height: 1.5;">Cuando crees un encuentro o aceptes una invitación, aparecerá aquí.</p>
+            <h3 style="margin: 0 0 10px 0; color: #1e293b;">No hay próximos partidos</h3>
+            <p style="margin: 0 0 25px 0;">Creá o aceptá un encuentro para ver el flyer aquí</p>
             <button onclick="window.location.href='encuentros.html'" 
-                    style="padding: 14px 28px; background: #4f46e5; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: all 0.2s;"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(79, 70, 229, 0.4)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(79, 70, 229, 0.3)';">
+                    style="padding: 14px 28px; background: #4f46e5; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
                 Ir a Encuentros →
             </button>
         </div>
     `;
 }
 
-// Renderizar la lista de partidos
-function renderizarPartidosEquipo(container, partidos, totalPartidos) {
+// Renderizar SOLO flyers en grid
+function renderizarFlyersPartidos(container, partidos, totalPartidos) {
     const hoy = new Date().toISOString().split('T')[0];
     
-    container.innerHTML = partidos.map(enc => {
+    // Crear grid de flyers
+    let html = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px;">
+    `;
+    
+    html += partidos.map(enc => {
         const esPasado = extraerFechaPrincipal(enc) < hoy;
         const fechaData = extraerFechaData(enc);
         
+        // Si tiene flyer, mostrarlo. Si no, mostrar placeholder
+        const imagenHTML = enc.flyerUrl ? 
+            `<img src="${enc.flyerUrl}" 
+                  style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" 
+                  alt="${enc.nombre}"
+                  onmouseover="this.style.transform='scale(1.05)'"
+                  onmouseout="this.style.transform='scale(1)'">` :
+            `<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; padding: 20px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🏉</div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700;">${enc.nombre}</h3>
+                <p style="margin: 8px 0 0 0; font-size: 0.9rem; opacity: 0.9;">${fechaData.fecha}</p>
+            </div>`;
+        
         return `
-            <div class="partido-card ${enc.esCreador ? 'partido-organizo' : 'partido-participo'} ${esPasado ? 'partido-pasado' : ''}" 
-                 style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 2px solid ${enc.esCreador ? '#4f46e5' : '#22c55e'}; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; ${esPasado ? 'opacity: 0.85;' : ''}">
+            <div onclick="verDetalleEncuentro('${enc.id}')" 
+                 style="cursor: pointer; position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); aspect-ratio: 3/4; background: #f1f5f9; transition: all 0.3s ease; ${esPasado ? 'opacity: 0.75;' : ''}"
+                 onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 16px 40px rgba(0,0,0,0.2)';"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.15)';">
                 
-                ${esPasado ? '<div style="position: absolute; top: 12px; right: 12px; background: #64748b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">PASADO</div>' : ''}
+                ${imagenHTML}
                 
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                    <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
-                            <h3 style="margin: 0; color: #1e293b; font-size: 1.25rem; font-weight: 700; line-height: 1.3;">${enc.nombre}</h3>
-                            ${enc.esCreador ? 
-                                '<span style="background: #4f46e5; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">👑 Organizo</span>' :
-                                '<span style="background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✓ Participo</span>'
-                            }
-                        </div>
-                        
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            ${enc.tipo ? enc.tipo.split(', ').map(t => 
-                                `<span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; border: 1px solid #e2e8f0;">${t}</span>`
-                            ).join('') : ''}
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: right; min-width: 80px;">
-                        <div style="font-size: 1.75rem; font-weight: 800; color: ${enc.esCreador ? '#4f46e5' : '#22c55e'};">
-                            ${enc.equiposAceptados || 1}/${enc.cupoMaximo}
-                        </div>
-                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 500;">
-                            ${(enc.cupoMaximo - (enc.equiposAceptados || 1)) > 0 ? 
-                                `<span style="color: #16a34a; font-weight: 600;">${enc.cupoMaximo - (enc.equiposAceptados || 1)} libre${enc.cupoMaximo - (enc.equiposAceptados || 1) > 1 ? 's' : ''}</span>` : 
-                                '<span style="color: #dc2626; font-weight: 600;">Completo</span>'
-                            }
-                        </div>
-                    </div>
+                <!-- Badge de estado -->
+                <div style="position: absolute; top: 16px; left: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${enc.esCreador ? 
+                        `<span style="background: rgba(79, 70, 229, 0.95); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">👑 ORGANIZO</span>` :
+                        `<span style="background: rgba(34, 197, 94, 0.95); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">✓ PARTICIPO</span>`
+                    }
+                    ${esPasado ? `<span style="background: rgba(100, 116, 139, 0.95); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">PASADO</span>` : ''}
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 12px;">
-                    <div>
-                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">📅 Fecha</div>
-                        <div style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">${fechaData.fecha}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">⏰ Horario</div>
-                        <div style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">
-                            ${fechaData.hora || 'A confirmar'}
-                            ${fechaData.desc ? `<div style="font-size: 0.85rem; color: #64748b; font-weight: 500; margin-top: 2px;">${fechaData.desc}</div>` : ''}
-                        </div>
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">📍 Ubicación</div>
-                        <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            ${enc.lugar || 'Ubicación a confirmar'}
-                            ${enc.lat && enc.lng ? `
-                                <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" 
-                                   style="color: #4f46e5; text-decoration: none; font-size: 0.85rem; font-weight: 500; background: #e0e7ff; padding: 4px 10px; border-radius: 6px; margin-left: auto;">
-                                    Ver en mapa →
-                                </a>
-                            ` : ''}
-                        </div>
-                    </div>
+                <!-- Info overlay abajo -->
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%); padding: 60px 20px 20px 20px; color: white;">
+                    <h4 style="margin: 0 0 6px 0; font-size: 1.1rem; font-weight: 700; line-height: 1.3;">${enc.nombre}</h4>
+                    <p style="margin: 0 0 4px 0; font-size: 0.9rem; opacity: 0.9;">📅 ${fechaData.fecha}</p>
+                    ${fechaData.hora ? `<p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">⏰ ${fechaData.hora}hs</p>` : ''}
                 </div>
                 
-                <div style="display: flex; gap: 12px;">
-                    <button onclick="verDetalleEncuentro('${enc.id}')" 
-                            style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: ${enc.esCreador ? '#4f46e5' : '#22c55e'}; color: white; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
-                            onmouseover="this.style.opacity='0.9'; this.style.transform='translateY(-1px)';"
-                            onmouseout="this.style.opacity='1'; this.style.transform='translateY(0)';">
-                        Ver detalle completo
-                    </button>
-                    ${enc.esCreador ? `
-                        <button onclick="editarEncuentro('${enc.id}')" 
-                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
-                                onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5';"
-                                onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#475569';">
-                            ✏️
-                        </button>
-                    ` : ''}
+                <!-- Indicador de click -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.95); color: #1e293b; padding: 12px 24px; border-radius: 30px; font-weight: 700; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);"
+                     onmouseover="this.parentElement.querySelector('div:last-child').style.opacity='1'"
+                     onmouseout="this.parentElement.querySelector('div:last-child').style.opacity='0'">
+                    Ver detalle →
                 </div>
             </div>
         `;
     }).join('');
     
-    // Si hay más partidos, mostrar botón para ver todos
+    html += `</div>`;
+    
+    // Botón "Ver todos" si hay más
     if (totalPartidos > partidos.length) {
-        container.innerHTML += `
-            <div style="text-align: center; margin-top: 30px; padding: 20px;">
+        html += `
+            <div style="text-align: center;">
                 <button onclick="window.location.href='encuentros.html'" 
-                        style="padding: 14px 32px; background: white; color: #4f46e5; border: 2px solid #4f46e5; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);"
-                        onmouseover="this.style.background='#4f46e5'; this.style.color='white'; this.style.boxShadow='0 4px 16px rgba(79, 70, 229, 0.3)';"
-                        onmouseout="this.style.background='white'; this.style.color='#4f46e5'; this.style.boxShadow='0 2px 8px rgba(79, 70, 229, 0.1)';">
-                        Ver todos los partidos (${totalPartidos}) →
+                        style="padding: 14px 32px; background: white; color: #4f46e5; border: 2px solid #4f46e5; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s;"
+                        onmouseover="this.style.background='#4f46e5'; this.style.color='white';"
+                        onmouseout="this.style.background='white'; this.style.color='#4f46e5';">
+                    Ver todos los partidos (${totalPartidos}) →
                 </button>
             </div>
         `;
     }
+    
+    container.innerHTML = html;
 }
 
-// Helper: extraer datos de fecha formateados
+// Helper: extraer datos de fecha
 function extraerFechaData(encuentro) {
     try {
         const fechas = JSON.parse(encuentro.fechasJSON || '[]');
         const principal = fechas[0];
-        if (!principal) return { fecha: 'Fecha a confirmar', hora: '', desc: '' };
+        if (!principal) return { fecha: 'Fecha a confirmar', hora: '' };
         
         return {
             fecha: formatearFecha(principal.dia),
-            hora: principal.horarios?.[0]?.hora || '',
-            desc: principal.horarios?.[0]?.desc || ''
+            hora: principal.horarios?.[0]?.hora || ''
         };
     } catch(e) {
-        return { fecha: 'Fecha a confirmar', hora: '', desc: '' };
+        return { fecha: 'Fecha a confirmar', hora: '' };
     }
 }
