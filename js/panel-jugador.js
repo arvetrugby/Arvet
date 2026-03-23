@@ -403,119 +403,122 @@ function ocultarLoader() {
   // CARGAR ENCUENTROS DEL JUGADOR
   // ==========================================
     
-  window.cargarEncuentrosJugador = async function() {
-      const container = document.getElementById('panelJugadorEncuentros');
-      if (!container) {
-          console.log('❌ No existe el contenedor panelJugadorEncuentros');
-          return;
-      }
-      
-      console.log('✅ Contenedor encontrado');
-      console.log('esAdminEditando:', esAdminEditando);
-      console.log('user.equipoId:', user?.equipoId);
-      console.log('jugadorId:', jugadorId);
-      
-      // SIEMPRE limpiar primero para evitar duplicados
-      container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;"> Cargando encuentros...</p>';
-      
-      // Si es admin editando, verificar que el jugador sea de su mismo equipo
-      if (esAdminEditando) {
-          try {
-              const response = await fetch(`${API_URL}?action=getJugadorById&id=${jugadorId}`);
-              const data = await response.json();
-              
-              if (!data.success) {
-                  container.innerHTML = '<p style="color: #64748b;">Error cargando datos del jugador</p>';
-                  return;
-              }
-              
-              const jugador = data.data;
-              console.log('Jugador editado - equipoId:', jugador.equipoId);
-              
-              // Si el jugador NO es del mismo equipo del admin, no mostrar encuentros
-              if (jugador.equipoId !== user.equipoId) {
-                  container.innerHTML = '<p style="color: #64748b;">Jugador de otro equipo - No se muestran encuentros</p>';
-                  return;
-              }
-              
-              console.log('✅ Jugador del mismo equipo, mostrando encuentros');
-              
-          } catch (err) {
-              console.error('Error verificando equipo del jugador:', err);
-              container.innerHTML = '<p style="color: #64748b;">Error de conexión</p>';
-              return;
-          }
-      }
-      
-            let tieneContenido = false;
-      let htmlAcumulado = '';
-      
-      // 1. Cargar encuentros donde el equipo fue invitado Y aceptó (directamente, sin usar función externa)
-      try {
-          console.log('Cargando encuentros aceptados...');
-          const responseInvitados = await fetch(`${API_URL}?action=getEncuentrosParaJugador&equipoId=${user.equipoId}&jugadorId=${jugadorId}`);
-          const resultInvitados = await responseInvitados.json();
-          
-          if (resultInvitados.success && resultInvitados.data && resultInvitados.data.length > 0) {
-              console.log('Encuentros aceptados encontrados:', resultInvitados.data.length);
-              
-              // Renderizar cada encuentro
-              for (const enc of resultInvitados.data) {
-                  htmlAcumulado += generarCardEncuentroPanel(enc, false); // false = no es creador
-              }
-              tieneContenido = true;
-          } else {
-              console.log('No hay encuentros aceptados');
-          }
-      } catch (err) {
-          console.error('Error cargando encuentros aceptados:', err);
-      }
-      
-      // 2. Cargar encuentros creados por este equipo
-      try {
-          console.log('Cargando encuentros creador...');
-          const responseCreador = await fetch(`${API_URL}?action=getEncuentrosCreadorParaJugador&equipoId=${user.equipoId}&jugadorId=${jugadorId}`);
-          const resultCreador = await responseCreador.json();
-          
-          if (resultCreador.success && resultCreador.data && resultCreador.data.length > 0) {
-              console.log('Encuentros creador encontrados:', resultCreador.data.length);
-              
-              // Agregar separador si ya hay contenido de invitaciones
-              if (tieneContenido) {
-                  htmlAcumulado += `
-                      <div style="margin: 30px 0 20px 0; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-                          <h3 style="color: #4f46e5; font-size: 1rem; margin: 0;">🏆 Encuentros que organizo</h3>
-                      </div>
-                  `;
-              }
-              
-              // Renderizar cada encuentro creado
-              for (const enc of resultCreador.data) {
-                  htmlAcumulado += generarCardEncuentroPanel(enc, true); // true = es creador
-              }
-              tieneContenido = true;
-          } else {
-              console.log('No hay encuentros creador');
-          }
-      } catch (err) {
-          console.error('Error cargando encuentros creador:', err);
-      }
-      
-          // 3. Insertar todo el HTML de una vez
-      if (tieneContenido) {
-          container.innerHTML = htmlAcumulado;
-      } else {
-          // Solo si no hay nada, mostrar mensaje vacío
-          container.innerHTML = `
-              <div style="text-align: center; padding: 40px; color: #64748b;">
-                  <div style="font-size: 3rem; margin-bottom: 15px;">🏉</div>
-                  <h3>No tenés encuentros pendientes</h3>
-                  <p>Cuando tu equipo acepte una invitación o crees un encuentro, aparecerá aquí.</p>
-              </div>
-          `;
-      }
-  } // ← CIERRE de cargarEncuentrosJugador()
-
+  // ==========================================
+// CARGAR ENCUENTROS DEL JUGADOR - CORREGIDA
+// ==========================================
+    
+window.cargarEncuentrosJugador = async function() {
+    const container = document.getElementById('panelJugadorEncuentros');
+    if (!container) {
+        console.log('❌ No existe el contenedor panelJugadorEncuentros');
+        return;
+    }
+    
+    console.log('🚀 Iniciando carga de encuentros...');
+    console.log('esAdminEditando:', esAdminEditando);
+    console.log('user.equipoId:', user?.equipoId);
+    console.log('jugadorId:', jugadorId);
+    
+    // SIEMPRE limpiar primero para evitar duplicados
+    container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;"> Cargando encuentros...</p>';
+    
+    // Si es admin editando, verificar que el jugador sea de su mismo equipo
+    if (esAdminEditando) {
+        try {
+            const response = await fetch(`${API_URL}?action=getJugadorById&id=${jugadorId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                container.innerHTML = '<p style="color: #64748b;">Error cargando datos del jugador</p>';
+                return;
+            }
+            
+            const jugador = data.data;
+            console.log('Jugador editado - equipoId:', jugador.equipoId);
+            
+            // Si el jugador NO es del mismo equipo del admin, no mostrar encuentros
+            if (jugador.equipoId !== user.equipoId) {
+                container.innerHTML = '<p style="color: #64748b;">Jugador de otro equipo - No se muestran encuentros</p>';
+                return;
+            }
+            
+            console.log('✅ Jugador del mismo equipo, mostrando encuentros');
+            
+        } catch (err) {
+            console.error('Error verificando equipo del jugador:', err);
+            container.innerHTML = '<p style="color: #64748b;">Error de conexión</p>';
+            return;
+        }
+    }
+    
+    let htmlAcumulado = '';
+    let encuentrosCargados = [];
+    
+    // 🔥 CARGAR EN PARALELO para mayor velocidad
+    try {
+        console.log('Cargando encuentros en paralelo...');
+        
+        const [responseInvitados, responseCreador] = await Promise.all([
+            fetch(`${API_URL}?action=getEncuentrosParaJugador&equipoId=${user.equipoId}&jugadorId=${jugadorId}`),
+            fetch(`${API_URL}?action=getEncuentrosCreadorParaJugador&equipoId=${user.equipoId}&jugadorId=${jugadorId}`)
+        ]);
+        
+        const resultInvitados = await responseInvitados.json();
+        const resultCreador = await responseCreador.json();
+        
+        console.log('Resultado invitados:', resultInvitados.success ? `${resultInvitados.data?.length} encuentros` : 'Error');
+        console.log('Resultado creador:', resultCreador.success ? `${resultCreador.data?.length} encuentros` : 'Error');
+        
+        // 1. Procesar encuentros aceptados (invitaciones)
+        if (resultInvitados.success && resultInvitados.data && resultInvitados.data.length > 0) {
+            console.log('Encuentros aceptados encontrados:', resultInvitados.data.length);
+            
+            for (const enc of resultInvitados.data) {
+                htmlAcumulado += generarCardEncuentroPanel(enc, false);
+                encuentrosCargados.push({...enc, tipo: 'invitado'});
+            }
+        }
+        
+        // 2. Procesar encuentros creados
+        if (resultCreador.success && resultCreador.data && resultCreador.data.length > 0) {
+            console.log('Encuentros creador encontrados:', resultCreador.data.length);
+            
+            // Agregar separador si ya hay contenido de invitaciones
+            if (htmlAcumulado) {
+                htmlAcumulado += `
+                    <div style="margin: 30px 0 20px 0; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                        <h3 style="color: #4f46e5; font-size: 1rem; margin: 0;">🏆 Encuentros que organizo</h3>
+                    </div>
+                `;
+            }
+            
+            for (const enc of resultCreador.data) {
+                htmlAcumulado += generarCardEncuentroPanel(enc, true);
+                encuentrosCargados.push({...enc, tipo: 'creador'});
+            }
+        }
+        
+        // 3. Insertar todo el HTML de una vez
+        if (htmlAcumulado) {
+            container.innerHTML = htmlAcumulado;
+            console.log(`✅ Renderizados ${encuentrosCargados.length} encuentros`);
+        } else {
+            // Solo si no hay nada, mostrar mensaje vacío
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #64748b;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">🏉</div>
+                    <h3>No tenés encuentros pendientes</h3>
+                    <p>Cuando tu equipo acepte una invitación o crees un encuentro, aparecerá aquí.</p>
+                </div>
+            `;
+            console.log('ℹ️ No hay encuentros para mostrar');
+        }
+        
+    } catch (err) {
+        console.error('Error cargando encuentros:', err);
+        container.innerHTML = '<p style="color: #dc2626; text-align: center;">Error al cargar encuentros. Intentá de nuevo.</p>';
+    }
+}
 // ==========================================
 // GENERAR CARD DE ENCUENTRO PARA PANEL JUGADOR
 // ==========================================
@@ -596,7 +599,7 @@ function generarCardEncuentroPanel(enc, esCreador) {
     `;
 }
 // ==========================================
-// GUARDAR ASISTENCIA - CORREGIDO
+// GUARDAR ASISTENCIA - CORREGIDO PARA CREADORES
 // ==========================================
 async function guardarAsistencia(encuentroId, respuesta) {
     console.log('📝 Guardando asistencia:', { encuentroId, respuesta, jugadorId, equipoId: user?.equipoId });
@@ -621,19 +624,19 @@ async function guardarAsistencia(encuentroId, respuesta) {
         if (result.success) {
             mostrarMensaje(`✅ Confirmado: ${respuesta === 'voy' ? 'VOY' : 'NO VOY'}`, 'ok');
             
-            // 🔥 ESPERAR un momento para que el backend procese
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // 🔥 ESPERAR 1 segundo para que el backend procese
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // 🔥 RECARGAR con fresh data - forzar bypass de cache
+            // 🔥 LIMPIAR Y RECARGAR - Forzar actualización visual
             console.log('🔄 Recargando encuentros...');
             
-            // Limpiar el contenedor primero para forzar re-render
             const container = document.getElementById('panelJugadorEncuentros');
             if (container) {
+                // Limpiar el HTML actual para forzar re-render
                 container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;">🔄 Actualizando...</p>';
             }
             
-            // Llamar a la función de carga
+            // 🔥 LLAMAR DIRECTAMENTE a la función de carga (no recargar página)
             await window.cargarEncuentrosJugador();
             
             console.log('✅ Recarga completada');
