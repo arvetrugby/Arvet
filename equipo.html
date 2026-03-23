@@ -390,6 +390,53 @@ box-shadow:0 8px 24px rgba(0,0,0,0.08);
         font-size: 16px;
     }
 }
+
+        /* Estilos para tarjetas de partidos */
+.partido-card {
+    transition: all 0.3s ease;
+}
+
+.partido-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+.partido-organizo {
+    border-left: 6px solid #4f46e5 !important;
+}
+
+.partido-participo {
+    border-left: 6px solid #22c55e !important;
+}
+
+.partido-pasado {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+.partido-pasado::before {
+    content: "FINALIZADO";
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #94a3b8;
+    color: white;
+    padding: 6px 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-bottom-left-radius: 12px;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+    .partido-card {
+        padding: 16px !important;
+    }
+    
+    .partido-card h3 {
+        font-size: 1.1rem !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -516,20 +563,21 @@ box-shadow:0 8px 24px rgba(0,0,0,0.08);
 
    
 
-    <!-- Partidos -->
-    <section id="partidos" class="section" style="background: #f1f5f9;">
-        <div class="container">
-            <h2>Próximos Partidos</h2>
-            <div id="partidosEquipoList" class="partidos-list">
-                <div class="loading">Cargando partidos...</div>
-            </div>
+   <!-- Partidos -->
+<section id="partidos" class="section" style="background: #f1f5f9;">
+    <div class="container">
+        <h2>Próximos Partidos</h2>
+        <div id="partidosEquipoList" class="partidos-list">
+            <div class="loading">Cargando partidos...</div>
         </div>
-    </section>
+    </div>
+</section>
 
    
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/app.js"></script>
+     <script src="encuentros.js"></script>  
     <script>
         /* ===== ELEMENTOS ===== */
         const equipoLogo = document.getElementById("equipoLogo");
@@ -604,6 +652,21 @@ box-shadow:0 8px 24px rgba(0,0,0,0.08);
             overlay.classList.remove("active");
         });
     </script>
+   
+<script>
+    // Cargar próximos partidos al iniciar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof cargarProximosPartidosEquipo === 'function') {
+            cargarProximosPartidosEquipo();
+        } else {
+            setTimeout(() => {
+                if (typeof cargarProximosPartidosEquipo === 'function') {
+                    cargarProximosPartidosEquipo();
+                }
+            }, 500);
+        }
+    });
+</script>
 </body>
 </html>
 
