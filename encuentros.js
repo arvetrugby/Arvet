@@ -2350,3 +2350,217 @@ function descargarAsistenciasCompletasCSV(encuentroId) {
       mostrarMensajeEncuentros('Error al descargar', 'error');
     });
 }
+// ============================================
+// SECCIÓN PRÓXIMOS PARTIDOS - EQUIPO.HTML
+// ============================================
+
+async function cargarProximosPartidosEquipo() {
+    const container = document.getElementById('partidosEquipoList');
+    if (!container) return;
+    
+    const usuario = obtenerUsuarioActual();
+    if (!usuario || !usuario.equipoId) {
+        container.innerHTML = '<p style="text-align: center; color: #64748b;">Debes iniciar sesión para ver tus partidos</p>';
+        return;
+    }
+    
+    try {
+        // Cargar EN PARALELO: encuentros creados + aceptados
+        const [respCreados, respAceptados] = await Promise.all([
+            fetch(`${API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`).then(r => r.json()),
+            fetch(`${API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`).then(r => r.json())
+        ]);
+        
+        const creados = respCreados.success ? respCreados.data : [];
+        const aceptados = respAceptados.success ? respAceptados.data : [];
+        
+        // Combinar y filtrar solo publicados (no cancelados/borradores)
+        const partidosRelevantes = [
+            ...creados.filter(e => e.estado === 'publicado').map(e => ({...e, esCreador: true})),
+            ...aceptados.filter(e => e.estado === 'publicado').map(e => ({...e, esCreador: false}))
+        ];
+        
+        // Ordenar por fecha (más próximo primero)
+        partidosRelevantes.sort((a, b) => {
+            const fechaA = extraerFechaPrincipal(a);
+            const fechaB = extraerFechaPrincipal(b);
+            return new Date(fechaA) - new Date(fechaB);
+        });
+        
+        // Solo próximos (fecha >= hoy) o todos si no hay próximos
+        const hoy = new Date().toISOString().split('T')[0];
+        let proximosPartidos = partidosRelevantes.filter(p => extraerFechaPrincipal(p) >= hoy);
+        
+        // Si no hay próximos, mostrar los 3 más recientes pasados
+        if (proximosPartidos.length === 0 && partidosRelevantes.length > 0) {
+            proximosPartidos = partidosRelevantes.slice(0, 3);
+        }
+        
+        // Limitar a 5
+        proximosPartidos = proximosPartidos.slice(0, 5);
+        
+        if (proximosPartidos.length === 0) {
+            mostrarEmptyStatePartidos(container);
+            return;
+        }
+        
+        renderizarPartidosEquipo(container, proximosPartidos, partidosRelevantes.length);
+        
+    } catch (err) {
+        console.error('Error cargando próximos partidos:', err);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #dc2626;">
+                <p>Error al cargar partidos. Intentá recargar la página.</p>
+            </div>
+        `;
+    }
+}
+
+// Helper: extraer fecha principal del encuentro
+function extraerFechaPrincipal(encuentro) {
+    try {
+        const fechas = JSON.parse(encuentro.fechasJSON || '[]');
+        return fechas[0]?.dia || '9999-12-31';
+    } catch(e) {
+        return '9999-12-31';
+    }
+}
+
+// Empty state cuando no hay partidos
+function mostrarEmptyStatePartidos(container) {
+    container.innerHTML = `
+        <div style="text-align: center; padding: 50px 20px; color: #64748b;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🏉</div>
+            <h3 style="margin: 0 0 10px 0; color: #1e293b; font-size: 1.3rem;">No hay próximos partidos</h3>
+            <p style="margin: 0 0 25px 0; line-height: 1.5;">Cuando crees un encuentro o aceptes una invitación, aparecerá aquí.</p>
+            <button onclick="window.location.href='encuentros.html'" 
+                    style="padding: 14px 28px; background: #4f46e5; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: all 0.2s;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(79, 70, 229, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(79, 70, 229, 0.3)';">
+                Ir a Encuentros →
+            </button>
+        </div>
+    `;
+}
+
+// Renderizar la lista de partidos
+function renderizarPartidosEquipo(container, partidos, totalPartidos) {
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    container.innerHTML = partidos.map(enc => {
+        const esPasado = extraerFechaPrincipal(enc) < hoy;
+        const fechaData = extraerFechaData(enc);
+        
+        return `
+            <div class="partido-card ${enc.esCreador ? 'partido-organizo' : 'partido-participo'} ${esPasado ? 'partido-pasado' : ''}" 
+                 style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 2px solid ${enc.esCreador ? '#4f46e5' : '#22c55e'}; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; ${esPasado ? 'opacity: 0.85;' : ''}">
+                
+                ${esPasado ? '<div style="position: absolute; top: 12px; right: 12px; background: #64748b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">PASADO</div>' : ''}
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                            <h3 style="margin: 0; color: #1e293b; font-size: 1.25rem; font-weight: 700; line-height: 1.3;">${enc.nombre}</h3>
+                            ${enc.esCreador ? 
+                                '<span style="background: #4f46e5; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">👑 Organizo</span>' :
+                                '<span style="background: #22c55e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✓ Participo</span>'
+                            }
+                        </div>
+                        
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${enc.tipo ? enc.tipo.split(', ').map(t => 
+                                `<span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; border: 1px solid #e2e8f0;">${t}</span>`
+                            ).join('') : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: right; min-width: 80px;">
+                        <div style="font-size: 1.75rem; font-weight: 800; color: ${enc.esCreador ? '#4f46e5' : '#22c55e'};">
+                            ${enc.equiposAceptados || 1}/${enc.cupoMaximo}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 500;">
+                            ${(enc.cupoMaximo - (enc.equiposAceptados || 1)) > 0 ? 
+                                `<span style="color: #16a34a; font-weight: 600;">${enc.cupoMaximo - (enc.equiposAceptados || 1)} libre${enc.cupoMaximo - (enc.equiposAceptados || 1) > 1 ? 's' : ''}</span>` : 
+                                '<span style="color: #dc2626; font-weight: 600;">Completo</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 12px;">
+                    <div>
+                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">📅 Fecha</div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">${fechaData.fecha}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">⏰ Horario</div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">
+                            ${fechaData.hora || 'A confirmar'}
+                            ${fechaData.desc ? `<div style="font-size: 0.85rem; color: #64748b; font-weight: 500; margin-top: 2px;">${fechaData.desc}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">📍 Ubicación</div>
+                        <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            ${enc.lugar || 'Ubicación a confirmar'}
+                            ${enc.lat && enc.lng ? `
+                                <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" 
+                                   style="color: #4f46e5; text-decoration: none; font-size: 0.85rem; font-weight: 500; background: #e0e7ff; padding: 4px 10px; border-radius: 6px; margin-left: auto;">
+                                    Ver en mapa →
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="verDetalleEncuentro('${enc.id}')" 
+                            style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: ${enc.esCreador ? '#4f46e5' : '#22c55e'}; color: white; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
+                            onmouseover="this.style.opacity='0.9'; this.style.transform='translateY(-1px)';"
+                            onmouseout="this.style.opacity='1'; this.style.transform='translateY(0)';">
+                        Ver detalle completo
+                    </button>
+                    ${enc.esCreador ? `
+                        <button onclick="editarEncuentro('${enc.id}')" 
+                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; color: #475569; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
+                                onmouseover="this.style.borderColor='#4f46e5'; this.style.color='#4f46e5';"
+                                onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#475569';">
+                            ✏️
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Si hay más partidos, mostrar botón para ver todos
+    if (totalPartidos > partidos.length) {
+        container.innerHTML += `
+            <div style="text-align: center; margin-top: 30px; padding: 20px;">
+                <button onclick="window.location.href='encuentros.html'" 
+                        style="padding: 14px 32px; background: white; color: #4f46e5; border: 2px solid #4f46e5; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);"
+                        onmouseover="this.style.background='#4f46e5'; this.style.color='white'; this.style.boxShadow='0 4px 16px rgba(79, 70, 229, 0.3)';"
+                        onmouseout="this.style.background='white'; this.style.color='#4f46e5'; this.style.boxShadow='0 2px 8px rgba(79, 70, 229, 0.1)';">
+                        Ver todos los partidos (${totalPartidos}) →
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Helper: extraer datos de fecha formateados
+function extraerFechaData(encuentro) {
+    try {
+        const fechas = JSON.parse(encuentro.fechasJSON || '[]');
+        const principal = fechas[0];
+        if (!principal) return { fecha: 'Fecha a confirmar', hora: '', desc: '' };
+        
+        return {
+            fecha: formatearFecha(principal.dia),
+            hora: principal.horarios?.[0]?.hora || '',
+            desc: principal.horarios?.[0]?.desc || ''
+        };
+    } catch(e) {
+        return { fecha: 'Fecha a confirmar', hora: '', desc: '' };
+    }
+}
