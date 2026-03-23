@@ -1386,7 +1386,8 @@ if (esCreador) {
     console.error('Error cargando asistencias completas:', err);
   }
 } else {
-  // EQUIPO ACEPTADO: Ver y editar solo sus jugadores
+ // EQUIPO ACEPTADO: Ver y editar solo sus jugadores
+
   try {
     const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
     const asistenciasData = await respAsistencias.json();
@@ -1396,47 +1397,45 @@ if (esCreador) {
       const noVoy = asistenciasData.data.filter(j => j.respuesta === 'no_voy');
       const pendientes = asistenciasData.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
       
-      // Verificar si es admin/capitán/manager
       const puedeEditar = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
       
       asistenciasHTML = `
         <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: clamp(1rem, 4vw, 1.25rem);">
             <span>📋</span> Mi equipo - Confirmaciones
-            <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">
-              (${voy.length} van, ${noVoy.length} no van, ${pendientes.length} pendientes)
+            <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; white-space: nowrap;">
+              ${voy.length} van · ${noVoy.length} no van · ${pendientes.length} pendientes
             </span>
-            ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.8rem; color: #4f46e5; background: #e0e7ff; padding: 4px 12px; border-radius: 20px;">Podés editar</span>` : ''}
+            ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.75rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">Podés editar</span>` : ''}
           </h3>
           
-          <div style="background: white; border-radius: 12px; padding: 20px; border: 2px solid #e2e8f0;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+          <div style="background: white; border-radius: 12px; padding: 15px; border: 2px solid #e2e8f0;">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
               ${asistenciasData.data.map(j => `
-                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
-                  <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #1e293b;">${j.nombreCompleto}</div>
-                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
-                      ${j.dni ? `DNI: ${j.dni} • ` : ''}
-                      ${j.telefono ? `Tel: ${j.telefono}` : ''}
+                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'}; flex-wrap: wrap;">
+                  
+                  <!-- Info del jugador -->
+                  <div style="flex: 1; min-width: 200px;">
+                    <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; word-break: break-word;">${j.nombreCompleto}</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
+                      ${j.dni ? `<span>DNI: ${j.dni}</span>` : ''}
+                      ${j.telefono ? `<span>· Tel: ${j.telefono}</span>` : ''}
                     </div>
-                    <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 4px; font-weight: 600;">
+                    <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
                       ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
                     </div>
                   </div>
                   
+                  <!-- Botones de acción (solo admin/capitán/manager) -->
                   ${puedeEditar ? `
-                    <div style="display: flex; gap: 6px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                       <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" 
-                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
-                        VOY
+                        style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">
+                        ✓ VOY
                       </button>
                       <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" 
-                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
-                        NO
-                      </button>
-                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'pendiente')" 
-                        style="padding: 6px 12px; border: none; border-radius: 6px; background: ${!j.respuesta || j.respuesta === 'pendiente' ? '#f59e0b' : '#fef3c7'}; color: ${!j.respuesta || j.respuesta === 'pendiente' ? 'white' : '#92400e'}; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
-                        ?
+                        style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">
+                        ✕ NO
                       </button>
                     </div>
                   ` : ''}
@@ -1451,7 +1450,6 @@ if (esCreador) {
     console.error('Error cargando asistencias del equipo:', err);
   }
 }
-
 
         const modal = document.createElement('div');
     modal.className = 'modal-overlay active';
