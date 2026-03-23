@@ -2183,13 +2183,13 @@ const btnGuardarColor = document.getElementById('btnGuardarColor');
                     logoPreview.src = equipo.logoUrl;
                     console.log('✅ Logo cargado:', equipo.logoUrl);
                 } else {
-                    logoPreview.src = 'https://i.ibb.co/xxxxx/logo-default.png ';
+                    logoPreview.src = 'https://i.ibb.co/YFjMZQmN/f88959de-9367-4d6b-b15d-1ffa48b2a1c7.png';
                     console.log('ℹ️ No hay logo, mostrando default');
                 }
             }
         } catch (err) {
             console.error('Error cargando logo:', err);
-            logoPreview.src = 'https://i.ibb.co/xxxxx/logo-default.png ';
+            logoPreview.src = 'https://i.ibb.co/YFjMZQmN/f88959de-9367-4d6b-b15d-1ffa48b2a1c7.png';
         }
     }
     cargarLogoExistente();
