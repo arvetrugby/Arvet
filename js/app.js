@@ -463,8 +463,8 @@ async function cargarEquiposInicio(){
                         <img src="${e.logoUrl || ''}" alt="${e.nombre}">
                     </div>
                     <p class="equipo-ubicacion">
-                        ${e.ciudad ? e.ciudad + ' - ' : ''}${e.provincia ? e.provincia + ' - ' : ''}${e.pais || ''}
-                    </p>
+    ${e.pais ? e.pais.substring(0, 3).toUpperCase() + ' - ' : ''}${e.provincia ? e.provincia + ' - ' : ''}${e.ciudad || ''}
+</p>
                     <p class="equipo-nombre">${e.nombre}</p>
                     
                     <!-- Badge de jugadores -->
