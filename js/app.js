@@ -2925,8 +2925,8 @@ function compartirEquipoActual() {
         return;
     }
     
-    const urlLimpia = 'https://arvetrugby.github.io/Arvet/' + slug;
-    const urlCorta = 'arvetrugby.github.io/Arvet/' + slug;
+    const urlLimpia = 'https://arvetrugby.com/' + slug;
+    const urlCorta = 'arvetrugby.com/' + slug;
     
     // Actualizar el texto debajo del botón
     const urlElement = document.getElementById('urlCompartir');
@@ -2954,7 +2954,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlElement) {
         const slug = obtenerSlugActual();
         if (slug) {
-            urlElement.textContent = 'arvetrugby.github.io/Arvet/' + slug;
+            urlElement.textContent = 'arvetrugby.com/' + slug;
         }
     }
 });
