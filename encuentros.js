@@ -2368,8 +2368,7 @@ function cargarFlyersEncuentrosPublicos(contenedorId = 'galeriaFlyers') {
     // Mostrar loader
     container.innerHTML = '<div class="loading">Cargando flyers...</div>';
 
-    // URL de tu API de Apps Script (reemplazar con tu URL)
-    const API_URL = 'https://script.google.com/macros/s/TU_ID_DE_SCRIPT/exec';
+   
 
     fetch(`${API_URL}?action=getEncuentrosPublicos`)
         .then(response => response.json())
