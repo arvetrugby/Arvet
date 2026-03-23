@@ -2353,26 +2353,24 @@ function descargarAsistenciasCompletasCSV(encuentroId) {
 // ============================================
 // FLYERS PÚBLICOS - ULTRA SIMPLE
 // ============================================
-
 async function cargarProximosPartidosEquipo() {
     const container = document.getElementById('partidosEquipoList');
     if (!container) return;
 
     try {
-        // Traer TODOS los encuentros
+        // 🔥 MISMA API que usa el sistema
         const resp = await fetch(`${API_URL}?action=getEncuentros`).then(r => r.json());
 
         const encuentros = resp.success ? resp.data : [];
 
-        // Filtrar SOLO publicados (públicos)
-        const publicos = encuentros.filter(e => e.estado === 'publicado' && e.flyerUrl);
+        // 🔥 SOLO PUBLICADOS (igual que sistema)
+        const publicos = encuentros.filter(e => e.estado === 'publicado');
 
         if (publicos.length === 0) {
             container.innerHTML = '<p style="text-align:center;color:#64748b;padding:40px;">No hay flyers</p>';
             return;
         }
 
-        // SOLO IMÁGENES
         container.innerHTML = `
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;">
                 ${publicos.map(p => `
