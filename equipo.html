@@ -562,18 +562,22 @@ box-shadow:0 8px 24px rgba(0,0,0,0.08);
     </section>
 
    
-
-   <!-- Partidos -->
 <section id="partidos" class="section" style="background: #f1f5f9;">
     <div class="container">
         <h2>Próximos Partidos</h2>
+        
+        <!-- Lista de partidos existente -->
         <div id="partidosEquipoList" class="partidos-list">
             <div class="loading">Cargando partidos...</div>
         </div>
+        
+        <!-- NUEVO: Galería de flyers públicos -->
+        <h3 style="margin-top: 40px; font-size: 1.2rem; color: #475569;">Flyers de Encuentros</h3>
+        <div id="galeriaFlyers">
+            <!-- Las imágenes se cargarán aquí -->
+        </div>
     </div>
 </section>
-
-   
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/app.js"></script>
