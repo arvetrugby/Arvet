@@ -1269,48 +1269,51 @@ async function verDetalleEncuentro(encuentroId) {
         }).join('');
 
         // Lista de aceptados (incluye al creador automáticamente)
+// Lista de aceptados (responsive)
 const listaAceptados = detalle.aceptados.length > 0 ? detalle.aceptados.map(eq => `
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 8px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'};">
-        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-        <div style="flex: 1;">
-            <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'};">
-                ${eq.nombre} ${eq.esCreador ? '👑 (Organizador)' : ''}
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 10px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'}; flex-wrap: wrap;">
+        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'}; font-size: 0.95rem; word-break: break-word;">
+                ${eq.nombre} ${eq.esCreador ? '👑' : ''}
             </div>
-            <div style="font-size: 0.85rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
         </div>
         ${eq.telefonoContacto && !eq.esCreador ? `
-            <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
+            <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" 
+               style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
                 WhatsApp
             </a>
         ` : ''}
-        <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+        <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
             ${eq.esCreador ? '★ CREADOR' : '✓ Aceptado'}
         </span>
     </div>
-`).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha aceptado aún</p>';
-        // Lista de rechazados
-        const listaRechazados = detalle.rechazados.length > 0 ? detalle.rechazados.map(eq => `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444; opacity: 0.8;">
-                <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #991b1b;">${eq.nombre}</div>
-                    <div style="font-size: 0.85rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-                </div>
-                <span style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">✕ Rechazado</span>
-            </div>
-        `).join('') : '<p style="color: #64748b; font-style: italic;">Ningún equipo ha rechazado</p>';
+`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha aceptado aún</p>';
 
-        // Lista de pendientes
-        const listaPendientes = detalle.pendientes.length > 0 ? detalle.pendientes.map(eq => `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #92400e;">${eq.nombre}</div>
-                    <div style="font-size: 0.85rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-                </div>
-                <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">⏳ Pendiente</span>
-            </div>
-        `).join('') : '<p style="color: #64748b; font-style: italic;">No hay equipos pendientes</p>';
+// Lista de rechazados (responsive)
+const listaRechazados = detalle.rechazados.length > 0 ? detalle.rechazados.map(eq => `
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444; opacity: 0.9; flex-wrap: wrap;">
+        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: 600; color: #991b1b; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+        </div>
+        <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">✕ Rechazado</span>
+    </div>
+`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha rechazado</p>';
+
+// Lista de pendientes (responsive)
+const listaPendientes = detalle.pendientes.length > 0 ? detalle.pendientes.map(eq => `
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #f59e0b; flex-wrap: wrap;">
+        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: 600; color: #92400e; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+        </div>
+        <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">⏳ Pendiente</span>
+    </div>
+`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">No hay equipos pendientes</p>';
 
         // Obtener asistencias de jugadores
         const usuario = obtenerUsuarioActual();
@@ -1451,119 +1454,135 @@ if (esCreador) {
 
 
         const modal = document.createElement('div');
-        modal.className = 'modal-overlay active';
-        modal.id = 'modalDetalleEncuentro';
-        
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
-                <div class="modal-header">
-                    <h2>${enc.nombre}</h2>
-                    <button class="btn-cerrar" onclick="document.getElementById('modalDetalleEncuentro').remove()">×</button>
-                </div>
+    modal.className = 'modal-overlay active';
+    modal.id = 'modalDetalleEncuentro';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 10px; box-sizing: border-box;';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; background: white; border-radius: 16px; position: relative;">
+            
+            <!-- Header sticky -->
+            <div class="modal-header" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
+                <button class="btn-cerrar" onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+            </div>
+            
+            <div style="padding: 20px;">
                 
-                <div style="padding: 20px;">
-                    ${enc.flyerUrl ? `
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <img src="${enc.flyerUrl}" style="max-width: 100%; max-height: 300px; border-radius: 12px;" alt="Flyer">
-                        </div>
-                    ` : ''}
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px;">
-                            <h4 style="margin: 0 0 10px 0; color: #64748b; font-size: 0.9rem;">📍 Ubicación</h4>
-                            <p style="margin: 0; color: #1e293b; font-weight: 500;">${enc.lugar || 'No especificada'}</p>
-                            ${enc.lat && enc.lng ? `
-                                <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; font-size: 0.9rem;">Ver en mapa →</a>
-                            ` : ''}
-                        </div>
-                        
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px;">
-                            <h4 style="margin: 0 0 10px 0; color: #64748b; font-size: 0.9rem;">👥 Cupo</h4>
-                            <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 1.5rem;">
-                                ${detalle.cantidadAceptados || 0}/${enc.cupoMaximo} equipos
-                            </p>
-                            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;">
-                                ${(enc.cupoMaximo - (detalle.cantidadAceptados || 0))} plazas disponibles
-                            </p>
-                        </div>
+                ${enc.flyerUrl ? `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${enc.flyerUrl}" style="max-width: 100%; max-height: 250px; border-radius: 12px; object-fit: contain;" alt="Flyer">
                     </div>
+                ` : ''}
+                
+                <!-- Grid responsive: 1 columna en móvil, 2 en desktop -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px; word-break: break-word;">
+                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">📍 Ubicación</h4>
+                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 0.95rem; line-height: 1.4;">${enc.lugar || 'No especificada'}</p>
+                        ${enc.lat && enc.lng ? `
+                            <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; font-size: 0.9rem; display: inline-block; margin-top: 8px; word-break: break-all;">Ver en mapa →</a>
+                        ` : ''}
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px;">
+                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">👥 Cupo</h4>
+                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 1.3rem;">
+                            ${detalle.cantidadAceptados || 0}/${enc.cupoMaximo}
+                        </p>
+                        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;">
+                            ${(enc.cupoMaximo - (detalle.cantidadAceptados || 0))} plazas disponibles
+                        </p>
+                    </div>
+                </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">📅 Fechas y horarios</h4>
+                <!-- Fechas con scroll horizontal si es necesario -->
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📅 Fechas y horarios</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
                         ${fechasHTML}
                     </div>
+                </div>
 
-                    ${valores.length > 0 ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">💰 Valores</h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                ${valores.map(v => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f0fdf4; border-radius: 8px;">
-                                        <div>
-                                            <span style="font-weight: 600; color: #166534;">${v.titulo}</span>
-                                            ${v.desc ? `<span style="color: #64748b; font-size: 0.9rem; margin-left: 8px;">(${v.desc})</span>` : ''}
-                                        </div>
-                                        <span style="font-weight: 700; color: #166534; font-size: 1.1rem;">
-                                            $${parseFloat(v.precio).toLocaleString('es-AR')}
-                                        </span>
+                ${valores.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">💰 Valores</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${valores.map(v => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f0fdf4; border-radius: 10px; flex-wrap: wrap; gap: 8px;">
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <span style="font-weight: 600; color: #166534;">${v.titulo}</span>
+                                        ${v.desc ? `<span style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 2px;">${v.desc}</span>` : ''}
                                     </div>
-                                `).join('')}
-                            </div>
+                                    <span style="font-weight: 700; color: #166534; font-size: 1.1rem; white-space: nowrap;">
+                                        $${parseFloat(v.precio).toLocaleString('es-AR')}
+                                    </span>
+                                </div>
+                            `).join('')}
                         </div>
-                    ` : ''}
+                    </div>
+                ` : ''}
 
-                    ${enc.descripcion ? `
-                        <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px;">
-                            <h4 style="color: #64748b; font-size: 0.9rem; margin: 0 0 10px 0;">📝 Descripción</h4>
-                            <p style="margin: 0; color: #1e293b; line-height: 1.6;">${enc.descripcion}</p>
+                ${enc.descripcion ? `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                        <h4 style="color: #64748b; font-size: 0.85rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">📝 Descripción</h4>
+                        <p style="margin: 0; color: #1e293b; line-height: 1.6; font-size: 0.95rem; word-break: break-word;">${enc.descripcion}</p>
+                    </div>
+                ` : ''}
+
+                <!-- Listas de equipos con cards horizontales en móvil -->
+                <div style="margin-top: 25px;">
+                    <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span>👥</span> Equipos invitados
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 4px 10px; border-radius: 20px;">
+                            ${detalle.totalEquipos || 0} equipos
+                        </span>
+                    </h3>
+                    
+                    <!-- Aceptados -->
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #166534; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+                            Aceptados (${detalle.cantidadAceptados || 0})
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${listaAceptados}
                         </div>
-                    ` : ''}
+                    </div>
 
-                    <div style="margin-top: 30px;">
-                        <h3 style="color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <span>👥</span> Equipos invitados
-                            <span style="font-size: 0.8rem; color: #64748b; font-weight: normal;">
-                                (${detalle.totalEquipos || 0} equipos en total)
-                            </span>
-                        </h3>
-                        
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="color: #166534; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                                Aceptados (${detalle.cantidadAceptados || 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                ${listaAceptados}
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <h4 style="color: #991b1b; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <!-- Rechazados -->
+                    ${detalle.rechazados.length > 0 ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #991b1b; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
                                 <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
                                 Rechazados (${detalle.cantidadRechazados || 0})
                             </h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
                                 ${listaRechazados}
                             </div>
                         </div>
+                    ` : ''}
 
-                        <div>
-                            <h4 style="color: #92400e; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <!-- Pendientes -->
+                    ${detalle.pendientes.length > 0 ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #92400e; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
                                 <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
                                 Pendientes (${detalle.cantidadPendientes || 0})
                             </h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
                                 ${listaPendientes}
                             </div>
                         </div>
-                    </div>
-                    
-                    ${asistenciasHTML}
+                    ` : ''}
                 </div>
+                
+                ${asistenciasHTML}
             </div>
-        `;
-        
-        document.body.appendChild(modal);
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
         
     } catch (err) {
         console.error('Error cargando detalle:', err);
