@@ -311,14 +311,14 @@ h1, h2, h3 {
 ============================================ */
 
 .buscador-section h2 {
-  text-align: center;
+  text-align: Left;
   font-size: 1.8rem;
   margin-bottom: 0px;
   font-weight: 700;
   color: white;
 }
 .buscador-section p {
-  text-align: center;
+  text-align: left;
   color: white;
    font-size: 0.8rem;
 }
