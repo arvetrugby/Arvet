@@ -602,8 +602,6 @@ function generarCardEncuentroPanel(enc, esCreador) {
 // GUARDAR ASISTENCIA - CORREGIDO PARA CREADORES
 // ==========================================
 async function guardarAsistencia(encuentroId, respuesta) {
-    console.log('📝 Guardando asistencia:', { encuentroId, respuesta, jugadorId, equipoId: user?.equipoId });
-    
     const params = new URLSearchParams({
         action: 'guardarAsistenciaJugador',
         encuentroId: encuentroId,
@@ -619,34 +617,18 @@ async function guardarAsistencia(encuentroId, respuesta) {
         const response = await fetch(`${API_URL}?${params.toString()}`);
         const result = await response.json();
         
-        console.log('📥 Respuesta del servidor:', result);
-        
         if (result.success) {
-            mostrarMensaje(`✅ Confirmado: ${respuesta === 'voy' ? 'VOY' : 'NO VOY'}`, 'ok');
+            mostrarMensaje(`✅ Confirmado`, 'ok');
             
-            // 🔥 ESPERAR 1 segundo para que el backend procese
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 🔥 LIMPIAR Y RECARGAR - Forzar actualización visual
-            console.log('🔄 Recargando encuentros...');
-            
-            const container = document.getElementById('panelJugadorEncuentros');
-            if (container) {
-                // Limpiar el HTML actual para forzar re-render
-                container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;">🔄 Actualizando...</p>';
-            }
-            
-            // 🔥 LLAMAR DIRECTAMENTE a la función de carga (no recargar página)
-            await window.cargarEncuentrosJugador();
-            
-            console.log('✅ Recarga completada');
+            // 🔥 SOLUCIÓN SIMPLE: Esperar 1.5 segundos y recargar TODO
+            setTimeout(() => {
+                location.reload(); // Recarga la página completa
+            }, 1500);
             
         } else {
-            console.error('❌ Error del servidor:', result.error);
-            mostrarMensaje(result.error || 'Error al guardar', 'error');
+            mostrarMensaje('Error al guardar', 'error');
         }
     } catch (err) {
-        console.error('❌ Error de conexión:', err);
         mostrarMensaje('Error de conexión', 'error');
     }
 }
