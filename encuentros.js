@@ -2351,38 +2351,74 @@ function descargarAsistenciasCompletasCSV(encuentroId) {
     });
 }
 // ============================================
-// FLYERS PÚBLICOS - ULTRA SIMPLE
+// TRAER SOLO IMÁGENES DE ENCUENTROS PÚBLICOS
 // ============================================
-async function cargarProximosPartidosEquipo() {
-    const container = document.getElementById('partidosEquipoList');
-    if (!container) return;
 
-    try {
-        // 🔥 MISMA API que usa el sistema
-        const resp = await fetch(`${API_URL}?action=getEncuentros`).then(r => r.json());
-
-        const encuentros = resp.success ? resp.data : [];
-
-        // 🔥 SOLO PUBLICADOS (igual que sistema)
-        const publicos = encuentros.filter(e => e.estado === 'publicado');
-
-        if (publicos.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#64748b;padding:40px;">No hay flyers</p>';
-            return;
-        }
-
-        container.innerHTML = `
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;">
-                ${publicos.map(p => `
-                    <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.15);aspect-ratio:3/4;">
-                        <img src="${p.flyerUrl}" 
-                             style="width:100%;height:100%;object-fit:cover;display:block;">
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-    } catch (err) {
-        container.innerHTML = '<p style="text-align:center;color:#dc2626;">Error al cargar</p>';
+/**
+ * Carga solo las imágenes (flyers) de encuentros públicos en una galería
+ * @param {string} contenedorId - ID del contenedor donde mostrar las imágenes
+ */
+function cargarFlyersEncuentrosPublicos(contenedorId = 'galeriaFlyers') {
+    const container = document.getElementById(contenedorId);
+    if (!container) {
+        console.error('No se encontró contenedor:', contenedorId);
+        return;
     }
+
+    // Mostrar loader
+    container.innerHTML = '<div class="loading">Cargando flyers...</div>';
+
+    // URL de tu API de Apps Script (reemplazar con tu URL)
+    const API_URL = 'https://script.google.com/macros/s/TU_ID_DE_SCRIPT/exec';
+
+    fetch(`${API_URL}?action=getEncuentrosPublicos`)
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success || !result.data || result.data.length === 0) {
+                container.innerHTML = '<p class="sin-flyers">No hay encuentros disponibles</p>';
+                return;
+            }
+
+            // Filtrar solo los que tienen imagen
+            const encuentrosConFlyer = result.data.filter(enc => 
+                enc.flyerUrl && 
+                enc.flyerUrl.trim() !== '' && 
+                enc.flyerUrl !== 'null'
+            );
+
+            if (encuentrosConFlyer.length === 0) {
+                container.innerHTML = '<p class="sin-flyers">No hay imágenes disponibles</p>';
+                return;
+            }
+
+            // Generar HTML solo con las imágenes
+            const html = `
+                <div class="flyers-grid">
+                    ${encuentrosConFlyer.map(enc => `
+                        <div class="flyer-item" data-encuentro-id="${enc.id}">
+                            <img src="${enc.flyerUrl}" 
+                                 alt="Flyer: ${enc.nombre}" 
+                                 loading="lazy"
+                                 onerror="this.style.display='none'">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // Opcional: agregar click para ver detalle
+            document.querySelectorAll('.flyer-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const encuentroId = this.getAttribute('data-encuentro-id');
+                    // Aquí puedes abrir modal o redirigir al detalle
+                    console.log('Click en encuentro:', encuentroId);
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error cargando flyers:', error);
+            container.innerHTML = '<p class="error">Error al cargar imágenes</p>';
+        });
 }
+
