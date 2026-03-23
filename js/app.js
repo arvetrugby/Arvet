@@ -332,7 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // PÁGINA: INDEX (Home)
 // ============================================
 
-
+function initIndex() {
+    // Mostrar loading screen
+    const loadingScreen = document.getElementById('loadingScreen');
+    const progressBar = document.getElementById('progressBar');
+    const loadingText = document.getElementById('loadingText');
+    
     
 const input = document.getElementById("searchInput");
 if(input){
