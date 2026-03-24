@@ -1447,598 +1447,154 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
 }
 
 // ============================================
-// MODAL CREAR ENCUENTRO V4 - MEJORADO Y RÁPIDO
+// MODAL CREAR ENCUENTRO (COMPLETO) - MEJORADO V1
 // ============================================
 
 function nuevoEncuentro() {
     if (document.getElementById('modalEncuentro')) return;
     
     const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
     modal.id = 'modalEncuentro';
-    modal.className = 'modal-encuentro-v4';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: flex-end; justify-content: center; z-index: 99999;';
+    
+    // Detectar mobile
+    const isMobile = window.innerWidth < 640;
     
     modal.innerHTML = `
-        <div class="encuentro-modal-container">
-            <div class="modal-header">
-                <h2>🏉 Nuevo Encuentro</h2>
-                <button class="btn-cerrar" onclick="cerrarModalEncuentro()">×</button>
-            </div>
+        <div style="background: white; width: 100%; max-width: 600px; max-height: 90vh; border-radius: ${isMobile ? '20px 20px 0 0' : '16px'}; display: flex; flex-direction: column; animation: slideUp 0.25s ease;">
             
-            <div class="modal-body">
+            <!-- Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10; border-radius: ${isMobile ? '20px 20px 0 0' : '16px 16px 0 0'};">
+                <h2 style="margin: 0; font-size: 20px; color: #0f172a;">🏉 Nuevo Encuentro</h2>
+                <button onclick="cerrarModalEncuentro()" style="width: 36px; height: 36px; border-radius: 50%; border: none; background: #f1f5f9; color: #64748b; font-size: 20px; cursor: pointer;">×</button>
+            </div>
+
+            <!-- Body -->
+            <div style="flex: 1; overflow-y: auto; padding: 20px;">
                 <form id="formEncuentro" onsubmit="guardarEncuentro(event)">
                     
                     <!-- FLYER -->
-                    <div class="seccion">
-                        <div class="upload-zone" id="zonaFlyer" onclick="document.getElementById('inputFlyer').click()">
-                            <div class="upload-placeholder" id="flyerPlaceholder">
-                                <span class="icon">📸</span>
-                                <span class="text">Tocá para subir flyer</span>
-                                <span class="hint">JPG o PNG · 800×600 recomendado</span>
-                            </div>
-                            <img id="previewFlyer" class="flyer-img" style="display: none;">
-                            <button type="button" class="btn-cambiar" id="btnCambiarFlyer" style="display: none;" onclick="event.stopPropagation(); document.getElementById('inputFlyer').click()">
-                                Cambiar
-                            </button>
+                    <div style="margin-bottom: 20px;">
+                        <div id="flyerPreview" onclick="document.getElementById('inputFlyer').click()" style="width: 100%; height: 180px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed #cbd5e1; transition: all 0.2s; overflow: hidden; position: relative;">
+                            <span id="flyerVacio" style="text-align: center;">
+                                <span style="font-size: 40px; display: block; margin-bottom: 8px;">📸</span>
+                                <span style="font-size: 15px; font-weight: 600; color: #475569; display: block;">Tocá para subir flyer</span>
+                                <span style="font-size: 12px; color: #94a3b8;">JPG o PNG · 800×600</span>
+                            </span>
+                            <img id="flyerImg" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
+                            <button type="button" id="btnCambiarFlyer" onclick="event.stopPropagation(); document.getElementById('inputFlyer').click()" style="position: absolute; bottom: 10px; right: 10px; padding: 8px 16px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 20px; font-size: 12px; display: none;">Cambiar</button>
                         </div>
-                        <input type="file" id="inputFlyer" accept="image/*" style="display: none;" onchange="subirFlyerOptimizado()">
+                        <input type="file" id="inputFlyer" accept="image/*" style="display: none;" onchange="handleFlyerSelect(this)">
                         <input type="hidden" id="flyerUrl">
                     </div>
 
                     <!-- NOMBRE -->
-                    <div class="campo">
-                        <label class="label">Nombre del encuentro *</label>
-                        <input type="text" id="encNombre" class="input" placeholder="Ej: Encuentro Veteranos - Mar del Plata 2026" required>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 8px;">Nombre del encuentro *</label>
+                        <input type="text" id="encNombre" required placeholder="Ej: Encuentro Veteranos - Mar del Plata 2026" style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; box-sizing: border-box;">
                     </div>
 
                     <!-- TIPO -->
-                    <div class="campo">
-                        <label class="label">Tipo de encuentro *</label>
-                        <div class="tipo-grid">
-                            <label class="tipo-card">
-                                <input type="checkbox" name="encTipo" value="Veteranos +35" hidden>
-                                <span class="tipo-icon">👴</span>
-                                <span class="tipo-text">+35</span>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 12px;">Tipo de encuentro *</label>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <input type="checkbox" name="encTipo" value="Veteranos +35" style="width: 20px; height: 20px; accent-color: #2563eb;">
+                                <span style="font-weight: 600; color: #374151;">👴 +35</span>
                             </label>
-                            <label class="tipo-card">
-                                <input type="checkbox" name="encTipo" value="Veteranos +50" hidden>
-                                <span class="tipo-icon">👴👴</span>
-                                <span class="tipo-text">+50</span>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <input type="checkbox" name="encTipo" value="Veteranos +50" style="width: 20px; height: 20px; accent-color: #2563eb;">
+                                <span style="font-weight: 600; color: #374151;">👴👴 +50</span>
                             </label>
-                            <label class="tipo-card">
-                                <input type="checkbox" name="encTipo" value="Mixto" hidden>
-                                <span class="tipo-icon">👥</span>
-                                <span class="tipo-text">Mixto</span>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <input type="checkbox" name="encTipo" value="Mixto" style="width: 20px; height: 20px; accent-color: #2563eb;">
+                                <span style="font-weight: 600; color: #374151;">👥 Mixto</span>
                             </label>
-                            <label class="tipo-card">
-                                <input type="checkbox" name="encTipo" value="Femenino" hidden>
-                                <span class="tipo-icon">👩</span>
-                                <span class="tipo-text">Femenino</span>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <input type="checkbox" name="encTipo" value="Femenino" style="width: 20px; height: 20px; accent-color: #2563eb;">
+                                <span style="font-weight: 600; color: #374151;">👩 Femenino</span>
                             </label>
                         </div>
-                        
-                        <div class="otros-tipos">
-                            <input type="text" id="inputOtroTipo" placeholder="¿Otro tipo? Agregalo acá..." onkeypress="if(event.key === 'Enter') { event.preventDefault(); agregarOtroTipo(); }">
-                            <button type="button" onclick="agregarOtroTipo()">+</button>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="inputOtroTipo" placeholder="¿Otro tipo? Escribilo acá..." onkeypress="if(event.key === 'Enter') { event.preventDefault(); agregarOtroTipo(); }" style="flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px;">
+                            <button type="button" onclick="agregarOtroTipo()" style="padding: 12px 20px; background: #2563eb; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">+</button>
                         </div>
-                        <div class="tags-container" id="tagsContainer"></div>
-                    </div>
-
-                    <!-- FECHAS -->
-                    <div class="campo">
-                        <label class="label">Fechas y horarios *</label>
-                        <div id="containerFechas" class="fechas-lista"></div>
-                        <button type="button" class="btn-agregar" onclick="agregarDia()">
-                            <span>+</span> Agregar día
-                        </button>
+                        <div id="otrosTiposTags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
                     </div>
 
                     <!-- UBICACIÓN -->
-                    <div class="campo">
-                        <label class="label">Ubicación *</label>
-                        <div class="mapa-box" id="mapaEncuentro"></div>
-                        <div class="mapa-hint">📍 Mové el pin o tocá el mapa</div>
-                        
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 8px;">Ubicación *</label>
+                        <div style="position: relative; margin-bottom: 12px;">
+                            <div id="mapaEncuentro" style="height: 200px; border-radius: 16px; border: 2px solid #e2e8f0; background: #f1f5f9;"></div>
+                            <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; white-space: nowrap;">📍 Mové el pin o tocá el mapa</div>
+                        </div>
                         <input type="hidden" id="encLat">
                         <input type="hidden" id="encLng">
                         <input type="hidden" id="encPaisId">
                         <input type="hidden" id="encProvinciaId">
                         <input type="hidden" id="encCiudadId">
-                        
-                        <input type="text" id="encDireccion" class="input" placeholder="Dirección..." readonly style="margin-top: 12px;">
-                        <div class="ubicacion-ok" id="encUbicacionInfo" style="display: none;">
-                            ✅ Ubicación confirmada
-                        </div>
+                        <input type="text" id="encDireccion" required placeholder="Dirección..." readonly style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; background: #f8fafc;">
+                        <div id="encUbicacionInfo" style="display: none; background: #dcfce7; border-radius: 10px; padding: 12px 16px; color: #166534; font-size: 14px; margin-top: 10px;">✅ Ubicación confirmada</div>
                     </div>
 
                     <!-- CUPO -->
-                    <div class="campo">
-                        <label class="label">Cupo de equipos *</label>
-                        <div class="cupo-selector">
-                            <button type="button" onclick="ajustarCupo(-1)">−</button>
-                            <span id="cupoDisplay">8</span>
-                            <button type="button" onclick="ajustarCupo(1)">+</button>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 12px;">Cupo de equipos *</label>
+                        <div style="display: flex; align-items: center; gap: 20px; background: #f8fafc; padding: 16px 24px; border-radius: 16px; width: fit-content;">
+                            <button type="button" onclick="ajustarCupo(-1)" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #e2e8f0; background: white; font-size: 24px; color: #475569; cursor: pointer;">−</button>
+                            <span id="cupoValor" style="font-size: 32px; font-weight: 800; color: #2563eb; min-width: 40px; text-align: center;">8</span>
+                            <button type="button" onclick="ajustarCupo(1)" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #e2e8f0; background: white; font-size: 24px; color: #475569; cursor: pointer;">+</button>
                         </div>
                         <input type="hidden" id="encCupo" value="8">
                     </div>
 
+                    <!-- FECHAS -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 12px;">Fechas y horarios *</label>
+                        <div id="containerFechas" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                        <button type="button" onclick="agregarDia()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #38bdf8; border-radius: 12px; color: #2563eb; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span>+</span> Agregar día
+                        </button>
+                    </div>
+
                     <!-- VALORES -->
-                    <div class="campo">
-                        <label class="label">Valores / Inscripción *</label>
-                        <div id="containerValores" class="valores-lista"></div>
-                        <button type="button" class="btn-agregar" onclick="agregarValor()">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 12px;">Valores / Inscripción *</label>
+                        <div id="containerValores" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                        <button type="button" onclick="agregarValor()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #38bdf8; border-radius: 12px; color: #2563eb; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             <span>+</span> Agregar opción
                         </button>
                     </div>
 
                     <!-- DESCRIPCIÓN -->
-                    <div class="campo">
-                        <label class="label">Descripción (opcional)</label>
-                        <textarea id="encDescripcion" class="textarea" rows="3" placeholder="Formas de pago, menú, observaciones..."></textarea>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 8px;">Descripción (opcional)</label>
+                        <textarea id="encDescripcion" rows="3" placeholder="Formas de pago, menú del 3er tiempo, observaciones..." style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
                     </div>
 
-                    <div style="height: 80px;"></div>
+                    <div style="height: 20px;"></div>
                 </form>
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="cerrarModalEncuentro()">Cancelar</button>
-                <button type="button" class="btn-guardar" onclick="document.getElementById('formEncuentro').dispatchEvent(new Event('submit'))">
-                    Crear encuentro
-                </button>
+            <!-- Footer -->
+            <div style="padding: 16px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 12px; background: white;">
+                <button type="button" onclick="cerrarModalEncuentro()" style="flex: 1; padding: 14px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="button" onclick="document.getElementById('formEncuentro').requestSubmit()" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Crear encuentro</button>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
     
-    // CSS inline rápido
-    if (!document.getElementById('encuentro-v4-styles')) {
+    // CSS de animación
+    if (!document.getElementById('anim-slide')) {
         const style = document.createElement('style');
-        style.id = 'encuentro-v4-styles';
+        style.id = 'anim-slide';
         style.textContent = `
-            .modal-encuentro-v4 {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                z-index: 99999;
-                display: flex;
-                align-items: flex-end;
-                justify-content: center;
-            }
-            
-            @media (min-width: 640px) {
-                .modal-encuentro-v4 { align-items: center; }
-            }
-            
-            .encuentro-modal-container {
-                background: white;
-                width: 100%;
-                max-width: 600px;
-                max-height: 95vh;
-                border-radius: 24px 24px 0 0;
-                display: flex;
-                flex-direction: column;
-                animation: slideUpV4 0.2s ease;
-            }
-            
-            @media (min-width: 640px) {
-                .encuentro-modal-container {
-                    border-radius: 20px;
-                    max-height: 90vh;
-                }
-            }
-            
-            @keyframes slideUpV4 {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-            }
-            
-            .modal-header {
-                padding: 20px;
-                border-bottom: 1px solid #e2e8f0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                position: sticky;
-                top: 0;
-                background: white;
-                z-index: 10;
-                border-radius: 24px 24px 0 0;
-            }
-            
-            .modal-header h2 {
-                margin: 0;
-                font-size: 20px;
-                color: #0f172a;
-            }
-            
-            .btn-cerrar {
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                border: none;
-                background: #f1f5f9;
-                color: #64748b;
-                font-size: 24px;
-                cursor: pointer;
-            }
-            
-            .modal-body {
-                flex: 1;
-                overflow-y: auto;
-                padding: 20px;
-            }
-            
-            .modal-footer {
-                padding: 16px 20px;
-                border-top: 1px solid #e2e8f0;
-                display: flex;
-                gap: 12px;
-                background: white;
-                position: sticky;
-                bottom: 0;
-            }
-            
-            .seccion { margin-bottom: 24px; }
-            
-            .upload-zone {
-                border: 2px dashed #cbd5e1;
-                border-radius: 16px;
-                padding: 32px 20px;
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.2s;
-                background: #f8fafc;
-                position: relative;
-            }
-            
-            .upload-zone:hover { border-color: #38bdf8; background: #f0f9ff; }
-            .upload-zone.tiene-imagen {
-                border-style: solid;
-                border-color: #22c55e;
-                padding: 16px;
-            }
-            
-            .upload-placeholder .icon { font-size: 40px; display: block; margin-bottom: 8px; }
-            .upload-placeholder .text { font-size: 15px; font-weight: 600; color: #475569; display: block; }
-            .upload-placeholder .hint { font-size: 12px; color: #94a3b8; }
-            
-            .flyer-img {
-                max-width: 100%;
-                max-height: 180px;
-                border-radius: 12px;
-                display: block;
-                margin: 0 auto;
-            }
-            
-            .btn-cambiar {
-                margin-top: 12px;
-                padding: 8px 16px;
-                background: #f1f5f9;
-                border: none;
-                border-radius: 8px;
-                color: #475569;
-                font-size: 13px;
-                cursor: pointer;
-            }
-            
-            .campo { margin-bottom: 20px; }
-            
-            .label {
-                display: block;
-                font-size: 14px;
-                font-weight: 700;
-                color: #374151;
-                margin-bottom: 8px;
-            }
-            
-            .input, .textarea {
-                width: 100%;
-                padding: 14px 16px;
-                border: 2px solid #e2e8f0;
-                border-radius: 12px;
-                font-size: 16px;
-                box-sizing: border-box;
-                transition: border-color 0.2s;
-            }
-            
-            .input:focus, .textarea:focus {
-                outline: none;
-                border-color: #38bdf8;
-            }
-            
-            .textarea { resize: vertical; min-height: 80px; }
-            
-            .tipo-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
-                margin-bottom: 12px;
-            }
-            
-            @media (max-width: 400px) {
-                .tipo-grid { grid-template-columns: repeat(2, 1fr); }
-            }
-            
-            .tipo-card {
-                border: 2px solid #e2e8f0;
-                border-radius: 12px;
-                padding: 16px 8px;
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.2s;
-                background: white;
-            }
-            
-            .tipo-card:hover { border-color: #38bdf8; }
-            
-            .tipo-card:has(input:checked) {
-                background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-                border-color: #2563eb;
-                color: white;
-            }
-            
-            .tipo-card input { display: none; }
-            .tipo-icon { font-size: 24px; display: block; margin-bottom: 4px; }
-            .tipo-text { font-size: 12px; font-weight: 600; }
-            
-            .otros-tipos {
-                display: flex;
-                gap: 8px;
-                margin-bottom: 8px;
-            }
-            
-            .otros-tipos input {
-                flex: 1;
-                padding: 12px 16px;
-                border: 2px solid #e2e8f0;
-                border-radius: 12px;
-                font-size: 14px;
-            }
-            
-            .otros-tipos button {
-                padding: 12px 20px;
-                background: #2563eb;
-                color: white;
-                border: none;
-                border-radius: 12px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            
-            .tags-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            
-            .tag {
-                padding: 8px 14px;
-                background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-                color: white;
-                border-radius: 50px;
-                font-size: 13px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            
-            .tag button {
-                background: rgba(255,255,255,0.3);
-                border: none;
-                color: white;
-                width: 18px;
-                height: 18px;
-                border-radius: 50%;
-                cursor: pointer;
-                font-size: 11px;
-            }
-            
-            .fechas-lista, .valores-lista {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-            
-            .fecha-box, .valor-box {
-                background: #f8fafc;
-                border: 2px solid #e2e8f0;
-                border-radius: 16px;
-                padding: 16px;
-            }
-            
-            .fecha-header {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-            
-            .fecha-header input[type="date"] {
-                flex: 1;
-                padding: 12px;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                font-size: 16px;
-            }
-            
-            .btn-eliminar {
-                width: 44px;
-                height: 44px;
-                border-radius: 10px;
-                border: none;
-                background: #fee2e2;
-                color: #dc2626;
-                font-size: 20px;
-                cursor: pointer;
-            }
-            
-            .horarios-lista {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-left: 8px;
-                padding-left: 16px;
-                border-left: 3px solid #cbd5e1;
-            }
-            
-            .horario-line {
-                display: flex;
-                gap: 8px;
-            }
-            
-            .horario-line input[type="time"] {
-                width: 100px;
-                padding: 10px;
-                border: 2px solid #e2e8f0;
-                border-radius: 8px;
-            }
-            
-            .horario-line input[type="text"] {
-                flex: 1;
-                padding: 10px;
-                border: 2px solid #e2e8f0;
-                border-radius: 8px;
-            }
-            
-            .btn-agregar-horario {
-                width: 100%;
-                padding: 10px;
-                background: white;
-                border: 2px dashed #cbd5e1;
-                border-radius: 8px;
-                color: #64748b;
-                font-size: 13px;
-                cursor: pointer;
-                margin-top: 8px;
-            }
-            
-            .btn-agregar {
-                width: 100%;
-                padding: 14px;
-                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-                border: 2px dashed #38bdf8;
-                border-radius: 12px;
-                color: #2563eb;
-                font-size: 15px;
-                font-weight: 700;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-            }
-            
-            .mapa-box {
-                height: 200px;
-                border-radius: 16px;
-                border: 2px solid #e2e8f0;
-                background: #f1f5f9;
-            }
-            
-            .mapa-hint {
-                text-align: center;
-                color: #64748b;
-                font-size: 13px;
-                margin-top: 8px;
-            }
-            
-            .ubicacion-ok {
-                background: #dcfce7;
-                border-radius: 10px;
-                padding: 12px 16px;
-                color: #166534;
-                font-size: 14px;
-                margin-top: 8px;
-            }
-            
-            .cupo-selector {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                background: #f8fafc;
-                padding: 16px 24px;
-                border-radius: 16px;
-                width: fit-content;
-            }
-            
-            .cupo-selector button {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                border: 2px solid #e2e8f0;
-                background: white;
-                font-size: 24px;
-                color: #475569;
-                cursor: pointer;
-            }
-            
-            .cupo-selector span {
-                font-size: 32px;
-                font-weight: 800;
-                color: #2563eb;
-                min-width: 40px;
-                text-align: center;
-            }
-            
-            .valor-box {
-                display: grid;
-                gap: 12px;
-            }
-            
-            .valor-box input {
-                padding: 12px;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                font-size: 15px;
-            }
-            
-            .valor-row {
-                display: flex;
-                gap: 12px;
-            }
-            
-            .valor-row input[type="number"] { flex: 1; }
-            .valor-row input[type="text"] { flex: 2; }
-            
-            .btn-eliminar-valor {
-                padding: 10px;
-                background: #fee2e2;
-                color: #dc2626;
-                border: none;
-                border-radius: 8px;
-                font-size: 13px;
-                cursor: pointer;
-            }
-            
-            .btn-cancelar {
-                flex: 1;
-                padding: 14px;
-                background: #f1f5f9;
-                color: #475569;
-                border: 2px solid #e2e8f0;
-                border-radius: 12px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            
-            .btn-guardar {
-                flex: 2;
-                padding: 14px;
-                background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                font-size: 16px;
-                font-weight: 700;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-            }
+            @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            @keyframes slideDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100%); opacity: 0; } }
         `;
         document.head.appendChild(style);
     }
@@ -2052,11 +1608,35 @@ function nuevoEncuentro() {
 }
 
 // ============================================
-// FUNCIONES MEJORADAS (manteniendo nombres originales)
+// FUNCIONES AUXILIARES (manteniendo compatibilidad)
 // ============================================
 
-function toggleOtrosTipos() {
-    // Ya no se usa, los chips son clickeables directamente
+function handleFlyerSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('flyerVacio').style.display = 'none';
+        const img = document.getElementById('flyerImg');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('btnCambiarFlyer').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    
+    // Subir
+    const formData = new FormData();
+    formData.append('image', file);
+    fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) document.getElementById('flyerUrl').value = result.data.url;
+    })
+    .catch(console.error);
 }
 
 function agregarOtroTipo() {
@@ -2064,130 +1644,108 @@ function agregarOtroTipo() {
     const valor = input.value.trim();
     if (!valor) return;
     
-    // Crear chip visual
-    const container = document.getElementById('tagsContainer');
+    const container = document.getElementById('otrosTiposTags');
     const tag = document.createElement('span');
-    tag.className = 'tag';
-    tag.innerHTML = `${valor} <button onclick="this.parentElement.remove()">×</button>`;
-    tag.dataset.tipo = valor;
+    tag.style.cssText = 'padding: 8px 14px; background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%); color: white; border-radius: 50px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;';
+    tag.innerHTML = `${valor} <button type="button" onclick="this.parentElement.remove()" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; font-size: 11px;">×</button>`;
+    
+    // Checkbox hidden
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.name = 'encTipo';
+    chk.value = valor;
+    chk.checked = true;
+    chk.style.display = 'none';
+    tag.appendChild(chk);
+    
     container.appendChild(tag);
-    
-    // Agregar checkbox hidden para el form
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.name = 'encTipo';
-    checkbox.value = valor;
-    checkbox.checked = true;
-    checkbox.style.display = 'none';
-    tag.appendChild(checkbox);
-    
     input.value = '';
 }
 
 function ajustarCupo(delta) {
-    const display = document.getElementById('cupoDisplay');
+    const span = document.getElementById('cupoValor');
     const input = document.getElementById('encCupo');
-    let valor = parseInt(display.textContent) + delta;
-    if (valor < 2) valor = 2;
-    if (valor > 50) valor = 50;
-    display.textContent = valor;
-    input.value = valor;
+    let v = parseInt(span.textContent) + delta;
+    if (v < 2) v = 2;
+    if (v > 50) v = 50;
+    span.textContent = v;
+    input.value = v;
 }
 
-// Sobreescribir agregarDia para usar nuevo diseño
-const agregarDiaOriginal = agregarDia;
-agregarDia = function() {
+// Sobreescribir agregarDia para mejor diseño
+const agregarDiaOriginal = window.agregarDia;
+window.agregarDia = function() {
     const container = document.getElementById('containerFechas');
     
     const div = document.createElement('div');
-    div.className = 'fecha-box';
+    div.style.cssText = 'background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 16px;';
     div.innerHTML = `
-        <div class="fecha-header">
-            <input type="date" required onchange="validarForm()">
-            <button type="button" class="btn-eliminar" onclick="this.closest('.fecha-box').remove()">×</button>
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <input type="date" required style="flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px;">
+            <button type="button" onclick="this.closest('div').parentElement.remove()" style="width: 44px; height: 44px; border-radius: 10px; border: none; background: #fee2e2; color: #dc2626; font-size: 20px; cursor: pointer;">×</button>
         </div>
-        <div class="horarios-lista">
-            <div class="horario-line">
-                <input type="time" value="10:00" required>
-                <input type="text" value="Acreditación" placeholder="Actividad" required>
-                <button type="button" class="btn-eliminar" onclick="this.parentElement.remove()" style="width: 36px; height: 36px;">×</button>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-left: 8px; padding-left: 16px; border-left: 3px solid #cbd5e1;">
+            <div style="display: flex; gap: 8px;">
+                <input type="time" value="10:00" required style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                <input type="text" value="Acreditación" placeholder="Actividad" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                <button type="button" onclick="this.parentElement.remove()" style="width: 36px; height: 36px; border-radius: 8px; border: none; background: #fee2e2; color: #dc2626; font-size: 16px; cursor: pointer;">×</button>
             </div>
         </div>
-        <button type="button" class="btn-agregar-horario" onclick="agregarHorario(this)">+ Agregar horario</button>
+        <button type="button" onclick="agregarHorario(this)" style="width: 100%; padding: 10px; background: white; border: 2px dashed #cbd5e1; border-radius: 8px; color: #64748b; font-size: 13px; cursor: pointer; margin-top: 10px;">+ Agregar horario</button>
     `;
     
     container.appendChild(div);
-    
-    // Fecha de hoy por defecto
-    const dateInput = div.querySelector('input[type="date"]');
-    dateInput.value = new Date().toISOString().split('T')[0];
+    div.querySelector('input[type="date"]').value = new Date().toISOString().split('T')[0];
 };
 
 // Sobreescribir agregarHorario
-const agregarHorarioOriginal = agregarHorario;
-agregarHorario = function(btn) {
+const agregarHorarioOriginal = window.agregarHorario;
+window.agregarHorario = function(btn) {
     const lista = btn.previousElementSibling;
     const div = document.createElement('div');
-    div.className = 'horario-line';
+    div.style.cssText = 'display: flex; gap: 8px;';
     div.innerHTML = `
-        <input type="time" value="14:00" required>
-        <input type="text" placeholder="¿Qué pasa a esta hora?" required>
-        <button type="button" class="btn-eliminar" onclick="this.parentElement.remove()" style="width: 36px; height: 36px;">×</button>
+        <input type="time" value="14:00" required style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+        <input type="text" placeholder="¿Qué pasa a esta hora?" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+        <button type="button" onclick="this.parentElement.remove()" style="width: 36px; height: 36px; border-radius: 8px; border: none; background: #fee2e2; color: #dc2626; font-size: 16px; cursor: pointer;">×</button>
     `;
     lista.appendChild(div);
 };
 
 // Sobreescribir agregarValor
-const agregarValorOriginal = agregarValor;
-agregarValor = function() {
+const agregarValorOriginal = window.agregarValor;
+window.agregarValor = function() {
     const container = document.getElementById('containerValores');
     
     const div = document.createElement('div');
-    div.className = 'valor-box';
+    div.style.cssText = 'background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; display: grid; gap: 12px;';
     div.innerHTML = `
-        <input type="text" placeholder="Título (ej: Inscripción completa)" required>
-        <div class="valor-row">
-            <input type="number" placeholder="$ Precio" min="0" required>
-            <input type="text" placeholder="Descripción opcional">
+        <input type="text" placeholder="Título (ej: Inscripción completa)" required style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
+        <div style="display: flex; gap: 12px;">
+            <input type="number" placeholder="$ Precio" min="0" required style="flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
+            <input type="text" placeholder="Descripción opcional" style="flex: 2; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
         </div>
-        <button type="button" class="btn-eliminar-valor" onclick="this.closest('.valor-box').remove()">Eliminar opción</button>
+        <button type="button" onclick="this.parentElement.remove()" style="padding: 10px; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; width: fit-content;">Eliminar opción</button>
     `;
     
     container.appendChild(div);
 };
 
-function validarForm() {
-    // Validación básica
-}
-
 // Cerrar con animación
-const cerrarModalOriginal = cerrarModalEncuentro;
-cerrarModalEncuentro = function() {
+const cerrarModalOriginal = window.cerrarModalEncuentro;
+window.cerrarModalEncuentro = function() {
     const modal = document.getElementById('modalEncuentro');
     if (modal) {
-        modal.style.animation = 'slideDownV4 0.2s ease';
+        modal.firstElementChild.style.animation = 'slideDown 0.2s ease';
         setTimeout(() => {
             modal.remove();
-            if (mapaEncuentro) {
-                mapaEncuentro.remove();
-                mapaEncuentro = null;
+            if (window.mapaEncuentro) {
+                window.mapaEncuentro.remove();
+                window.mapaEncuentro = null;
             }
         }, 200);
     }
 };
-
-// CSS para cerrar
-if (!document.getElementById('slide-down-anim')) {
-    const style = document.createElement('style');
-    style.id = 'slide-down-anim';
-    style.textContent = `
-        @keyframes slideDownV4 {
-            from { transform: translateY(0); opacity: 1; }
-            to { transform: translateY(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-}
 // ============================================
 // FUNCIONES AUXILIARES DEL MODAL
 // ============================================
