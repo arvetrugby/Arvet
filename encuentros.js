@@ -1,100 +1,379 @@
-let encuentroIdDesdeLink = null;
-
 // ============================================
-// ARVET - SISTEMA DE ENCUENTROS/PARTIDOS
+// ARVET - SISTEMA DE ENCUENTROS/PARTIDOS - OPTIMIZADO V2
 // ============================================
 
-// Función de mensajes propia (renombrada para evitar conflictos con app.js)
-function mostrarMensajeEncuentros(texto, tipo = 'info') {
-    let overlay = document.getElementById('msgOverlayEncuentros');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'msgOverlayEncuentros';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:99999;';
-        overlay.innerHTML = '<div id="msgEncuentros" style="background:white;padding:25px 40px;border-radius:10px;font-size:18px;text-align:center;font-weight:bold;"></div>';
-        document.body.appendChild(overlay);
+// ============================================
+// CONFIGURACIÓN GLOBAL
+// ============================================
+const ENCUENTROS_CONFIG = {
+    CACHE_TTL: 5 * 60 * 1000, // 5 minutos
+    ITEMS_POR_PAGINA: 10,
+    DEBOUNCE_DELAY: 300,
+    MAX_RETRIES: 3,
+    API_URL: typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbzxxxxxxxxxxxxxxxx/exec'
+};
+
+// ============================================
+// CACHE EN MEMORIA
+// ============================================
+const encuentrosCache = new Map();
+const abortControllers = new Map();
+
+const CacheManager = {
+    get(key) {
+        const item = encuentrosCache.get(key);
+        if (!item) return null;
+        if (Date.now() - item.timestamp > ENCUENTROS_CONFIG.CACHE_TTL) {
+            encuentrosCache.delete(key);
+            return null;
+        }
+        return item.data;
+    },
+    
+    set(key, data) {
+        encuentrosCache.set(key, { data, timestamp: Date.now() });
+    },
+    
+    invalidate(key) {
+        encuentrosCache.delete(key);
+    },
+    
+    invalidateAll() {
+        encuentrosCache.clear();
     }
+};
+
+// ============================================
+// SISTEMA DE LOADING GLOBAL
+// ============================================
+const LoadingManager = {
+    overlays: new Map(),
     
-    const msg = document.getElementById('msgEncuentros');
-    msg.textContent = texto;
-    msg.style.background = tipo === 'success' ? '#16a34a' : tipo === 'error' ? '#dc2626' : '#1e293b';
-    msg.style.color = 'white';
+    show(id, message = 'Cargando...') {
+        if (this.overlays.has(id)) return;
+        
+        const overlay = document.createElement('div');
+        overlay.id = `loading-${id}`;
+        overlay.className = 'loading-overlay-encuentros';
+        overlay.innerHTML = `
+            <div class="loading-content">
+                <div class="spinner-encuentros"></div>
+                <p class="loading-text">${message}</p>
+            </div>
+        `;
+        
+        // Estilos inline para que funcione sin depender de CSS externo
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            backdrop-filter: blur(4px);
+            animation: fadeInLoading 0.2s ease;
+        `;
+        
+        // Agregar estilos del spinner si no existen
+        if (!document.getElementById('encuentros-loading-styles')) {
+            const style = document.createElement('style');
+            style.id = 'encuentros-loading-styles';
+            style.textContent = `
+                @keyframes fadeInLoading {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes fadeOutLoading {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+                @keyframes spinEncuentros {
+                    to { transform: rotate(360deg); }
+                }
+                .loading-content {
+                    text-align: center;
+                    background: white;
+                    padding: 30px 50px;
+                    border-radius: 16px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                }
+                .spinner-encuentros {
+                    width: 50px;
+                    height: 50px;
+                    border: 4px solid #e2e8f0;
+                    border-top-color: #4f46e5;
+                    border-radius: 50%;
+                    animation: spinEncuentros 1s linear infinite;
+                    margin: 0 auto 15px;
+                }
+                .loading-text {
+                    color: #1e293b;
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin: 0;
+                }
+                .skeleton-encuentros {
+                    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+                    background-size: 200% 100%;
+                    animation: skeletonShimmer 1.5s infinite;
+                    border-radius: 8px;
+                }
+                @keyframes skeletonShimmer {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(overlay);
+        this.overlays.set(id, overlay);
+    },
     
-    overlay.style.display = 'flex';
+    hide(id) {
+        const overlay = this.overlays.get(id);
+        if (overlay) {
+            overlay.style.animation = 'fadeOutLoading 0.2s ease';
+            setTimeout(() => {
+                overlay.remove();
+                this.overlays.delete(id);
+            }, 200);
+        }
+    },
     
-    setTimeout(() => {
-        overlay.style.display = 'none';
-    }, 3000);
+    hideAll() {
+        this.overlays.forEach((overlay, id) => this.hide(id));
+    }
+};
+
+// ============================================
+// SKELETON UI
+// ============================================
+const SkeletonUI = {
+    card() {
+        return `
+            <div style="margin-bottom: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <div class="skeleton-encuentros" style="width: 60%; height: 24px;"></div>
+                    <div class="skeleton-encuentros" style="width: 80px; height: 24px;"></div>
+                </div>
+                <div class="skeleton-encuentros" style="width: 100%; height: 100px; margin-bottom: 15px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="skeleton-encuentros" style="width: 100px; height: 36px;"></div>
+                    <div class="skeleton-encuentros" style="width: 100px; height: 36px;"></div>
+                </div>
+            </div>
+        `;
+    },
+    
+    grid(count = 3) {
+        return Array(count).fill(this.card()).join('');
+    }
+};
+
+// ============================================
+// FETCH CON RETRY Y ABORT
+// ============================================
+async function fetchWithRetry(url, options = {}, retries = ENCUENTROS_CONFIG.MAX_RETRIES) {
+    const controller = new AbortController();
+    const id = Math.random().toString(36).substr(2, 9);
+    abortControllers.set(id, controller);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (err) {
+        if (err.name === 'AbortError') throw err;
+        
+        if (retries > 0 && !err.message.includes('AbortError')) {
+            await new Promise(r => setTimeout(r, 1000 * (ENCUENTROS_CONFIG.MAX_RETRIES - retries + 1)));
+            return fetchWithRetry(url, options, retries - 1);
+        }
+        throw err;
+    } finally {
+        abortControllers.delete(id);
+    }
 }
 
-// Estado global
-let encuentrosData = {
+function abortPendingRequests() {
+    abortControllers.forEach((controller, id) => {
+        controller.abort();
+        abortControllers.delete(id);
+    });
+}
+
+// ============================================
+// DEBOUNCE
+// ============================================
+function debounce(fn, delay) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+    };
+}
+
+// ============================================
+// MENSAJES (reemplaza mostrarMensajeEncuentros)
+// ============================================
+function mostrarMensajeEncuentros(texto, tipo = 'info', duracion = 3000) {
+    const existing = document.getElementById('msgOverlayEncuentros');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'msgOverlayEncuentros';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        animation: fadeInMsg 0.2s ease;
+    `;
+    
+    const colores = {
+        success: '#16a34a',
+        error: '#dc2626',
+        info: '#1e293b',
+        warning: '#d97706'
+    };
+    
+    const iconos = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ',
+        warning: '⚠'
+    };
+    
+    overlay.innerHTML = `
+        <div style="
+            background: ${colores[tipo] || colores.info};
+            color: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideUpMsg 0.3s ease;
+        ">
+            ${iconos[tipo] || ''} ${texto}
+        </div>
+    `;
+    
+    // Estilos de animación si no existen
+    if (!document.getElementById('msg-anim-styles')) {
+        const style = document.createElement('style');
+        style.id = 'msg-anim-styles';
+        style.textContent = `
+            @keyframes fadeInMsg { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes fadeOutMsg { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes slideUpMsg { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(overlay);
+    
+    const timer = setTimeout(() => {
+        overlay.style.animation = 'fadeOutMsg 0.2s ease';
+        setTimeout(() => overlay.remove(), 200);
+    }, duracion);
+    
+    overlay.addEventListener('click', () => {
+        clearTimeout(timer);
+        overlay.remove();
+    });
+}
+
+// ============================================
+// ESTADO GLOBAL
+// ============================================
+let encuentroIdDesdeLink = null;
+
+const encuentrosState = {
     misEncuentros: [],
     invitaciones: [],
-    encuentroActivo: null
+    encuentroActivo: null,
+    paginaActual: 1,
+    cargando: false,
+    hasMore: true
 };
 
 // ============================================
 // INICIALIZACIÓN
 // ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
     const encuentroId = params.get('encuentroId');
 
     if (encuentroId) {
+        encuentroIdDesdeLink = encuentroId;
         if (!usuarioLogueado()) {
             mostrarPreviewEncuentro(encuentroId);
         } else {
-            console.log('Link detectado:', encuentroId);
-            setTimeout(() => {
-                verDetalleEncuentro(encuentroId);
-            }, 800);
+            setTimeout(() => verDetalleEncuentro(encuentroId), 500);
         }
     }
 
-    window.addEventListener('encuentrosTabChange', function(e) {
+    window.addEventListener('encuentrosTabChange', debounce((e) => {
         if (e.detail === 'invitaciones') {
             cargarInvitaciones();
         }
-    });
+    }, 100));
 
-    // ============================================
-    // FIX: Renderizar cuando la sección se activa
-    // ============================================
-    
-    // Primera carga: intentar renderizar si ya está activo
-    setTimeout(() => {
+    // Observer para detectar cuando la sección se activa
+    let observer = new MutationObserver(debounce((mutations) => {
         const sectionEncuentros = document.getElementById('encuentros');
-        if (sectionEncuentros && sectionEncuentros.classList.contains('active')) {
-            renderizarMisEncuentros();
-        }
-    }, 100);
-
-    // Observar cambios para renderizar cuando se active la sección
-    const observer = new MutationObserver((mutations) => {
-        const sectionEncuentros = document.getElementById('encuentros');
-        if (sectionEncuentros && sectionEncuentros.classList.contains('active')) {
-            const container = document.getElementById('listaMisEncuentros');
-            // Solo si está vacío (no volver a renderizar si ya hay datos)
-            if (container && container.children.length === 0 && encuentrosData.misEncuentros.length === 0) {
-                console.log('Sección encuentros activada, renderizando...');
-                renderizarMisEncuentros();
-            }
-        }
-    });
+        if (!sectionEncuentros?.classList.contains('active')) return;
+        
+        const container = document.getElementById('listaMisEncuentros');
+        if (!container || container.children.length > 0) return;
+        if (encuentrosState.misEncuentros.length > 0) return;
+        
+        renderizarMisEncuentros();
+    }, 200));
 
     observer.observe(document.body, {
         attributes: true,
         subtree: true,
         attributeFilter: ['class']
     });
+    
+    // Primera carga
+    setTimeout(() => {
+        const sectionEncuentros = document.getElementById('encuentros');
+        if (sectionEncuentros?.classList.contains('active')) {
+            renderizarMisEncuentros();
+        }
+    }, 100);
+    
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+        observer.disconnect();
+        abortPendingRequests();
+        LoadingManager.hideAll();
+    });
 });
+
+// ============================================
+// PARTE 2: NAVEGACIÓN Y RENDERIZADO DE ENCUENTROS
+// ============================================
+
 // ============================================
 // NAVEGACIÓN DE TABS
 // ============================================
-
 function showEncuentrosTab(tab) {
+    // Actualizar UI inmediatamente
     document.querySelectorAll('.encuentros-tabs .tab-btn').forEach(btn => {
         btn.classList.remove('active');
         btn.style.background = '#e2e8f0';
@@ -117,63 +396,911 @@ function showEncuentrosTab(tab) {
         tabContent.style.display = 'block';
     }
 
+    // Cargar datos
     if (tab === 'creados') {
-    renderizarMisEncuentros();
-} else {
-    renderizarInvitaciones();
-
-    if (encuentroIdDesdeLink) {
-        console.log('Abriendo desde link:', encuentroIdDesdeLink);
-
-        setTimeout(() => {
-            verDetalleEncuentro(encuentroIdDesdeLink);
-            encuentroIdDesdeLink = null;
-        }, 500);
+        renderizarMisEncuentros();
+    } else {
+        renderizarInvitaciones();
+        
+        if (encuentroIdDesdeLink) {
+            setTimeout(() => {
+                verDetalleEncuentro(encuentroIdDesdeLink);
+                encuentroIdDesdeLink = null;
+            }, 500);
+        }
     }
 }
+
+// ============================================
+// RENDERIZAR MIS ENCUENTROS (OPTIMIZADO)
+// ============================================
+async function renderizarMisEncuentros() {
+    const container = document.getElementById('listaMisEncuentros');
+    const empty = document.getElementById('emptyCreados');
     
+    if (!container || encuentrosState.cargando) return;
+    
+    // Mostrar skeleton mientras carga
+    container.innerHTML = SkeletonUI.grid(3);
+    if (empty) empty.style.display = 'none';
+    
+    encuentrosState.cargando = true;
+    LoadingManager.show('mis-encuentros', 'Cargando encuentros...');
+    
+    const usuario = obtenerUsuarioActual();
+    const cacheKey = `encuentros-${usuario.equipoId}`;
+    
+    // Verificar cache primero
+    const cached = CacheManager.get(cacheKey);
+    if (cached) {
+        renderizarListaEncuentros(cached, container, empty);
+        encuentrosState.cargando = false;
+        LoadingManager.hide('mis-encuentros');
+        // Refrescar en background
+        fetchFreshData(usuario, cacheKey, container, empty);
+        return;
+    }
+    
+    await fetchFreshData(usuario, cacheKey, container, empty);
+}
+
+async function fetchFreshData(usuario, cacheKey, container, empty) {
+    try {
+        const result = await fetchWithRetry(
+            `${ENCUENTROS_CONFIG.API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`
+        );
+        
+        if (!result.success) {
+            mostrarMensajeEncuentros('Error al cargar encuentros', 'error');
+            return;
+        }
+        
+        const encuentros = result.data || [];
+        encuentros.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+        
+        // Guardar en cache y estado
+        CacheManager.set(cacheKey, encuentros);
+        encuentrosState.misEncuentros = encuentros;
+        
+        renderizarListaEncuentros(encuentros, container, empty);
+        
+    } catch (err) {
+        console.error('Error cargando encuentros:', err);
+        mostrarMensajeEncuentros('Error de conexión al cargar encuentros', 'error');
+    } finally {
+        encuentrosState.cargando = false;
+        LoadingManager.hide('mis-encuentros');
+    }
+}
+
+function renderizarListaEncuentros(encuentros, container, empty) {
+    if (encuentros.length === 0) {
+        container.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+
+    if (empty) empty.style.display = 'none';
+    
+    // Usar DocumentFragment para mejor rendimiento
+    const wrapper = document.createElement('div');
+    
+    // Renderizar todos (o paginar si son muchos)
+    const aRenderizar = encuentros.slice(0, ENCUENTROS_CONFIG.ITEMS_POR_PAGINA * 3); // Mostrar más inicialmente
+    
+    wrapper.innerHTML = aRenderizar.map(enc => generarCardEncuentroHTML(enc)).join('');
+    
+    container.innerHTML = '';
+    container.appendChild(wrapper);
+    
+    // Lazy load de imágenes
+    setupLazyLoading(container);
+}
+
+function generarCardEncuentroHTML(enc) {
+    // Parsear JSONs
+    let fechas = [], valores = [];
+    try {
+        fechas = JSON.parse(enc.fechasJSON || '[]');
+        valores = JSON.parse(enc.valoresJSON || '[]');
+    } catch(e) { console.error('Error parseando JSON:', e); }
+    
+    const equiposConfirmados = enc.equiposAceptados || 1;
+    const plazasLibres = enc.cupoMaximo - equiposConfirmados;
+    
+    // Generar HTML de fechas
+    const fechasHTML = fechas.map(f => {
+        const horariosHTML = f.horarios?.map(h => 
+            `<span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 4px;">${h.hora}hs - ${h.desc}</span>`
+        ).join('') || '';
+        
+        return `
+            <div style="margin-bottom: 8px;">
+                <strong style="color: #1e293b;">📅 ${formatearFecha(f.dia)}</strong>
+                <div style="margin-top: 4px; margin-left: 24px;">
+                    ${horariosHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Mapa lazy-loaded
+    const mapaHTML = (enc.lat && enc.lng) ? `
+        <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;" class="lazy-map" data-lat="${enc.lat}" data-lng="${enc.lng}" data-direccion="${enc.direccion || 'Ubicación marcada'}">
+            <div style="background: #f8fafc; padding: 40px; text-align: center;">
+                <button onclick="cargarMapaInline(this.parentElement.parentElement)" style="background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    📍 Cargar mapa
+                </button>
+            </div>
+        </div>
+    ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.direccion || 'Sin ubicación'}</div>`;
+
+    const estadoClass = `estado-${enc.estado || 'publicado'}`;
+    const estadoTexto = {
+        publicado: 'Publicado',
+        borrador: 'Borrador',
+        cancelado: 'Cancelado'
+    }[enc.estado] || enc.estado;
+
+    const botonesHTML = enc.estado === 'cancelado' ? `
+        <button onclick="verDetalleEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">Ver detalle</button>
+        <span style="color: #991b1b; font-weight: 600; padding: 8px 16px;">CANCELADO</span>
+    ` : `
+        <button onclick="verDetalleEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">Ver detalle</button>
+        <button onclick="editarEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #f1f5f9; color: #475569; cursor: pointer; font-weight: 500;">Editar</button>
+        <button onclick="cancelarEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">Cancelar</button>
+        <button onclick="compartirEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #22c55e; color: white; cursor: pointer; font-weight: 500;">Compartir</button>
+    `;
+
+    const tiposHTML = enc.tipo ? enc.tipo.split(', ').map(t => 
+        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-right: 5px; margin-bottom: 4px;">${t}</span>`
+    ).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-right: 5px;">Sin tipo</span>';
+
+    return `
+        <div class="encuentro-card" style="${enc.estado === 'cancelado' ? 'opacity: 0.7; background: #f9fafb;' : ''} margin-bottom: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); border: none; transition: box-shadow 0.2s, transform 0.2s;" onmouseover="this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'" data-id="${enc.id}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; gap: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; line-height: 1.2;">${enc.nombre}</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;">
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: ${enc.estado === 'publicado' ? '#dcfce7' : enc.estado === 'cancelado' ? '#fee2e2' : '#f1f5f9'}; color: ${enc.estado === 'publicado' ? '#166534' : enc.estado === 'cancelado' ? '#991b1b' : '#64748b'};">${estadoTexto}</span>
+                        ${tiposHTML}
+                    </div>
+                </div>
+                <div style="text-align: right; min-width: 100px;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">${equiposConfirmados}/${enc.cupoMaximo}</div>
+                    <div style="font-size: 0.8rem; color: #64748b;">${plazasLibres > 0 ? plazasLibres + ' plaza' + (plazasLibres > 1 ? 's' : '') + ' libre' + (plazasLibres > 1 ? 's' : '') : 'Completo'}</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
+                ${fechasHTML}
+                ${valores.length > 0 ? `<div style="margin-top: 10px;"><strong style="color: #1e293b;">💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
+            </div>
+
+            ${mapaHTML}
+
+            ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
+
+            ${enc.flyerUrl ? `
+                <div style="margin-bottom: 15px;">
+                    <img data-src="${enc.flyerUrl}" class="lazy-img" alt="Flyer" style="max-width: 300px; border-radius: 8px; object-fit: cover; display: block;">
+                </div>
+            ` : ''}
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                ${botonesHTML}
+            </div>
+        </div>
+    `;
 }
 
 // ============================================
-// MODAL CREAR ENCUENTRO
+// LAZY LOADING
+// ============================================
+function setupLazyLoading(container) {
+    if (!('IntersectionObserver' in window)) {
+        // Fallback: cargar todo
+        container.querySelectorAll('.lazy-img').forEach(img => {
+            img.src = img.dataset.src;
+        });
+        return;
+    }
+    
+    const imgObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.onload = () => img.classList.remove('lazy-img');
+                obs.unobserve(img);
+            }
+        });
+    }, { rootMargin: '50px' });
+    
+    container.querySelectorAll('.lazy-img').forEach(img => imgObserver.observe(img));
+}
+
+function cargarMapaInline(container) {
+    const { lat, lng, direccion } = container.dataset;
+    
+    container.innerHTML = `
+        <iframe 
+            width="100%" 
+            height="150" 
+            frameborder="0" 
+            scrolling="no" 
+            marginheight="0" 
+            marginwidth="0" 
+            src="https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lng)-0.01}%2C${parseFloat(lat)-0.01}%2C${parseFloat(lng)+0.01}%2C${parseFloat(lat)+0.01}&layer=mapnik&marker=${lat}%2C${lng}" 
+            style="border: 0; display: block;">
+        </iframe>
+        <div style="background: #f8fafc; padding: 8px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span>📍 ${direccion}</span>
+            <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color: #4f46e5; text-decoration: none; font-weight: 500;">Abrir mapa →</a>
+        </div>
+    `;
+}
+
+// ============================================
+// RENDERIZAR INVITACIONES (OPTIMIZADO)
+// ============================================
+async function renderizarInvitaciones() {
+    const container = document.getElementById('listaInvitaciones');
+    const empty = document.getElementById('emptyInvitaciones');
+    const badge = document.getElementById('badgeInvitaciones');
+    
+    if (!container || encuentrosState.cargando) return;
+    
+    container.innerHTML = SkeletonUI.grid(3);
+    if (empty) empty.style.display = 'none';
+    
+    encuentrosState.cargando = true;
+    LoadingManager.show('invitaciones', 'Cargando invitaciones...');
+    
+    const usuario = obtenerUsuarioActual();
+    const cacheKey = `invitaciones-${usuario.equipoId}`;
+    
+    const cached = CacheManager.get(cacheKey);
+    if (cached) {
+        renderizarInvitacionesData(cached, container, empty, badge);
+        encuentrosState.cargando = false;
+        LoadingManager.hide('invitaciones');
+        fetchFreshInvitaciones(usuario, cacheKey, container, empty, badge);
+        return;
+    }
+    
+    await fetchFreshInvitaciones(usuario, cacheKey, container, empty, badge);
+}
+
+async function fetchFreshInvitaciones(usuario, cacheKey, container, empty, badge) {
+    try {
+        // Cargar en paralelo
+        const [aceptadosRes, pendientesRes, rechazadosRes] = await Promise.allSettled([
+            fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`),
+            fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`),
+            fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentrosRechazados&equipoId=${usuario.equipoId}`)
+        ]);
+        
+        const aceptados = aceptadosRes.status === 'fulfilled' && aceptadosRes.value.success ? aceptadosRes.value.data : [];
+        const todosPendientes = pendientesRes.status === 'fulfilled' && pendientesRes.value.success ? pendientesRes.value.data : [];
+        const rechazados = rechazadosRes.status === 'fulfilled' && rechazadosRes.value.success ? rechazadosRes.value.data : [];
+        
+        // Filtrar pendientes
+        const idsRespondidos = new Set([...aceptados.map(a => a.id), ...rechazados.map(r => r.id)]);
+        const pendientes = todosPendientes.filter(p => !idsRespondidos.has(p.id));
+        
+        const data = { aceptados, pendientes, rechazados };
+        CacheManager.set(cacheKey, data);
+        
+        renderizarInvitacionesData(data, container, empty, badge);
+        
+    } catch (err) {
+        console.error('Error cargando invitaciones:', err);
+        mostrarMensajeEncuentros('Error de conexión', 'error');
+    } finally {
+        encuentrosState.cargando = false;
+        LoadingManager.hide('invitaciones');
+    }
+}
+
+function renderizarInvitacionesData(data, container, empty, badge) {
+    const { aceptados, pendientes, rechazados } = data;
+    
+    // Actualizar badge
+    if (badge) {
+        if (pendientes.length > 0) {
+            badge.textContent = pendientes.length > 99 ? '99+' : pendientes.length;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (aceptados.length === 0 && pendientes.length === 0 && rechazados.length === 0) {
+        container.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+    
+    if (empty) empty.style.display = 'none';
+    
+    const secciones = [];
+    
+    if (aceptados.length > 0) {
+        secciones.push(`
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #059669; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
+                    Invitaciones aceptadas (${aceptados.length})
+                </h3>
+                ${aceptados.map(enc => generarCardInvitacion(enc, 'aceptado')).join('')}
+            </div>
+        `);
+    }
+    
+    if (rechazados.length > 0) {
+        secciones.push(`
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #991b1b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: #991b1b; border-radius: 50%;"></span>
+                    Invitaciones rechazadas (${rechazados.length})
+                </h3>
+                ${rechazados.map(enc => generarCardInvitacion(enc, 'rechazado')).join('')}
+            </div>
+        `);
+    }
+    
+    if (pendientes.length > 0) {
+        secciones.push(`
+            <div>
+                <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
+                    Invitaciones pendientes (${pendientes.length})
+                </h3>
+                ${pendientes.map(enc => generarCardInvitacion(enc, 'pendiente')).join('')}
+            </div>
+        `);
+    }
+    
+    container.innerHTML = secciones.join('');
+    setupLazyLoading(container);
+}
+
+function generarCardInvitacion(enc, estado) {
+    let fechas = [], valores = [];
+    try {
+        fechas = JSON.parse(enc.fechasJSON || '[]');
+        valores = JSON.parse(enc.valoresJSON || '[]');
+    } catch(e) {}
+    
+    const borderStyle = estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : 
+                      estado === 'rechazado' ? 'border-left: 4px solid #ef4444; opacity: 0.85;' : '';
+    
+    const fechasHTML = fechas.map(f => {
+        const horariosHTML = f.horarios?.map(h => 
+            `<span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 4px;">${h.hora}hs - ${h.desc}</span>`
+        ).join('') || '';
+        
+        return `
+            <div style="margin-bottom: 8px;">
+                <strong style="color: #1e293b;">📅 ${formatearFecha(f.dia)}</strong>
+                <div style="margin-top: 4px; margin-left: 24px;">
+                    ${horariosHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const mapaHTML = (enc.lat && enc.lng) ? `
+        <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;" class="lazy-map" data-lat="${enc.lat}" data-lng="${enc.lng}" data-direccion="${enc.lugar || 'Ubicación marcada'}">
+            <div style="background: #f8fafc; padding: 40px; text-align: center;">
+                <button onclick="cargarMapaInline(this.parentElement.parentElement)" style="background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    📍 Cargar mapa
+                </button>
+            </div>
+        </div>
+    ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.lugar || 'Sin ubicación'}</div>`;
+
+    const botonesHTML = estado === 'aceptado' ? `
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">✓ Aceptado</span>
+            <button onclick="verDetalleEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">Ver detalle</button>
+            ${enc.telefonoOrganizador ? `
+                <a href="https://wa.me/${String(enc.telefonoOrganizador).replace(/[^0-9]/g, '')}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                    WhatsApp Organizador
+                </a>
+            ` : ''}
+        </div>
+    ` : estado === 'rechazado' ? `
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">✕ Rechazado</span>
+            <button onclick="verDetalleEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">Ver detalle</button>
+        </div>
+    ` : `
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="verDetalleEncuentro('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">Ver detalle</button>
+            <button onclick="aceptarInvitacion('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #4f46e5; color: white; cursor: pointer; font-weight: 500;">Aceptar invitación</button>
+            <button onclick="rechazarInvitacion('${enc.id}')" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">Rechazar</button>
+        </div>
+    `;
+
+    const badgeEstado = estado === 'aceptado' ? 
+        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-right: 5px;">Aceptado</span>` :
+        estado === 'rechazado' ?
+        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fee2e2; color: #991b1b; margin-right: 5px;">Rechazado</span>` :
+        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e; margin-right: 5px;">Invitación disponible</span>`;
+    
+    const tiposHTML = enc.tipo ? enc.tipo.split(', ').map(t => 
+        `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-right: 5px; margin-bottom: 4px;">${t}</span>`
+    ).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-right: 5px;">Sin tipo</span>';
+
+    return `
+        <div class="encuentro-card invitacion-${estado}" style="${borderStyle} margin-bottom: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: box-shadow 0.2s, transform 0.2s;" onmouseover="this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'" data-id="${enc.id}">
+            <div style="flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: start; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.2;">${enc.nombre}</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                            ${badgeEstado}
+                            ${tiposHTML}
+                        </div>
+                    </div>
+                    <div style="text-align: right; min-width: 80px;">
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">${enc.equiposAceptados || 1}/${enc.cupoMaximo}</div>
+                        <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">${enc.cupoMaximo} plazas</div>
+                    </div>
+                </div>
+                
+                <div style="width: 100%; margin-top: 8px;">
+                    <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Organiza</span>
+                        <span style="width: 1px; height: 16px; background: #cbd5e1;"></span>
+                        <span style="font-size: 0.95rem; color: #1e293b; font-weight: 700;">${enc.creadorNombre || 'Equipo desconocido'}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
+                ${fechasHTML}
+                ${valores.length > 0 ? `<div style="margin-top: 10px;"><strong style="color: #1e293b;">💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
+            </div>
+
+            ${mapaHTML}
+
+            ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
+
+            ${enc.flyerUrl ? `
+                <div style="margin-bottom: 15px;">
+                    <img data-src="${enc.flyerUrl}" class="lazy-img" alt="Flyer" style="max-width: 300px; border-radius: 8px; object-fit: cover; display: block;">
+                </div>
+            ` : ''}
+
+            ${botonesHTML}
+        </div>
+    `;
+}
+
+// ============================================
+// ACCIONES CON LOADING
+// ============================================
+async function aceptarInvitacion(encuentroId) {
+    LoadingManager.show('accion', 'Procesando...');
+    
+    const usuario = obtenerUsuarioActual();
+    const params = new URLSearchParams({
+        action: 'responderEncuentro',
+        encuentroId: encuentroId,
+        equipoId: usuario.equipoId,
+        estado: 'aceptado'
+    });
+    
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
+        
+        if (result.success) {
+            mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
+            CacheManager.invalidate(`invitaciones-${usuario.equipoId}`);
+            
+            // Crear asistencias en background
+            fetch(`${ENCUENTROS_CONFIG.API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`)
+                .catch(err => console.error('Error creando asistencias:', err));
+            
+            setTimeout(() => renderizarInvitaciones(), 300);
+        } else {
+            mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
+        }
+    } catch (err) {
+        mostrarMensajeEncuentros('Error de conexión', 'error');
+    } finally {
+        LoadingManager.hide('accion');
+    }
+}
+
+async function rechazarInvitacion(encuentroId) {
+    if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
+    
+    LoadingManager.show('accion', 'Procesando...');
+    
+    const usuario = obtenerUsuarioActual();
+    const params = new URLSearchParams({
+        action: 'responderEncuentro',
+        encuentroId: encuentroId,
+        equipoId: usuario.equipoId,
+        estado: 'rechazado'
+    });
+    
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
+        
+        if (result.success) {
+            mostrarMensajeEncuentros('Invitación rechazada', 'info');
+            CacheManager.invalidate(`invitaciones-${usuario.equipoId}`);
+            setTimeout(() => renderizarInvitaciones(), 300);
+        } else {
+            mostrarMensajeEncuentros(result.error || 'Error al rechazar', 'error');
+        }
+    } catch (err) {
+        mostrarMensajeEncuentros('Error de conexión', 'error');
+    } finally {
+        LoadingManager.hide('accion');
+    }
+}
+// ============================================
+// PARTE 3: VER DETALLE, CREAR ENCUENTRO Y MODALES
 // ============================================
 
+// ============================================
+// VER DETALLE DE ENCUENTRO (OPTIMIZADO)
+// ============================================
+async function verDetalleEncuentro(encuentroId) {
+    // Cerrar modal existente
+    const modalExistente = document.getElementById('modalDetalleEncuentro');
+    if (modalExistente) modalExistente.remove();
+    
+    LoadingManager.show('detalle', 'Cargando detalle...');
+    
+    try {
+        const [respEncuentro, respDetalle] = await Promise.all([
+            fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentroById&id=${encuentroId}`),
+            fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getDetalleEncuentroCompleto&encuentroId=${encuentroId}`)
+        ]);
+        
+        if (!respEncuentro.success) {
+            mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
+            return;
+        }
+        
+        const enc = respEncuentro.data;
+        const detalle = respDetalle.success ? respDetalle.data : { 
+            aceptados: [], rechazados: [], pendientes: [],
+            cantidadAceptados: 0, cantidadRechazados: 0, cantidadPendientes: 0, totalEquipos: 0
+        };
+        
+        const modal = crearModalDetalle(enc, detalle, encuentroId);
+        document.body.appendChild(modal);
+        
+        // Cargar asistencias en background
+        cargarAsistenciasAsync(encuentroId, enc.equipoCreadorId, modal);
+        
+    } catch (err) {
+        console.error('Error cargando detalle:', err);
+        mostrarMensajeEncuentros('Error al cargar detalle del encuentro', 'error');
+    } finally {
+        LoadingManager.hide('detalle');
+    }
+}
+
+function crearModalDetalle(enc, detalle, encuentroId) {
+    let fechas = [], valores = [];
+    try {
+        fechas = JSON.parse(enc.fechasJSON || '[]');
+        valores = JSON.parse(enc.valoresJSON || '[]');
+    } catch(e) { console.error('Error parseando JSON:', e); }
+    
+    const fechasHTML = fechas.map(f => {
+        const horariosHTML = f.horarios?.map(h => 
+            `<span style="display: inline-block; background: #f1f5f9; padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; margin-right: 5px; margin-bottom: 5px;">${h.hora}hs - ${h.desc}</span>`
+        ).join('') || '';
+        
+        return `
+            <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                <strong style="color: #1e293b; font-size: 1.1rem;">📅 ${formatearFecha(f.dia)}</strong>
+                <div style="margin-top: 8px;">${horariosHTML}</div>
+            </div>
+        `;
+    }).join('');
+
+    // Listas de equipos
+    const listaAceptados = detalle.aceptados?.length > 0 ? detalle.aceptados.map(eq => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 10px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'}; margin-bottom: 8px; flex-wrap: wrap;">
+            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'}; font-size: 0.95rem; word-break: break-word;">${eq.nombre} ${eq.esCreador ? '👑' : ''}</div>
+                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+            </div>
+            ${eq.telefonoContacto && !eq.esCreador ? `
+                <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">WhatsApp</a>
+            ` : ''}
+            <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">${eq.esCreador ? '★ CREADOR' : '✓ Aceptado'}</span>
+        </div>
+    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha aceptado aún</p>';
+
+    const listaRechazados = detalle.rechazados?.length > 0 ? detalle.rechazados.map(eq => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444; margin-bottom: 8px; opacity: 0.9; flex-wrap: wrap;">
+            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="font-weight: 600; color: #991b1b; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
+                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+            </div>
+            <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">✕ Rechazado</span>
+        </div>
+    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha rechazado</p>';
+
+    const listaPendientes = detalle.pendientes?.length > 0 ? detalle.pendientes.map(eq => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #f59e0b; margin-bottom: 8px; flex-wrap: wrap;">
+            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="font-weight: 600; color: #92400e; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
+                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+            </div>
+            <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">⏳ Pendiente</span>
+        </div>
+    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">No hay equipos pendientes</p>';
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'modalDetalleEncuentro';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 10px; box-sizing: border-box;';
+    
+    modal.innerHTML = `
+        <div style="width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; background: white; border-radius: 16px; position: relative; animation: slideUpMsg 0.3s ease;">
+            <div style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
+                <button onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+            </div>
+            
+            <div style="padding: 20px;">
+                ${enc.flyerUrl ? `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${enc.flyerUrl}" style="max-width: 100%; max-height: 250px; border-radius: 12px; object-fit: contain;" alt="Flyer">
+                    </div>
+                ` : ''}
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px; word-break: break-word;">
+                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">📍 Ubicación</h4>
+                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 0.95rem; line-height: 1.4;">${enc.lugar || 'No especificada'}</p>
+                        ${enc.lat && enc.lng ? `
+                            <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; font-size: 0.9rem; display: inline-block; margin-top: 8px; word-break: break-all;">Ver en mapa →</a>
+                        ` : ''}
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px;">
+                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">👥 Cupo</h4>
+                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 1.3rem;">${detalle.cantidadAceptados || 0}/${enc.cupoMaximo}</p>
+                        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;">${(enc.cupoMaximo - (detalle.cantidadAceptados || 0))} plazas disponibles</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📅 Fechas y horarios</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">${fechasHTML}</div>
+                </div>
+
+                ${valores.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">💰 Valores</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${valores.map(v => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f0fdf4; border-radius: 10px; flex-wrap: wrap; gap: 8px;">
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <span style="font-weight: 600; color: #166534;">${v.titulo}</span>
+                                        ${v.desc ? `<span style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 2px;">${v.desc}</span>` : ''}
+                                    </div>
+                                    <span style="font-weight: 700; color: #166534; font-size: 1.1rem; white-space: nowrap;">$${parseFloat(v.precio).toLocaleString('es-AR')}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${enc.descripcion ? `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                        <h4 style="color: #64748b; font-size: 0.85rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">📝 Descripción</h4>
+                        <p style="margin: 0; color: #1e293b; line-height: 1.6; font-size: 0.95rem; word-break: break-word;">${enc.descripcion}</p>
+                    </div>
+                ` : ''}
+
+                <div style="margin-top: 25px;">
+                    <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span>👥</span> Equipos invitados
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 4px 10px; border-radius: 20px;">${detalle.totalEquipos || 0} equipos</span>
+                    </h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #166534; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+                            Aceptados (${detalle.cantidadAceptados || 0})
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">${listaAceptados}</div>
+                    </div>
+
+                    ${detalle.rechazados?.length > 0 ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #991b1b; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                                Rechazados (${detalle.cantidadRechazados || 0})
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">${listaRechazados}</div>
+                        </div>
+                    ` : ''}
+
+                    ${detalle.pendientes?.length > 0 ? `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #92400e; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
+                                Pendientes (${detalle.cantidadPendientes || 0})
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">${listaPendientes}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <!-- Contenedor para asistencias (se carga async) -->
+                <div id="asistenciasContainer" style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                    <div class="skeleton-encuentros" style="height: 100px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return modal;
+}
+
+async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
+    const usuario = obtenerUsuarioActual();
+    const esCreador = equipoCreadorId === usuario.equipoId;
+    const container = modal.querySelector('#asistenciasContainer');
+    if (!container) return;
+    
+    try {
+        let asistenciasHTML = '';
+        
+        if (esCreador) {
+            // CREADOR: Ver todos los jugadores
+            const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
+            const data = await resp.json();
+            
+            if (data.success && data.data?.length > 0) {
+                const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
+                const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
+                
+                asistenciasHTML = `
+                    <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <span>📋</span> Confirmación de jugadores
+                        <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">(${totalVoy} van de ${totalJugadores} jugadores)</span>
+                        <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" style="margin-left: auto; padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">📥 Descargar listado completo</button>
+                    </h3>
+                    ${data.data.map(eq => {
+                        const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
+                        const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
+                        const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+                        
+                        return `
+                            <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-wrap: wrap; gap: 10px;">
+                                    <h4 style="margin: 0; color: #1e293b; font-size: 1.1rem;">${eq.equipoNombre}</h4>
+                                    <div style="display: flex; gap: 15px; font-size: 0.9rem; flex-wrap: wrap;">
+                                        <span style="color: #16a34a; font-weight: 600; background: #dcfce7; padding: 4px 12px; border-radius: 20px;">✓ ${voy.length} VOY</span>
+                                        <span style="color: #dc2626; font-weight: 600; background: #fee2e2; padding: 4px 12px; border-radius: 20px;">✕ ${noVoy.length} NO VOY</span>
+                                        <span style="color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">⏳ ${pendiente.length} pendientes</span>
+                                    </div>
+                                </div>
+                                ${eq.jugadores.length > 0 ? `
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                                        ${eq.jugadores.map(j => `
+                                            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 8px; border-left: 3px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                                                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${j.respuesta === 'voy' ? '✓ Va' : j.respuesta === 'no_voy' ? '✕ No va' : '⏳ Pendiente'}</div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<p style="color: #64748b; font-style: italic;">Sin jugadores confirmados</p>'}
+                            </div>
+                        `;
+                    }).join('')}`;
+            }
+        } else {
+            // EQUIPO INVITADO: Ver solo sus jugadores
+            const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
+            const data = await resp.json();
+            
+            if (data.success && data.data?.length > 0) {
+                const voy = data.data.filter(j => j.respuesta === 'voy');
+                const noVoy = data.data.filter(j => j.respuesta === 'no_voy');
+                const pendientes = data.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+                const puedeEditar = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
+                
+                asistenciasHTML = `
+                    <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: clamp(1rem, 4vw, 1.25rem);">
+                        <span>📋</span> Mi equipo - Confirmaciones
+                        <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; white-space: nowrap;">${voy.length} van · ${noVoy.length} no van · ${pendientes.length} pendientes</span>
+                        ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.75rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">Podés editar</span>` : ''}
+                    </h3>
+                    <div style="background: white; border-radius: 12px; padding: 15px; border: 2px solid #e2e8f0;">
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${data.data.map(j => `
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'}; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 150px;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; word-break: break-word;">${j.nombreCompleto}</div>
+                                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                            ${j.dni ? `<span>DNI: ${j.dni}</span>` : ''}
+                                            ${j.telefono ? `<span>· Tel: ${j.telefono}</span>` : ''}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                                            ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
+                                        </div>
+                                    </div>
+                                    ${puedeEditar ? `
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">✓ VOY</button>
+                                            <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">✕ NO</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            }
+        }
+        
+        container.innerHTML = asistenciasHTML || '<p style="color: #64748b; text-align: center; padding: 20px;">No hay datos de asistencias disponibles</p>';
+        
+    } catch (err) {
+        console.error('Error cargando asistencias:', err);
+        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Error al cargar asistencias</p>';
+    }
+}
+
+// ============================================
+// MODAL CREAR ENCUENTRO (COMPLETO)
+// ============================================
 function nuevoEncuentro() {
+    if (document.getElementById('modalEncuentro')) return;
+    
     const modal = document.createElement('div');
     modal.className = 'modal-overlay active';
     modal.id = 'modalEncuentro';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box;';
     
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-                <h2>Crear Nuevo Encuentro</h2>
-                <button class="btn-cerrar" onclick="cerrarModalEncuentro()">×</button>
+        <div style="background: white; border-radius: 20px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 30px; position: relative; animation: slideUpMsg 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: sticky; top: 0; background: white; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; z-index: 10;">
+                <h2 style="margin: 0; color: #1e293b; font-size: 1.5rem;">Crear Nuevo Encuentro</h2>
+                <button onclick="cerrarModalEncuentro()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 24px; color: #64748b; display: flex; align-items: center; justify-content: center;">×</button>
             </div>
             
             <form id="formEncuentro" onsubmit="guardarEncuentro(event)">
-                
-                <div class="form-group">
-                    <label>Flyer del encuentro</label>
-                    <div id="flyerPreview" style="width: 100%; height: 200px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Flyer del encuentro</label>
+                    <div id="flyerPreview" style="width: 100%; height: 200px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; border: 2px dashed #cbd5e1;">
                         <span style="color: #94a3b8;">Vista previa del flyer</span>
                     </div>
                     <input type="file" id="inputFlyer" accept="image/*" style="display: none;">
                     <input type="hidden" id="flyerUrl" value="">
-                    <button type="button" onclick="document.getElementById('inputFlyer').click()" class="btn-secondary" style="width: 100%;">
-                        📤 Subir flyer
-                    </button>
+                    <button type="button" onclick="document.getElementById('inputFlyer').click()" style="width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">📤 Subir flyer</button>
                     <p style="color: #64748b; font-size: 12px; margin-top: 5px;">Formato recomendado: JPG/PNG, 800x600px</p>
                 </div>
 
-                <div class="form-group">
-                    <label>Nombre del encuentro *</label>
-                    <input type="text" id="encNombre" required placeholder="Ej: Encuentro Argentino - Santiago 2026">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Nombre del encuentro *</label>
+                    <input type="text" id="encNombre" required placeholder="Ej: Encuentro Argentino - Santiago 2026" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; box-sizing: border-box;">
                 </div>
 
-                <!-- TIPO DE ENCUENTRO - MÚLTIPLE SELECCIÓN -->
-                <div class="form-group">
-                    <label>Tipo de encuentro * (podés elegir varios)</label>
-                    
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Tipo de encuentro * (podés elegir varios)</label>
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" name="encTipo" value="Veteranos +35" style="width: 18px; height: 18px;">
@@ -188,78 +1315,53 @@ function nuevoEncuentro() {
                             <span>Otro (agregar personalizados)</span>
                         </label>
                     </div>
-                    
                     <div id="containerOtrosTipos" style="display: none; flex-direction: column; gap: 10px; margin-left: 26px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0;">
                         <div style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Agregá los tipos que necesites:</div>
                     </div>
-                    
-                    <button type="button" onclick="agregarOtroTipo()" class="btn-secondary" style="width: 100%; margin-top: 10px; display: none;" id="btnAgregarOtroTipo">
-                        + Agregar otro tipo personalizado
-                    </button>
+                    <button type="button" onclick="agregarOtroTipo()" style="display: none; width: 100%; margin-top: 10px; padding: 10px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem;" id="btnAgregarOtroTipo">+ Agregar otro tipo personalizado</button>
                 </div>
 
-                <!-- UBICACIÓN DEL ENCUENTRO CON MAPA -->
-                <div class="form-group">
-                    <label>Ubicación del encuentro *</label>
-                    <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">
-                        📍 Arrastrá el pin rojo para marcar exactamente dónde se juega (puede ser diferente a tu club)
-                    </p>
-                    
-                    <!-- Mapa selector -->
-                    <div id="mapaEncuentro" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0;"></div>
-                    
-                    <!-- Campos ocultos para coordenadas y ubicación -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Ubicación del encuentro *</label>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">📍 Arrastrá el pin rojo para marcar exactamente dónde se juega</p>
+                    <div id="mapaEncuentro" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; background: #f1f5f9;"></div>
                     <input type="hidden" id="encLat" value="">
                     <input type="hidden" id="encLng" value="">
                     <input type="hidden" id="encPaisId" value="">
                     <input type="hidden" id="encProvinciaId" value="">
                     <input type="hidden" id="encCiudadId" value="">
-                    
-                    <!-- Dirección escrita (se completa automáticamente pero editable) -->
-                    <label style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Dirección completa *</label>
-                    <input type="text" id="encDireccion" required placeholder="Calle, número, ciudad, país..." style="margin-bottom: 10px;">
-                    
-                    <!-- Info de ubicación detectada -->
+                    <label style="font-size: 12px; color: #64748b; margin-bottom: 5px; display: block;">Dirección completa *</label>
+                    <input type="text" id="encDireccion" required placeholder="Calle, número, ciudad, país..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box;">
                     <div id="encUbicacionInfo" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px; font-size: 12px; color: #166534;">
                         ✅ Ubicación confirmada: <span id="encPaisNombre"></span> > <span id="encProvinciaNombre"></span> > <span id="encCiudadNombre"></span>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Cupo máximo de equipos *</label>
-                    <input type="number" id="encCupo" min="2" max="50" value="8" required>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Cupo máximo de equipos *</label>
+                    <input type="number" id="encCupo" min="2" max="50" value="8" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; box-sizing: border-box;">
                 </div>
 
-                <div class="form-group">
-                    <label>Fechas y horarios *</label>
-                    <div id="containerFechas" style="display: flex; flex-direction: column; gap: 15px;">
-                    </div>
-                    <button type="button" onclick="agregarDia()" class="btn-secondary" style="margin-top: 15px; width: 100%;">
-                        + Agregar día
-                    </button>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Fechas y horarios *</label>
+                    <div id="containerFechas" style="display: flex; flex-direction: column; gap: 15px;"></div>
+                    <button type="button" onclick="agregarDia()" style="margin-top: 15px; width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">+ Agregar día</button>
                 </div>
 
-                <div class="form-group">
-                    <label>Valores / Opciones de inscripción *</label>
-                    <div id="containerValores" style="display: flex; flex-direction: column; gap: 10px;">
-                    </div>
-                    <button type="button" onclick="agregarValor()" class="btn-secondary" style="margin-top: 15px; width: 100%;">
-                        + Agregar opción de valor
-                    </button>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Valores / Opciones de inscripción *</label>
+                    <div id="containerValores" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <button type="button" onclick="agregarValor()" style="margin-top: 15px; width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">+ Agregar opción de valor</button>
                 </div>
 
-                <div class="form-group">
-                    <label>Descripción general</label>
-                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, Fechas limites y formas de pago etc.. Menú 3er tiempo, todo lo que concideres necesario"></textarea>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Descripción general</label>
+                    <textarea id="encDescripcion" rows="3" placeholder="Información adicional, Fechas limites y formas de pago etc.. Menú 3er tiempo, todo lo que consideres necesario" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; resize: vertical; box-sizing: border-box;"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 15px; margin-top: 25px;">
-                    <button type="button" onclick="cerrarModalEncuentro()" class="btn-secondary" style="flex: 1;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn-primary" style="flex: 2;" id="btnGuardarEncuentro">
-                        Crear encuentro
-                    </button>
+                    <button type="button" onclick="cerrarModalEncuentro()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem;">Cancelar</button>
+                    <button type="submit" style="flex: 2; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem;" id="btnGuardarEncuentro">Crear encuentro</button>
                 </div>
             </form>
         </div>
@@ -267,14 +1369,18 @@ function nuevoEncuentro() {
     
     document.body.appendChild(modal);
     
-    // Inicializar mapa
+    // Inicializar mapa con delay
     setTimeout(() => initMapaEncuentro(), 100);
     
     agregarDia();
     agregarValor();
     
-    document.getElementById('inputFlyer').addEventListener('change', subirFlyer);
+    document.getElementById('inputFlyer').addEventListener('change', subirFlyerOptimizado);
 }
+
+// ============================================
+// FUNCIONES AUXILIARES DEL MODAL
+// ============================================
 function toggleOtrosTipos() {
     const chkOtro = document.getElementById('chkOtro');
     const container = document.getElementById('containerOtrosTipos');
@@ -283,53 +1389,42 @@ function toggleOtrosTipos() {
     if (chkOtro.checked) {
         container.style.display = 'flex';
         btnAgregar.style.display = 'block';
-        // Agregar el primero automáticamente si está vacío
-        if (container.children.length <= 1) { // 1 porque hay el texto de ayuda
+        if (container.children.length <= 1) {
             agregarOtroTipo();
         }
     } else {
         container.style.display = 'none';
         btnAgregar.style.display = 'none';
-        // Limpiar los inputs personalizados al desmarcar
-        const inputs = container.querySelectorAll('.otro-tipo-input');
-        inputs.forEach(input => input.parentElement.remove());
+        container.querySelectorAll('.otro-tipo-input').forEach(input => input.parentElement.remove());
     }
 }
 
 function agregarOtroTipo() {
     const container = document.getElementById('containerOtrosTipos');
-    const index = container.children.length + 1;
+    const index = container.querySelectorAll('.otro-tipo-input').length + 1;
     
     const div = document.createElement('div');
     div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
     div.innerHTML = `
-        <input type="text" class="otro-tipo-input" placeholder="Especificar tipo ${index}" required style="flex: 1;">
-        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">
-            ✕
-        </button>
+        <input type="text" class="otro-tipo-input" placeholder="Especificar tipo ${index}" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; padding: 5px;">×</button>
     `;
     
     container.appendChild(div);
 }
 
-
-
 let mapaEncuentro, markerEncuentro;
 
 function initMapaEncuentro() {
-    // Coordenadas por defecto (Argentina/Buenos Aires) o usar la del club si está disponible
     const defaultLat = -34.6037;
     const defaultLng = -58.3816;
     
-    // Crear mapa
     mapaEncuentro = L.map('mapaEncuentro').setView([defaultLat, defaultLng], 13);
     
-    // Agregar capa de OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(mapaEncuentro);
     
-    // Crear marker draggable
     markerEncuentro = L.marker([defaultLat, defaultLng], {
         draggable: true,
         icon: L.icon({
@@ -340,19 +1435,16 @@ function initMapaEncuentro() {
         })
     }).addTo(mapaEncuentro);
     
-    // Evento cuando se arrastra el marker
     markerEncuentro.on('dragend', async function() {
         const pos = markerEncuentro.getLatLng();
         await actualizarUbicacionEncuentro(pos.lat, pos.lng);
     });
     
-    // Click en el mapa para mover el marker
     mapaEncuentro.on('click', async function(e) {
         markerEncuentro.setLatLng(e.latlng);
         await actualizarUbicacionEncuentro(e.latlng.lat, e.latlng.lng);
     });
     
-    // Geolocalización del usuario (opcional)
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -362,30 +1454,23 @@ function initMapaEncuentro() {
                 markerEncuentro.setLatLng([lat, lng]);
                 actualizarUbicacionEncuentro(lat, lng);
             },
-            () => {
-                // Si falla, usar default
-                actualizarUbicacionEncuentro(defaultLat, defaultLng);
-            }
+            () => actualizarUbicacionEncuentro(defaultLat, defaultLng)
         );
     } else {
         actualizarUbicacionEncuentro(defaultLat, defaultLng);
     }
 }
 
-// Función para obtener datos de ubicación desde coordenadas (reverse geocoding)
 async function actualizarUbicacionEncuentro(lat, lng) {
     document.getElementById('encLat').value = lat;
     document.getElementById('encLng').value = lng;
     
     try {
-        // Usar OpenStreetMap Nominatim para reverse geocoding (gratuito)
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         const data = await response.json();
         
         if (data && data.address) {
             const addr = data.address;
-            
-            // Completar dirección
             const direccionParts = [];
             if (addr.road) direccionParts.push(addr.road);
             if (addr.house_number) direccionParts.push(addr.house_number);
@@ -395,12 +1480,10 @@ async function actualizarUbicacionEncuentro(lat, lng) {
             const direccionCompleta = direccionParts.join(', ') || data.display_name || '';
             document.getElementById('encDireccion').value = direccionCompleta;
             
-            // Guardar IDs de ubicación (simplificado - en producción deberías mapear a tus IDs reales)
             document.getElementById('encPaisId').value = addr.country_code || '';
             document.getElementById('encProvinciaId').value = addr.state || addr.province || '';
             document.getElementById('encCiudadId').value = addr.city || addr.town || addr.village || '';
             
-            // Mostrar info
             document.getElementById('encPaisNombre').textContent = addr.country || 'Desconocido';
             document.getElementById('encProvinciaNombre').textContent = addr.state || addr.province || '';
             document.getElementById('encCiudadNombre').textContent = addr.city || addr.town || addr.village || '';
@@ -408,32 +1491,22 @@ async function actualizarUbicacionEncuentro(lat, lng) {
         }
     } catch (err) {
         console.error('Error obteniendo ubicación:', err);
-        // Dejar los campos para que el usuario complete manualmente
     }
 }
-// ============================================
-// FECHAS DINÁMICAS
-// ============================================
 
 function agregarDia() {
     const container = document.getElementById('containerFechas');
     const index = container.children.length;
     
     const diaDiv = document.createElement('div');
-    diaDiv.className = 'dia-item';
     diaDiv.style.cssText = 'background: #f8fafc; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0;';
     diaDiv.innerHTML = `
         <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-            <input type="date" class="dia-fecha" required style="flex: 1;">
-            <button type="button" onclick="this.closest('.dia-item').remove()" class="btn-rechazar" style="padding: 8px 12px; font-size: 12px;">
-                ✕
-            </button>
+            <input type="date" class="dia-fecha" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+            <button type="button" onclick="this.parentElement.parentElement.remove()" style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
         </div>
-        <div class="horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;">
-        </div>
-        <button type="button" onclick="agregarHorario(this)" class="btn-secondary" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px;">
-            + Agregar horario
-        </button>
+        <div class="horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;"></div>
+        <button type="button" onclick="agregarHorario(this)" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer;">+ Agregar horario</button>
     `;
     
     container.appendChild(diaDiv);
@@ -446,19 +1519,13 @@ function agregarHorario(btn) {
     const horarioDiv = document.createElement('div');
     horarioDiv.style.cssText = 'display: flex; gap: 8px; align-items: center;';
     horarioDiv.innerHTML = `
-        <input type="time" class="horario-hora" required style="width: 100px;">
-        <input type="text" class="horario-desc" placeholder="Descripción (ej: Acreditación)" required style="flex: 1;">
-        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">
-            ✕
-        </button>
+        <input type="time" class="horario-hora" required style="width: 100px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+        <input type="text" class="horario-desc" placeholder="Descripción (ej: Acreditación)" required style="flex: 1; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 5px;">×</button>
     `;
     
     horariosContainer.appendChild(horarioDiv);
 }
-
-// ============================================
-// VALORES DINÁMICOS
-// ============================================
 
 function agregarValor() {
     const container = document.getElementById('containerValores');
@@ -466,22 +1533,19 @@ function agregarValor() {
     const valorDiv = document.createElement('div');
     valorDiv.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0;';
     valorDiv.innerHTML = `
-        <input type="text" class="valor-titulo" placeholder="Título (ej: Completo)" required style="flex: 1;">
-        <input type="number" class="valor-precio" placeholder="$" min="0" required style="width: 100px;">
-        <input type="text" class="valor-desc" placeholder="Descripción opcional" style="flex: 2;">
-        <button type="button" onclick="this.parentElement.remove()" class="btn-rechazar" style="padding: 6px 10px; font-size: 12px;">
-            ✕
-        </button>
+        <input type="text" class="valor-titulo" placeholder="Título (ej: Completo)" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <input type="number" class="valor-precio" placeholder="$" min="0" required style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <input type="text" class="valor-desc" placeholder="Descripción opcional" style="flex: 2; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="padding: 6px 10px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
     `;
     
     container.appendChild(valorDiv);
 }
 
 // ============================================
-// SUBIR FLYER A IMGBB
+// SUBIR FLYER Y GUARDAR ENCUENTRO
 // ============================================
-
-async function subirFlyer() {
+async function subirFlyerOptimizado() {
     const input = document.getElementById('inputFlyer');
     const file = input.files[0];
     if (!file) return;
@@ -500,11 +1564,12 @@ async function subirFlyer() {
     const formData = new FormData();
     formData.append('image', file);
     
+    const btnGuardar = document.getElementById('btnGuardarEncuentro');
+    const originalText = btnGuardar.textContent;
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></span>Subiendo...';
+    
     try {
-        const btnGuardar = document.getElementById('btnGuardarEncuentro');
-        btnGuardar.disabled = true;
-        btnGuardar.textContent = 'Subiendo flyer...';
-        
         const response = await fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
             method: 'POST',
             body: formData
@@ -513,54 +1578,36 @@ async function subirFlyer() {
         const result = await response.json();
         
         if (result.success) {
-            const url = result.data.url || result.data.display_url;
-            document.getElementById('flyerUrl').value = url;
-            document.getElementById('flyerPreview').innerHTML = `<img src="${url}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            document.getElementById('flyerUrl').value = result.data.url;
             mostrarMensajeEncuentros('Flyer subido correctamente', 'success');
         } else {
-            mostrarMensajeEncuentros('Error al subir flyer', 'error');
+            throw new Error('Error en respuesta');
         }
     } catch (err) {
-        mostrarMensajeEncuentros('Error de conexión', 'error');
+        mostrarMensajeEncuentros('Error al subir flyer', 'error');
     } finally {
-        const btnGuardar = document.getElementById('btnGuardarEncuentro');
-        if (btnGuardar) {
-            btnGuardar.disabled = false;
-            btnGuardar.textContent = 'Crear encuentro';
-        }
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = originalText;
     }
 }
 
-function guardarEncuentro(e) {
+async function guardarEncuentro(e) {
     e.preventDefault();
     
-    // 🔥 PREVENIR DOBLE SUBMIT
     const btnGuardar = document.getElementById('btnGuardarEncuentro');
-    if (btnGuardar.disabled) return; // Ya se envió, ignorar
+    if (btnGuardar.disabled) return;
     
-    btnGuardar.disabled = true;
-    btnGuardar.textContent = 'Creando encuentro...';
-    btnGuardar.style.opacity = '0.7';
-    btnGuardar.style.cursor = 'not-allowed';
-    
-    
-    // Validar ubicación
     if (!document.getElementById('encLat').value || !document.getElementById('encLng').value) {
         mostrarMensajeEncuentros('⚠️ Por favor marcá la ubicación en el mapa', 'error');
         return;
     }
     
-    // Recolectar tipos seleccionados
     const tiposSeleccionados = [];
     document.querySelectorAll('input[name="encTipo"]:checked').forEach(cb => {
         tiposSeleccionados.push(cb.value);
     });
-    
-    const otrosInputs = document.querySelectorAll('.otro-tipo-input');
-    otrosInputs.forEach(input => {
-        if (input.value.trim()) {
-            tiposSeleccionados.push(input.value.trim());
-        }
+    document.querySelectorAll('.otro-tipo-input').forEach(input => {
+        if (input.value.trim()) tiposSeleccionados.push(input.value.trim());
     });
     
     if (tiposSeleccionados.length === 0) {
@@ -568,28 +1615,19 @@ function guardarEncuentro(e) {
         return;
     }
     
-    const tipoFinal = tiposSeleccionados.join(', ');
-    
-    // Fechas
     const fechas = [];
-    document.querySelectorAll('.dia-item').forEach(dia => {
+    document.querySelectorAll('#containerFechas > div').forEach(dia => {
         const fechaInput = dia.querySelector('.dia-fecha');
-        if (!fechaInput.value) return;
+        if (!fechaInput?.value) return;
         
         const horarios = [];
         dia.querySelectorAll('.horarios-container > div').forEach(h => {
-            const hora = h.querySelector('.horario-hora').value;
-            const desc = h.querySelector('.horario-desc').value;
-            if (hora && desc) {
-                horarios.push({ hora, desc });
-            }
+            const hora = h.querySelector('.horario-hora')?.value;
+            const desc = h.querySelector('.horario-desc')?.value;
+            if (hora && desc) horarios.push({ hora, desc });
         });
         
-        // Cambiar ESTO:
-fechas.push({
-    dia: fechaInput.value,  // ← Solo la fecha, sin hora
-    horarios: horarios
-});
+        fechas.push({ dia: fechaInput.value, horarios });
     });
     
     if (fechas.length === 0) {
@@ -597,19 +1635,12 @@ fechas.push({
         return;
     }
     
-    // Valores
     const valores = [];
     document.querySelectorAll('#containerValores > div').forEach(v => {
-        const titulo = v.querySelector('.valor-titulo').value;
-        const precio = v.querySelector('.valor-precio').value;
-        const desc = v.querySelector('.valor-desc').value;
-        if (titulo && precio) {
-            valores.push({
-                titulo,
-                precio: parseFloat(precio),
-                desc: desc || ''
-            });
-        }
+        const titulo = v.querySelector('.valor-titulo')?.value;
+        const precio = v.querySelector('.valor-precio')?.value;
+        const desc = v.querySelector('.valor-desc')?.value || '';
+        if (titulo && precio) valores.push({ titulo, precio: parseFloat(precio), desc });
     });
     
     if (valores.length === 0) {
@@ -617,1004 +1648,75 @@ fechas.push({
         return;
     }
     
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Creando encuentro...';
+    btnGuardar.style.opacity = '0.7';
+    
+    LoadingManager.show('guardar', 'Guardando encuentro...');
+    
     const usuario = obtenerUsuarioActual();
     const params = new URLSearchParams({
         action: 'crearEncuentro',
         equipoCreadorId: usuario.equipoId,
-        creadorNombre: usuario.equipoNombre,
+        creadorNombre: usuario.equipoNombre || usuario.nombre,
         nombre: document.getElementById('encNombre').value,
         flyerUrl: document.getElementById('flyerUrl').value || '',
         fechasJSON: JSON.stringify(fechas),
         valoresJSON: JSON.stringify(valores),
-        cupoMaximo: parseInt(document.getElementById('encCupo').value),
+        cupoMaximo: document.getElementById('encCupo').value,
         lugar: document.getElementById('encDireccion').value,
         lat: document.getElementById('encLat').value,
         lng: document.getElementById('encLng').value,
         paisId: document.getElementById('encPaisId').value,
         provinciaId: document.getElementById('encProvinciaId').value,
         ciudadId: document.getElementById('encCiudadId').value,
-        tipo: tipoFinal,
+        tipo: tiposSeleccionados.join(', '),
         descripcion: document.getElementById('encDescripcion').value,
         estado: 'publicado'
     });
     
-    fetch(`${API_URL}?${params.toString()}`)
-    .then(response => response.json())
-   .then(result => {
-        // Restaurar botón
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = 'Crear encuentro';
-        btnGuardar.style.opacity = '1';
-        btnGuardar.style.cursor = 'pointer';
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
         
         if (result.success) {
             cerrarModalEncuentro();
             mostrarMensajeEncuentros('Encuentro creado correctamente', 'success');
+            CacheManager.invalidateAll();
             renderizarMisEncuentros();
         } else {
-            mostrarMensajeEncuentros(result.error || 'Error al crear encuentro', 'error');
+            throw new Error(result.error || 'Error al crear');
         }
-    })
-    .catch(err => {
-         btnGuardar.disabled = false;
+    } catch (err) {
+        mostrarMensajeEncuentros(err.message || 'Error al crear encuentro', 'error');
+        btnGuardar.disabled = false;
         btnGuardar.textContent = 'Crear encuentro';
         btnGuardar.style.opacity = '1';
-        btnGuardar.style.cursor = 'pointer';
-        
-        console.error('Error:', err);
-        mostrarMensajeEncuentros('Error al crear encuentro', 'error');
-    });
-}
-// ============================================
-// RENDERIZAR MIS ENCUENTROS (desde API)
-// ============================================
-async function renderizarMisEncuentros() {
-    const container = document.getElementById('listaMisEncuentros');
-    const empty = document.getElementById('emptyCreados');
-
-    if (!container) return;
-
-    const usuario = obtenerUsuarioActual();
-    
-    try {
-        const response = await fetch(`${API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`);
-        const result = await response.json();
-        
-        if (!result.success) {
-            mostrarMensajeEncuentros('Error al cargar encuentros', 'error');
-            return;
-        }
-        
-        const encuentros = result.data || [];
-        
-        // 🔥 ORDENAR: Último creado primero
-        encuentros.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
-
-        if (encuentros.length === 0) {
-            container.innerHTML = '';
-            if (empty) empty.style.display = 'block';
-            return;
-        }
-
-        if (empty) empty.style.display = 'none';
-
-        container.innerHTML = encuentros.map(enc => {
-            let fechas = [];
-            let valores = [];
-            try {
-                fechas = JSON.parse(enc.fechasJSON || '[]');
-                valores = JSON.parse(enc.valoresJSON || '[]');
-            } catch(e) {
-                console.error('Error parseando JSON:', e);
-            }
-            
-            const equiposConfirmados = enc.equiposAceptados || 1;
-            const plazasLibres = enc.cupoMaximo - equiposConfirmados;
-            
-            const fechasHTML = fechas.map(f => {
-                const horariosHTML = f.horarios.map(h => `
-                    <span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px;">
-                        ${h.hora}hs - ${h.desc}
-                    </span>
-                `).join('');
-                
-                return `
-                    <div style="margin-bottom: 8px;">
-                        <strong>📅 ${formatearFecha(f.dia)}</strong>
-                        <div style="margin-top: 4px; margin-left: 24px;">
-                            ${horariosHTML}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            const mapaHTML = (enc.lat && enc.lng) ? `
-                <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;">
-                    <iframe 
-                        width="100%" 
-                        height="150" 
-                        frameborder="0" 
-                        scrolling="no" 
-                        marginheight="0" 
-                        marginwidth="0" 
-                        src="https://www.openstreetmap.org/export/embed.html?bbox=${enc.lng-0.01}%2C${enc.lat-0.01}%2C${enc.lng+0.01}%2C${enc.lat+0.01}&layer=mapnik&marker=${enc.lat}%2C${enc.lng}" 
-                        style="border: 0;">
-                    </iframe>
-                    <div style="background: #f8fafc; padding: 8px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>📍 ${enc.direccion || 'Ubicación marcada'}</span>
-                        <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; text-decoration: none; font-weight: 500;">
-                            Abrir mapa →
-                        </a>
-                    </div>
-                </div>
-            ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.direccion || 'Sin ubicación'}</div>`;
-
-            const estadoClass = `estado-${enc.estado || 'publicado'}`;
-            const estadoTexto = enc.estado === 'publicado' ? 'Publicado' : 
-                               enc.estado === 'borrador' ? 'Borrador' : 
-                               enc.estado === 'cancelado' ? 'Cancelado' : enc.estado;
-
-            // 🔥 BOTONES SEGÚN ESTADO
-            const botonesHTML = enc.estado === 'cancelado' ? `
-                <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-                    Ver detalle
-                </button>
-                <span style="color: #991b1b; font-weight: 600; padding: 8px 16px;">CANCELADO</span>
-            ` : `
-                <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-                    Ver detalle
-                </button>
-                <button onclick="editarEncuentro('${enc.id}')" class="btn-editar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #f1f5f9; color: #475569; cursor: pointer; font-weight: 500;">
-                    Editar
-                </button>
-                <button onclick="cancelarEncuentro('${enc.id}')" class="btn-rechazar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">
-                    Cancelar
-                </button>
-                <button onclick="compartirEncuentro('${enc.id}')" class="btn-compartir" style="padding: 8px 16px; border-radius: 6px; border: none; background: #22c55e; color: white; cursor: pointer; font-weight: 500;">
-                    Compartir
-                </button>
-            `;
-
-            return `
-                <div class="encuentro-card" style="${enc.estado === 'cancelado' ? 'opacity: 0.7; background: #f9fafb;' : ''}">
-                    <div class="encuentro-header">
-                        <div>
-                            <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; line-height: 1.2;">
-                                ${enc.nombre}
-                            </div>
-                            <span class="encuentro-estado ${estadoClass}" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: ${enc.estado === 'publicado' ? '#dcfce7' : enc.estado === 'cancelado' ? '#fee2e2' : '#f1f5f9'}; color: ${enc.estado === 'publicado' ? '#166534' : enc.estado === 'cancelado' ? '#991b1b' : '#64748b'};">
-                                ${estadoTexto}
-                            </span>
-                            ${enc.tipo ? enc.tipo.split(', ').map(t => `
-                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3; margin-left: 5px; margin-bottom: 5px;">
-                                    ${t}
-                                </span>
-                            `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; margin-left: 8px;">Sin tipo</span>'}
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
-                                ${equiposConfirmados}/${enc.cupoMaximo}
-                            </div>
-                            <div style="font-size: 0.8rem; color: #64748b;">
-                                ${plazasLibres > 0 ? plazasLibres + ' plaza' + (plazasLibres > 1 ? 's' : '') + ' libre' + (plazasLibres > 1 ? 's' : '') : 'Completo'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
-                        ${fechasHTML}
-                        ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
-                    </div>
-
-                    ${mapaHTML}
-
-                    ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
-
-                    ${enc.flyerUrl ? `
-                        <div style="margin-bottom: 15px;">
-                            <img src="${enc.flyerUrl}" style="max-width: 300px; border-radius: 8px; object-fit: cover;" alt="Flyer">
-                        </div>
-                    ` : ''}
-
-                    <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        ${botonesHTML}
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-    } catch (err) {
-        console.error('Error cargando encuentros:', err);
-        mostrarMensajeEncuentros('Error de conexión al cargar encuentros', 'error');
+    } finally {
+        LoadingManager.hide('guardar');
     }
-}
-
-
-
-
-// ============================================
-// RENDERIZAR INVITACIONES (encuentros de otros equipos)
-// ============================================
-
-async function renderizarInvitaciones() {
-     
-  const container = document.getElementById('listaInvitaciones');
-  const empty = document.getElementById('emptyInvitaciones');
-  const badge = document.getElementById('badgeInvitaciones');
-
-  if (!container) return;
-
-  const usuario = obtenerUsuarioActual();
-  
-  try {
-    // 🔥 Cargar TRES listas en paralelo
-    const [respuestaAceptados, respuestaPendientes, respuestaRechazados] = await Promise.all([
-      fetch(`${API_URL}?action=getEncuentrosAceptados&equipoId=${usuario.equipoId}`).then(r => r.json()),
-      fetch(`${API_URL}?action=getEncuentrosParaInvitar&equipoId=${usuario.equipoId}`).then(r => r.json()),
-      fetch(`${API_URL}?action=getEncuentrosRechazados&equipoId=${usuario.equipoId}`).then(r => r.json())
-    ]);
-    
-    const aceptados = respuestaAceptados.success ? respuestaAceptados.data : [];
-    const todosPendientes = respuestaPendientes.success ? respuestaPendientes.data : [];
-    const rechazados = respuestaRechazados.success ? respuestaRechazados.data : [];
-    
-    // Filtrar pendientes: excluir los que ya respondimos (aceptados o rechazados)
-    const idsRespondidos = new Set([
-      ...aceptados.map(a => a.id),
-      ...rechazados.map(r => r.id)
-    ]);
-    const pendientes = todosPendientes.filter(p => !idsRespondidos.has(p.id));
-
-    // Actualizar badge (solo pendientes)
-    if (badge) {
-      if (pendientes.length > 0) {
-        badge.textContent = pendientes.length;
-        badge.style.display = 'inline';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
-
-    // Si no hay nada, mostrar empty state
-    if (aceptados.length === 0 && pendientes.length === 0 && rechazados.length === 0) {
-      container.innerHTML = '';
-      if (empty) empty.style.display = 'block';
-      return;
-    }
-
-    if (empty) empty.style.display = 'none';
-
-    // HTML de ACEPTADOS
-    const aceptadosHTML = aceptados.length > 0 ? `
-      <div style="margin-bottom: 30px;">
-        <h3 style="color: #059669; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-          <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
-          Invitaciones aceptadas (${aceptados.length})
-        </h3>
-        ${aceptados.map(enc => generarCardEncuentro(enc, 'aceptado')).join('')}
-      </div>
-    ` : '';
-
-    // 🔥 HTML de RECHAZADOS (NUEVO)
-    const rechazadosHTML = rechazados.length > 0 ? `
-      <div style="margin-bottom: 30px;">
-        <h3 style="color: #991b1b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-          <span style="width: 8px; height: 8px; background: #991b1b; border-radius: 50%;"></span>
-          Invitaciones rechazadas (${rechazados.length})
-        </h3>
-        ${rechazados.map(enc => generarCardEncuentro(enc, 'rechazado')).join('')}
-      </div>
-    ` : '';
-
-    // HTML de PENDIENTES
-    const pendientesHTML = pendientes.length > 0 ? `
-      <div>
-        <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-          <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
-          Invitaciones pendientes (${pendientes.length})
-        </h3>
-        ${pendientes.map(enc => generarCardEncuentro(enc, 'pendiente')).join('')}
-      </div>
-    ` : '';
-
-    // Orden: Aceptados → Rechazados → Pendientes
-    container.innerHTML = aceptadosHTML + rechazadosHTML + pendientesHTML;
-
-      
-      
-  } catch (err) {
-    console.error('Error cargando invitaciones:', err);
-    mostrarMensajeEncuentros('Error de conexión', 'error');
-  }
-}
-
-// Función auxiliar para generar el HTML de una card
-function generarCardEncuentro(enc, estado) {
-  let fechas = [];
-  let valores = [];
-  try {
-    fechas = JSON.parse(enc.fechasJSON || '[]');
-    valores = JSON.parse(enc.valoresJSON || '[]');
-  } catch(e) {
-    console.error('Error parseando JSON:', e);
-  }
-  // ← AGREGAR ESTA LÍNEA (definir borderStyle)
-  const borderStyle = estado === 'aceptado' ? 'border-left: 4px solid #10b981;' : 
-                      estado === 'rechazado' ? 'border-left: 4px solid #ef4444; opacity: 0.85;' : 
-                      '';
-  
-  const fechasHTML = fechas.map(f => {
-    const horariosHTML = f.horarios.map(h => `
-      <span style="display: inline-block; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; margin-right: 5px;">
-        ${h.hora}hs - ${h.desc}
-      </span>
-    `).join('');
-    
-    return `
-      <div style="margin-bottom: 8px;">
-        <strong>📅 ${formatearFecha(f.dia)}</strong>
-        <div style="margin-top: 4px; margin-left: 24px;">
-          ${horariosHTML}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  const mapaHTML = (enc.lat && enc.lng) ? `
-    <div style="margin: 15px 0; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0;">
-      <iframe 
-        width="100%" 
-        height="150" 
-        frameborder="0" 
-        scrolling="no" 
-        marginheight="0" 
-        marginwidth="0" 
-        src="https://www.openstreetmap.org/export/embed.html?bbox=${enc.lng-0.01}%2C${enc.lat-0.01}%2C${enc.lng+0.01}%2C${enc.lat+0.01}&layer=mapnik&marker=${enc.lat}%2C${enc.lng}" 
-        style="border: 0;">
-      </iframe>
-      <div style="background: #f8fafc; padding: 8px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span>📍 ${enc.lugar || 'Ubicación marcada'}</span>
-        <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; text-decoration: none; font-weight: 500;">
-          Abrir mapa →
-        </a>
-      </div>
-    </div>
-  ` : `<div style="color: #64748b; margin: 10px 0;">📍 ${enc.lugar || 'Sin ubicación'}</div>`;
-
-  // 🔥 BOTONES SEGÚN ESTADO (con case para 'rechazado')
-  const botonesHTML = estado === 'aceptado' ? `
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-      <span style="display: inline-flex; align-items: center; gap: 6px; background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
-        ✓ Aceptado
-      </span>
-      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-        Ver detalle
-      </button>
-      ${enc.telefonoOrganizador ? `
-        <a href="https://wa.me/${String(enc.telefonoOrganizador).replace(/[^0-9]/g, '')}" 
-           target="_blank" 
-           style="display: inline-flex; align-items: center; gap: 6px; background: #25D366; color: white; padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="white">
-            <path d="M16 .4C7.2.4.4 7.2.4 16c0 2.8.7 5.5 2.1 7.9L.4 32l8.3-2.1c2.3 1.3 4.9 2 7.6 2 8.8 0 15.6-6.8 15.6-15.6S24.8.4 16 .4zm0 28.6c-2.4 0-4.7-.6-6.7-1.8l-.5-.3-4.9 1.2 1.3-4.8-.3-.5C3.6 20.7 3 18.4 3 16 3 8.8 8.8 3 16 3s13 5.8 13 13-5.8 13-13 13zm7.2-9.8c-.4-.2-2.3-1.1-2.6-1.2-.3-.1-.6-.2-.8.2-.2.4-.9 1.2-1.1 1.5-.2.3-.4.3-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.9-1.8-2.2-.2-.3 0-.5.2-.7.2-.2.4-.4.6-.6.2-.2.3-.4.4-.6.1-.2 0-.4 0-.6 0-.2-.8-2-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.1 3.1 1.3 3.3c.2.2 2.2 3.4 5.4 4.7.8.3 1.4.5 1.9.6.8.2 1.5.2 2 .1.6-.1 2.3-.9 2.6-1.8.3-.9.3-1.7.2-1.8-.1-.1-.4-.2-.8-.4z"/>
-          </svg>
-          WhatsApp Organizador
-        </a>
-      ` : ''}
-    </div>
-  ` : estado === 'rechazado' ? `
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-      <span style="display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
-        ✕ Rechazado
-      </span>
-      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-        Ver detalle
-      </button>
-    </div>
-  ` : `
-    <div class="acciones-encuentro" style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <button onclick="verDetalleEncuentro('${enc.id}')" class="btn-ver" style="padding: 8px 16px; border-radius: 6px; border: none; background: #e0e7ff; color: #3730a3; cursor: pointer; font-weight: 500;">
-        Ver detalle
-      </button>
-      <button onclick="aceptarInvitacion('${enc.id}')" class="btn-aceptar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #4f46e5; color: white; cursor: pointer; font-weight: 500;">
-        Aceptar invitación
-      </button>
-      <button onclick="rechazarInvitacion('${enc.id}')" class="btn-rechazar" style="padding: 8px 16px; border-radius: 6px; border: none; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 500;">
-        Rechazar
-      </button>
-    </div>
-  `;
-
- // Badge según estado
-const badgeEstado = estado === 'aceptado' ? 
-  `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46; margin-left: 5px;">Aceptado</span>` :
-  estado === 'rechazado' ?
-  `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fee2e2; color: #991b1b; margin-left: 5px;">Rechazado</span>` :
-  `<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e; margin-left: 5px;">Invitación disponible</span>`;
-  return `
-  <div class="encuentro-card ${estado === 'aceptado' ? 'invitacion-aceptada' : estado === 'rechazado' ? 'invitacion-rechazada' : 'invitacion-pendiente'}" style="${borderStyle}">
-    <div class="encuentro-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-      
-      <!-- Fila superior: Título y badges -->
-      <div style="display: flex; justify-content: space-between; width: 100%; align-items: start; gap: 10px;">
-        <div style="flex: 1; min-width: 0;">
-          <div class="encuentro-titulo" style="font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.2;">
-            ${enc.nombre}
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-            ${badgeEstado}
-            ${enc.tipo ? enc.tipo.split(', ').map(t => `
-              <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #e0e7ff; color: #3730a3;">
-                ${t}
-              </span>
-            `).join('') : '<span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b;">Sin tipo</span>'}
-          </div>
-        </div>
-        
-        <!-- Cupo a la derecha -->
-        <div style="text-align: right; min-width: 80px; flex-shrink: 0;">
-          <div style="font-size: 1.5rem; font-weight: 800; color: #4f46e5;">
-            ${enc.equiposAceptados || 1}/${enc.cupoMaximo}
-          </div>
-          <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
-            ${enc.cupoMaximo} plazas
-          </div>
-        </div>
-      </div>
-
-      <!-- Organizador: ABAJO con recuadro destacado -->
-      <div style="width: 100%; margin-top: 8px;">
-        <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 2px solid #cbd5e1; border-radius: 12px; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-          <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-            Organiza
-          </span>
-          <span style="width: 1px; height: 16px; background: #cbd5e1;"></span>
-          <span style="font-size: 0.95rem; color: #1e293b; font-weight: 700;">
-            ${enc.creadorNombre || 'Equipo desconocido'}
-          </span>
-        </div>
-      </div>
-
-    </div>
-    
-    <div class="encuentro-meta" style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">
-      ${fechasHTML}
-      ${valores.length > 0 ? `<div style="margin-top: 5px;"><strong>💰 Valores:</strong><br>${valores.map(v => `• ${v.titulo}: $${parseFloat(v.precio).toLocaleString('es-AR')}${v.desc ? ` (${v.desc})` : ''}`).join('<br>')}</div>` : ''}
-    </div>
-
-    ${mapaHTML}
-
-    ${enc.descripcion ? `<p style="color: #64748b; margin-bottom: 15px; line-height: 1.5;">${enc.descripcion}</p>` : ''}
-
-    ${enc.flyerUrl ? `
-      <div style="margin-bottom: 15px;">
-        <img src="${enc.flyerUrl}" style="max-width: 300px; border-radius: 8px; object-fit: cover;" alt="Flyer">
-      </div>
-    ` : ''}
-
-    ${botonesHTML}
-  </div>
-`;
-    }
-async function aceptarInvitacion(encuentroId) {
-  const usuario = obtenerUsuarioActual();
-  
-  // Usar GET en lugar de POST (evita problemas de CORS)
-  const params = new URLSearchParams({
-    action: 'responderEncuentro',
-    encuentroId: encuentroId,
-    equipoId: usuario.equipoId,
-    estado: 'aceptado'
-  });
-  
-  const url = `${API_URL}?${params.toString()}`;
-  console.log('URL:', url);
-  
-  try {
-    const response = await fetch(url);
-    const result = await response.json();
-    console.log('Result:', result);
-    
-    if (result.success) {
-      mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
-      
-      // Crear asistencias para el plantel (silencioso, no afecta la invitación)
-      try {
-        await fetch(`${API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
-      } catch (err) {
-        console.error('Error creando asistencias:', err);
-        // No mostramos error al usuario porque la invitación ya se aceptó
-      }
-      
-      // Recargar lista de invitaciones
-      setTimeout(() => renderizarInvitaciones(), 300);
-      
-    } else {
-      mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
-    }
-  } catch (err) {
-    console.error('Error:', err);
-    mostrarMensajeEncuentros('Error de conexión', 'error');
-  }
-}
-
-async function rechazarInvitacion(encuentroId) {
-  if (!confirm('¿Seguro que querés rechazar esta invitación?')) return;
-  
-  const usuario = obtenerUsuarioActual();
-  
-  // 🔥 USAR GET en lugar de POST (igual que aceptarInvitacion)
-  const params = new URLSearchParams({
-    action: 'responderEncuentro',
-    encuentroId: encuentroId,
-    equipoId: usuario.equipoId,
-    estado: 'rechazado'
-  });
-  
-  const url = `${API_URL}?${params.toString()}`;
-  console.log('URL rechazar:', url);  // Para debuggear
-  
-  try {
-    const response = await fetch(url);  // ← GET, no POST
-    const result = await response.json();
-    
-    if (result.success) {
-      mostrarMensajeEncuentros('Invitación rechazada', 'info');
-      setTimeout(() => renderizarInvitaciones(), 300);
-    } else {
-      mostrarMensajeEncuentros(result.error || 'Error al rechazar', 'error');
-    }
-  } catch (err) {
-    console.error('Error:', err);
-    mostrarMensajeEncuentros('Error de conexión', 'error');
-  }
-}
-
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
-
-function obtenerUsuarioActual() {
-    const usuarioDefault = {
-        "id": "usr_123",
-        "nombre": "Admin",
-        "equipoId": "eq_tigres", 
-        "equipoNombre": "Tigres RC",
-        "rol": "admin"
-    };
-    
-    const stored = localStorage.getItem('arvet_user');  
-    return stored ? JSON.parse(stored) : usuarioDefault;
-}
-function formatearFecha(fechaStr) {
-    // Siempre trabajar con strings, nunca con Date objects
-    const partes = fechaStr.split('T')[0].split('-'); // Quitar la hora si existe
-    const año = partes[0];
-    const mes = parseInt(partes[1]);
-    const dia = parseInt(partes[2]);
-    
-    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-    
-    // Crear fecha solo para obtener el día de la semana (en UTC)
-    const fechaUTC = new Date(Date.UTC(parseInt(año), mes - 1, dia));
-    const nombreDia = dias[fechaUTC.getUTCDay()];
-    const nombreMes = meses[mes - 1];
-    
-    return `${nombreDia} ${dia} ${nombreMes}`;
-}
-
-function cargarEncuentros() {
-    renderizarMisEncuentros();
-}
-
-function cargarInvitaciones() {
-    renderizarInvitaciones();
 }
 
 function cerrarModalEncuentro() {
     const modal = document.getElementById('modalEncuentro');
-    if (modal) {
-        modal.remove();
+    if (modal) modal.remove();
+    if (mapaEncuentro) {
+        mapaEncuentro.remove();
+        mapaEncuentro = null;
     }
 }
+
 // ============================================
-// VER DETALLE CON LISTADO DE EQUIPOS
-// ============================================
-async function verDetalleEncuentro(encuentroId) {
-    // DIAGNÓSTICO: Ver si ya existe un modal
-    const modalExistente = document.getElementById('modalDetalleEncuentro');
-    if (modalExistente) {
-        console.log('⚠️ Ya existe un modal, eliminando primero');
-        modalExistente.remove();
-    }
-    try {
-        const [respEncuentro, respDetalle] = await Promise.all([
-            fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`).then(r => r.json()),
-            fetch(`${API_URL}?action=getDetalleEncuentroCompleto&encuentroId=${encuentroId}`).then(r => r.json())
-        ]);
-        
-        if (!respEncuentro.success) {
-            mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
-            return;
-        }
-        
-        const enc = respEncuentro.data;
-        const detalle = respDetalle.success ? respDetalle.data : { aceptados: [], rechazados: [], pendientes: [] };
-        
-        let fechas = [];
-        let valores = [];
-        try {
-            fechas = JSON.parse(enc.fechasJSON || '[]');
-            valores = JSON.parse(enc.valoresJSON || '[]');
-        } catch(e) {
-            console.error('Error parseando JSON:', e);
-        }
-        
-        const fechasHTML = fechas.map(f => {
-            const horariosHTML = f.horarios.map(h => `
-                <span style="display: inline-block; background: #f1f5f9; padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; margin-right: 5px; margin-bottom: 5px;">
-                    ${h.hora}hs - ${h.desc}
-                </span>
-            `).join('');
-            
-            return `
-                <div style="margin-bottom: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                    <strong style="color: #1e293b; font-size: 1.1rem;">📅 ${formatearFecha(f.dia)}</strong>
-                    <div style="margin-top: 8px;">
-                        ${horariosHTML}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        // Lista de aceptados (incluye al creador automáticamente)
-// Lista de aceptados (responsive)
-const listaAceptados = detalle.aceptados.length > 0 ? detalle.aceptados.map(eq => `
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 10px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'}; flex-wrap: wrap;">
-        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-        <div style="flex: 1; min-width: 200px;">
-            <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'}; font-size: 0.95rem; word-break: break-word;">
-                ${eq.nombre} ${eq.esCreador ? '👑' : ''}
-            </div>
-            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-        </div>
-        ${eq.telefonoContacto && !eq.esCreador ? `
-            <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" 
-               style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
-                WhatsApp
-            </a>
-        ` : ''}
-        <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
-            ${eq.esCreador ? '★ CREADOR' : '✓ Aceptado'}
-        </span>
-    </div>
-`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha aceptado aún</p>';
-
-// Lista de rechazados (responsive)
-const listaRechazados = detalle.rechazados.length > 0 ? detalle.rechazados.map(eq => `
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444; opacity: 0.9; flex-wrap: wrap;">
-        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-        <div style="flex: 1; min-width: 200px;">
-            <div style="font-weight: 600; color: #991b1b; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
-            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-        </div>
-        <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">✕ Rechazado</span>
-    </div>
-`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha rechazado</p>';
-
-// Lista de pendientes (responsive)
-const listaPendientes = detalle.pendientes.length > 0 ? detalle.pendientes.map(eq => `
-    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #f59e0b; flex-wrap: wrap;">
-        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-        <div style="flex: 1; min-width: 200px;">
-            <div style="font-weight: 600; color: #92400e; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
-            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-        </div>
-        <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">⏳ Pendiente</span>
-    </div>
-`).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">No hay equipos pendientes</p>';
-
-        // Obtener asistencias de jugadores
-        const usuario = obtenerUsuarioActual();
-const esCreador = enc.equipoCreadorId === usuario.equipoId;
-const esAdminDeEquipo = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
-
-
-let asistenciasHTML = '';
-
-if (esCreador) {
-  // CREADOR: Ver todos los jugadores de todos los equipos con datos completos
-  try {
-    const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
-    const asistenciasData = await respAsistencias.json();
-    
-    if (asistenciasData.success && asistenciasData.data && asistenciasData.data.length > 0) {
-      const totalJugadores = asistenciasData.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
-      const totalVoy = asistenciasData.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
-      
-      asistenciasHTML = `
-        <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span>📋</span> Confirmación de jugadores
-            <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">
-              (${totalVoy} van de ${totalJugadores} jugadores)
-            </span>
-            <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
-              style="margin-left: auto; padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
-              📥 Descargar listado completo
-            </button>
-          </h3>
-          
-          ${asistenciasData.data.map(eq => {
-            const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
-            const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
-            const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
-            
-            return `
-              <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9;">
-                  <h4 style="margin: 0; color: #1e293b; font-size: 1.1rem;">${eq.equipoNombre}</h4>
-                  <div style="display: flex; gap: 15px; font-size: 0.9rem;">
-                    <span style="color: #16a34a; font-weight: 600; background: #dcfce7; padding: 4px 12px; border-radius: 20px;">✓ ${voy.length} VOY</span>
-                    <span style="color: #dc2626; font-weight: 600; background: #fee2e2; padding: 4px 12px; border-radius: 20px;">✕ ${noVoy.length} NO VOY</span>
-                    <span style="color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">⏳ ${pendiente.length} pendientes</span>
-                  </div>
-                </div>
-                
-                ${eq.jugadores.length > 0 ? `
-                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
-                    ${eq.jugadores.map(j => `
-                      <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 8px; border-left: 3px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
-                        <div style="flex: 1;">
-                          <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
-                          <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
-                            ${j.respuesta === 'voy' ? '✓ Va' : j.respuesta === 'no_voy' ? '✕ No va' : '⏳ Pendiente'}
-                          </div>
-                        </div>
-                      </div>
-                    `).join('')}
-                  </div>
-                ` : '<p style="color: #64748b; font-style: italic;">Sin jugadores confirmados</p>'}
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-  } catch (err) {
-    console.error('Error cargando asistencias completas:', err);
-  }
-} else {
- // EQUIPO ACEPTADO: Ver y editar solo sus jugadores
-
-  try {
-    const respAsistencias = await fetch(`${API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
-    const asistenciasData = await respAsistencias.json();
-    
-    if (asistenciasData.success && asistenciasData.data && asistenciasData.data.length > 0) {
-      const voy = asistenciasData.data.filter(j => j.respuesta === 'voy');
-      const noVoy = asistenciasData.data.filter(j => j.respuesta === 'no_voy');
-      const pendientes = asistenciasData.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
-      
-      const puedeEditar = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
-      
-      asistenciasHTML = `
-        <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-          <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: clamp(1rem, 4vw, 1.25rem);">
-            <span>📋</span> Mi equipo - Confirmaciones
-            <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; white-space: nowrap;">
-              ${voy.length} van · ${noVoy.length} no van · ${pendientes.length} pendientes
-            </span>
-            ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.75rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">Podés editar</span>` : ''}
-          </h3>
-          
-          <div style="background: white; border-radius: 12px; padding: 15px; border: 2px solid #e2e8f0;">
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              ${asistenciasData.data.map(j => `
-                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'}; flex-wrap: wrap;">
-                  
-                  <!-- Info del jugador -->
-                  <div style="flex: 1; min-width: 150px;">
-                    <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; word-break: break-word;">${j.nombreCompleto}</div>
-                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
-                      ${j.dni ? `<span>DNI: ${j.dni}</span>` : ''}
-                      ${j.telefono ? `<span>· Tel: ${j.telefono}</span>` : ''}
-                    </div>
-                    <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                      ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
-                    </div>
-                  </div>
-                  
-                  <!-- Botones de acción (solo admin/capitán/manager) -->
-                  ${puedeEditar ? `
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" 
-                        style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">
-                        ✓ VOY
-                      </button>
-                      <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" 
-                        style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">
-                        ✕ NO
-                      </button>
-                    </div>
-                  ` : ''}
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-  } catch (err) {
-    console.error('Error cargando asistencias del equipo:', err);
-  }
-}
-
-        const modal = document.createElement('div');
-    modal.className = 'modal-overlay active';
-    modal.id = 'modalDetalleEncuentro';
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 10px; box-sizing: border-box;';
-    
-    modal.innerHTML = `
-        <div class="modal-content" style="width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; background: white; border-radius: 16px; position: relative;">
-            
-            <!-- Header sticky -->
-            <div class="modal-header" style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
-                <button class="btn-cerrar" onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
-            </div>
-            
-            <div style="padding: 20px;">
-                
-                ${enc.flyerUrl ? `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <img src="${enc.flyerUrl}" style="max-width: 100%; max-height: 250px; border-radius: 12px; object-fit: contain;" alt="Flyer">
-                    </div>
-                ` : ''}
-                
-                <!-- Grid responsive: 1 columna en móvil, 2 en desktop -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px; word-break: break-word;">
-                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">📍 Ubicación</h4>
-                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 0.95rem; line-height: 1.4;">${enc.lugar || 'No especificada'}</p>
-                        ${enc.lat && enc.lng ? `
-                            <a href="https://www.google.com/maps?q=${enc.lat},${enc.lng}" target="_blank" style="color: #4f46e5; font-size: 0.9rem; display: inline-block; margin-top: 8px; word-break: break-all;">Ver en mapa →</a>
-                        ` : ''}
-                    </div>
-                    
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 12px;">
-                        <h4 style="margin: 0 0 8px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">👥 Cupo</h4>
-                        <p style="margin: 0; color: #1e293b; font-weight: 500; font-size: 1.3rem;">
-                            ${detalle.cantidadAceptados || 0}/${enc.cupoMaximo}
-                        </p>
-                        <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;">
-                            ${(enc.cupoMaximo - (detalle.cantidadAceptados || 0))} plazas disponibles
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Fechas con scroll horizontal si es necesario -->
-                <div style="margin-bottom: 20px;">
-                    <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📅 Fechas y horarios</h4>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        ${fechasHTML}
-                    </div>
-                </div>
-
-                ${valores.length > 0 ? `
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">💰 Valores</h4>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            ${valores.map(v => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f0fdf4; border-radius: 10px; flex-wrap: wrap; gap: 8px;">
-                                    <div style="flex: 1; min-width: 200px;">
-                                        <span style="font-weight: 600; color: #166534;">${v.titulo}</span>
-                                        ${v.desc ? `<span style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 2px;">${v.desc}</span>` : ''}
-                                    </div>
-                                    <span style="font-weight: 700; color: #166534; font-size: 1.1rem; white-space: nowrap;">
-                                        $${parseFloat(v.precio).toLocaleString('es-AR')}
-                                    </span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${enc.descripcion ? `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px;">
-                        <h4 style="color: #64748b; font-size: 0.85rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">📝 Descripción</h4>
-                        <p style="margin: 0; color: #1e293b; line-height: 1.6; font-size: 0.95rem; word-break: break-word;">${enc.descripcion}</p>
-                    </div>
-                ` : ''}
-
-                <!-- Listas de equipos con cards horizontales en móvil -->
-                <div style="margin-top: 25px;">
-                    <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span>👥</span> Equipos invitados
-                        <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 4px 10px; border-radius: 20px;">
-                            ${detalle.totalEquipos || 0} equipos
-                        </span>
-                    </h3>
-                    
-                    <!-- Aceptados -->
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #166534; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                            Aceptados (${detalle.cantidadAceptados || 0})
-                        </h4>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            ${listaAceptados}
-                        </div>
-                    </div>
-
-                    <!-- Rechazados -->
-                    ${detalle.rechazados.length > 0 ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #991b1b; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                                Rechazados (${detalle.cantidadRechazados || 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                ${listaRechazados}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    <!-- Pendientes -->
-                    ${detalle.pendientes.length > 0 ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #92400e; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
-                                Pendientes (${detalle.cantidadPendientes || 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                ${listaPendientes}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                ${asistenciasHTML}
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-        
-    } catch (err) {
-        console.error('Error cargando detalle:', err);
-        mostrarMensajeEncuentros('Error al cargar detalle del encuentro', 'error');
-    }
-}
-function descargarAsistenciasCSV(encuentroId) {
-    fetch(`${API_URL}?action=getAsistenciasEncuentro&encuentroId=${encuentroId}`)
-        .then(r => r.json())
-        .then(result => {
-            if (!result.success) return;
-            
-            let csv = 'Equipo,Jugador,Respuesta,Fecha\n';
-            result.data.forEach(eq => {
-                eq.jugadores.forEach(j => {
-                    csv += `"${eq.equipoNombre}","${j.jugadorNombre}","${j.respuesta || 'pendiente'}","${j.fechaRespuesta || ''}"\n`;
-                });
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `asistencias_${encuentroId}.csv`;
-            link.click();
-        });
-}
-// ============================================
-// EDITAR ENCUENTRO
+// PARTE 4: EDITAR, CANCELAR, COMPARTIR Y FUNCIONES RESTANTES
 // ============================================
 
+// ============================================
+// EDITAR ENCUENTRO (COMPLETO)
+// ============================================
 async function editarEncuentro(encuentroId) {
+    LoadingManager.show('editar', 'Cargando datos del encuentro...');
+    
     try {
-        const response = await fetch(`${API_URL}?action=getEncuentroById&id=${encuentroId}`);
-        const result = await response.json();
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentroById&id=${encuentroId}`);
         
         if (!result.success) {
             mostrarMensajeEncuentros('Encuentro no encontrado', 'error');
@@ -1625,7 +1727,7 @@ async function editarEncuentro(encuentroId) {
         const usuario = obtenerUsuarioActual();
         
         // Verificar que sea el creador
-        const encCheck = await fetch(`${API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`).then(r => r.json());
+        const encCheck = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`);
         const esCreador = encCheck.data && encCheck.data.some(e => e.id === encuentroId);
         
         if (!esCreador) {
@@ -1633,17 +1735,12 @@ async function editarEncuentro(encuentroId) {
             return;
         }
 
-        // Parsear JSONs
-        let fechas = [];
-        let valores = [];
+        let fechas = [], valores = [];
         try {
             fechas = JSON.parse(enc.fechasJSON || '[]');
             valores = JSON.parse(enc.valoresJSON || '[]');
-        } catch(e) {
-            console.error('Error parseando JSON:', e);
-        }
+        } catch(e) { console.error('Error parseando JSON:', e); }
 
-        // Parsear tipos (viene como string "Veteranos +35, Otro tipo")
         const tiposArray = enc.tipo ? enc.tipo.split(', ').map(t => t.trim()) : [];
         const tiposPredefinidos = ['Veteranos +35', 'Veteranos +50'];
         const tiposSeleccionados = tiposArray.filter(t => tiposPredefinidos.includes(t));
@@ -1652,37 +1749,33 @@ async function editarEncuentro(encuentroId) {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay active';
         modal.id = 'modalEditarEncuentro';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box;';
         
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-                <div class="modal-header">
-                    <h2>Editar Encuentro</h2>
-                    <button class="btn-cerrar" onclick="document.getElementById('modalEditarEncuentro').remove()">×</button>
+            <div style="background: white; border-radius: 20px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 30px; position: relative; animation: slideUpMsg 0.3s ease;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: sticky; top: 0; background: white; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; z-index: 10;">
+                    <h2 style="margin: 0; color: #1e293b; font-size: 1.5rem;">Editar Encuentro</h2>
+                    <button onclick="document.getElementById('modalEditarEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 24px; color: #64748b; display: flex; align-items: center; justify-content: center;">×</button>
                 </div>
                 
                 <form id="formEditarEncuentro" onsubmit="guardarEdicionEncuentro(event, '${encuentroId}')">
-                    
-                    <div class="form-group">
-                        <label>Flyer del encuentro</label>
-                        <div id="editFlyerPreview" style="width: 100%; height: 200px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Flyer del encuentro</label>
+                        <div id="editFlyerPreview" style="width: 100%; height: 200px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; border: 2px dashed #cbd5e1;">
                             ${enc.flyerUrl ? `<img src="${enc.flyerUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '<span style="color: #94a3b8;">Sin flyer</span>'}
                         </div>
                         <input type="file" id="editInputFlyer" accept="image/*" style="display: none;">
                         <input type="hidden" id="editFlyerUrl" value="${enc.flyerUrl || ''}">
-                        <button type="button" onclick="document.getElementById('editInputFlyer').click()" class="btn-secondary" style="width: 100%;">
-                            📤 Cambiar flyer
-                        </button>
+                        <button type="button" onclick="document.getElementById('editInputFlyer').click()" style="width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">📤 Cambiar flyer</button>
                     </div>
 
-                    <div class="form-group">
-                        <label>Nombre del encuentro *</label>
-                        <input type="text" id="editNombre" required value="${enc.nombre || ''}">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Nombre del encuentro *</label>
+                        <input type="text" id="editNombre" required value="${enc.nombre || ''}" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; box-sizing: border-box;">
                     </div>
 
-                    <!-- TIPO DE ENCUENTRO - MÚLTIPLE SELECCIÓN -->
-                    <div class="form-group">
-                        <label>Tipo de encuentro * (podés elegir varios)</label>
-                        
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Tipo de encuentro * (podés elegir varios)</label>
                         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                 <input type="checkbox" name="editTipo" value="Veteranos +35" ${tiposSeleccionados.includes('Veteranos +35') ? 'checked' : ''} style="width: 18px; height: 18px;">
@@ -1697,106 +1790,84 @@ async function editarEncuentro(encuentroId) {
                                 <span>Otro (agregar personalizados)</span>
                             </label>
                         </div>
-                        
                         <div id="editContainerOtrosTipos" style="display: ${tiposPersonalizados.length > 0 ? 'flex' : 'none'}; flex-direction: column; gap: 10px; margin-left: 26px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0;">
                             <div style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Tipos personalizados:</div>
                             ${tiposPersonalizados.map((tipo, index) => `
                                 <div style="display: flex; gap: 10px; align-items: center;">
-                                    <input type="text" class="editOtro-tipo-input" value="${tipo}" placeholder="Tipo personalizado ${index + 1}" style="flex: 1;">
-                                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">✕</button>
+                                    <input type="text" class="editOtro-tipo-input" value="${tipo}" placeholder="Tipo personalizado ${index + 1}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+                                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; padding: 5px;">×</button>
                                 </div>
                             `).join('')}
                         </div>
-                        
-                        <button type="button" onclick="agregarEditOtroTipo()" class="btn-secondary" style="width: 100%; margin-top: 10px; display: ${tiposPersonalizados.length > 0 ? 'block' : 'none'};" id="editBtnAgregarOtroTipo">
-                            + Agregar otro tipo personalizado
-                        </button>
+                        <button type="button" onclick="agregarEditOtroTipo()" style="display: ${tiposPersonalizados.length > 0 ? 'block' : 'none'}; width: 100%; margin-top: 10px; padding: 10px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem;" id="editBtnAgregarOtroTipo">+ Agregar otro tipo personalizado</button>
                     </div>
 
-                    <!-- UBICACIÓN CON MAPA -->
-                    <div class="form-group">
-                        <label>Ubicación del encuentro *</label>
-                        <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">
-                            📍 Arrastrá el pin rojo para marcar exactamente dónde se juega
-                        </p>
-                        
-                        <div id="editMapaEncuentro" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0;"></div>
-                        
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Ubicación del encuentro *</label>
+                        <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">📍 Arrastrá el pin rojo para marcar exactamente dónde se juega</p>
+                        <div id="editMapaEncuentro" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; background: #f1f5f9;"></div>
                         <input type="hidden" id="editLat" value="${enc.lat || ''}">
                         <input type="hidden" id="editLng" value="${enc.lng || ''}">
                         <input type="hidden" id="editPaisId" value="${enc.paisId || ''}">
                         <input type="hidden" id="editProvinciaId" value="${enc.provinciaId || ''}">
                         <input type="hidden" id="editCiudadId" value="${enc.ciudadId || ''}">
-                        
-                        <label style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Dirección completa *</label>
-                        <input type="text" id="editDireccion" required value="${enc.lugar || ''}" style="margin-bottom: 10px;">
+                        <label style="font-size: 12px; color: #64748b; margin-bottom: 5px; display: block;">Dirección completa *</label>
+                        <input type="text" id="editDireccion" required value="${enc.lugar || ''}" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box;">
                     </div>
 
-                    <div class="form-group">
-                        <label>Cupo máximo de equipos *</label>
-                        <input type="number" id="editCupo" min="2" max="50" required value="${enc.cupoMaximo || 8}">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Cupo máximo de equipos *</label>
+                        <input type="number" id="editCupo" min="2" max="50" required value="${enc.cupoMaximo || 8}" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; box-sizing: border-box;">
                     </div>
 
-                    <!-- FECHAS DINÁMICAS -->
-                    <div class="form-group">
-                        <label>Fechas y horarios *</label>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Fechas y horarios *</label>
                         <div id="editContainerFechas" style="display: flex; flex-direction: column; gap: 15px;">
-                            ${fechas.length > 0 ? fechas.map((f, diaIndex) => `
+                            ${fechas.length > 0 ? fechas.map((f, idx) => `
                                 <div class="edit-dia-item" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0;">
                                     <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                                        <input type="date" class="edit-dia-fecha" required value="${f.dia}" style="flex: 1;">
-                                        <button type="button" onclick="this.closest('.edit-dia-item').remove()" class="btn-rechazar" style="padding: 8px 12px; font-size: 12px;">✕</button>
+                                        <input type="date" class="edit-dia-fecha" required value="${f.dia}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+                                        <button type="button" onclick="this.closest('.edit-dia-item').remove()" style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
                                     </div>
                                     <div class="edit-horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;">
-                                        ${f.horarios && f.horarios.length > 0 ? f.horarios.map(h => `
+                                        ${f.horarios?.map(h => `
                                             <div style="display: flex; gap: 8px; align-items: center;">
-                                                <input type="time" class="edit-horario-hora" required value="${h.hora}" style="width: 100px;">
-                                                <input type="text" class="edit-horario-desc" placeholder="Descripción" required value="${h.desc}" style="flex: 1;">
-                                                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">✕</button>
+                                                <input type="time" class="edit-horario-hora" required value="${h.hora}" style="width: 100px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                                                <input type="text" class="edit-horario-desc" placeholder="Descripción" required value="${h.desc}" style="flex: 1; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                                                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 5px;">×</button>
                                             </div>
-                                        `).join('') : ''}
+                                        `).join('') || ''}
                                     </div>
-                                    <button type="button" onclick="agregarEditHorario(this)" class="btn-secondary" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px;">
-                                        + Agregar horario
-                                    </button>
+                                    <button type="button" onclick="agregarEditHorario(this)" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer;">+ Agregar horario</button>
                                 </div>
                             `).join('') : ''}
                         </div>
-                        <button type="button" onclick="agregarEditDia()" class="btn-secondary" style="margin-top: 15px; width: 100%;">
-                            + Agregar día
-                        </button>
+                        <button type="button" onclick="agregarEditDia()" style="margin-top: 15px; width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">+ Agregar día</button>
                     </div>
 
-                    <!-- VALORES DINÁMICOS -->
-                    <div class="form-group">
-                        <label>Valores / Opciones de inscripción *</label>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Valores / Opciones de inscripción *</label>
                         <div id="editContainerValores" style="display: flex; flex-direction: column; gap: 10px;">
                             ${valores.length > 0 ? valores.map(v => `
                                 <div style="display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0;">
-                                    <input type="text" class="edit-valor-titulo" placeholder="Título" required value="${v.titulo}" style="flex: 1;">
-                                    <input type="number" class="edit-valor-precio" placeholder="$" min="0" required value="${v.precio}" style="width: 100px;">
-                                    <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" value="${v.desc || ''}" style="flex: 2;">
-                                    <button type="button" onclick="this.parentElement.remove()" class="btn-rechazar" style="padding: 6px 10px; font-size: 12px;">✕</button>
+                                    <input type="text" class="edit-valor-titulo" placeholder="Título" required value="${v.titulo}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+                                    <input type="number" class="edit-valor-precio" placeholder="$" min="0" required value="${v.precio}" style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+                                    <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" value="${v.desc || ''}" style="flex: 2; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+                                    <button type="button" onclick="this.parentElement.remove()" style="padding: 6px 10px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
                                 </div>
                             `).join('') : ''}
                         </div>
-                        <button type="button" onclick="agregarEditValor()" class="btn-secondary" style="margin-top: 15px; width: 100%;">
-                            + Agregar opción de valor
-                        </button>
+                        <button type="button" onclick="agregarEditValor()" style="margin-top: 15px; width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">+ Agregar opción de valor</button>
                     </div>
 
-                    <div class="form-group">
-                        <label>Descripción general</label>
-                        <textarea id="editDescripcion" rows="3">${enc.descripcion || ''}</textarea>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Descripción general</label>
+                        <textarea id="editDescripcion" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; resize: vertical; box-sizing: border-box;">${enc.descripcion || ''}</textarea>
                     </div>
 
                     <div style="display: flex; gap: 15px; margin-top: 25px;">
-                        <button type="button" onclick="document.getElementById('modalEditarEncuentro').remove()" class="btn-secondary" style="flex: 1;">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-primary" style="flex: 2;" id="btnGuardarEdicion">
-                            Guardar cambios
-                        </button>
+                        <button type="button" onclick="document.getElementById('modalEditarEncuentro').remove()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem;">Cancelar</button>
+                        <button type="submit" style="flex: 2; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem;" id="btnGuardarEdicion">Guardar cambios</button>
                     </div>
                 </form>
             </div>
@@ -1821,11 +1892,11 @@ async function editarEncuentro(encuentroId) {
             const formData = new FormData();
             formData.append('image', file);
             
+            const btn = document.getElementById('btnGuardarEdicion');
+            btn.disabled = true;
+            btn.textContent = 'Subiendo...';
+            
             try {
-                const btn = document.getElementById('btnGuardarEdicion');
-                btn.disabled = true;
-                btn.textContent = 'Subiendo...';
-                
                 const response = await fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
                     method: 'POST',
                     body: formData
@@ -1839,7 +1910,6 @@ async function editarEncuentro(encuentroId) {
             } catch (err) {
                 mostrarMensajeEncuentros('Error al subir flyer', 'error');
             } finally {
-                const btn = document.getElementById('btnGuardarEdicion');
                 btn.disabled = false;
                 btn.textContent = 'Guardar cambios';
             }
@@ -1848,115 +1918,13 @@ async function editarEncuentro(encuentroId) {
     } catch (err) {
         console.error('Error:', err);
         mostrarMensajeEncuentros('Error al cargar encuentro', 'error');
+    } finally {
+        LoadingManager.hide('editar');
     }
 }
 
-async function guardarEdicionEncuentro(e, encuentroId) {
-    e.preventDefault();
-    
-    // Validar ubicación
-    const lat = document.getElementById('editLat')?.value;
-    const lng = document.getElementById('editLng')?.value;
-    
-    if (!lat || !lng) {
-        mostrarMensajeEncuentros('⚠️ Por favor marcá la ubicación en el mapa', 'error');
-        return;
-    }
-    
-    // Recolectar tipos
-    const tiposSeleccionados = [];
-    document.querySelectorAll('input[name="editTipo"]:checked').forEach(cb => {
-        tiposSeleccionados.push(cb.value);
-    });
-    document.querySelectorAll('.editOtro-tipo-input').forEach(input => {
-        if (input.value.trim()) tiposSeleccionados.push(input.value.trim());
-    });
-    
-    if (tiposSeleccionados.length === 0) {
-        mostrarMensajeEncuentros('Debes seleccionar al menos un tipo de encuentro', 'error');
-        return;
-    }
-    
-    // Recolectar fechas
-    const fechas = [];
-    document.querySelectorAll('.edit-dia-item').forEach(dia => {
-        const fechaInput = dia.querySelector('.edit-dia-fecha');
-        if (!fechaInput?.value) return;
-        
-        const horarios = [];
-        dia.querySelectorAll('.edit-horarios-container > div').forEach(h => {
-            const hora = h.querySelector('.edit-horario-hora')?.value;
-            const desc = h.querySelector('.edit-horario-desc')?.value;
-            if (hora && desc) horarios.push({ hora, desc });
-        });
-        
-        // Cambiar ESTO:
-fechas.push({
-    dia: fechaInput.value,  // ← Solo la fecha, sin hora
-    horarios: horarios
-});
-    });
-    
-    if (fechas.length === 0) {
-        mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
-        return;
-    }
-    
-    // Recolectar valores
-    const valores = [];
-    document.querySelectorAll('#editContainerValores > div').forEach(v => {
-        const titulo = v.querySelector('.edit-valor-titulo')?.value;
-        const precio = v.querySelector('.edit-valor-precio')?.value;
-        const desc = v.querySelector('.edit-valor-desc')?.value || '';
-        if (titulo && precio) valores.push({ titulo, precio: parseFloat(precio), desc });
-    });
-    
-    if (valores.length === 0) {
-        mostrarMensajeEncuentros('Debes agregar al menos una opción de valor', 'error');
-        return;
-    }
-    
-    const usuario = obtenerUsuarioActual();
-    
-    // ENVIAR POR GET (codificando los JSON)
-    const params = new URLSearchParams({
-        action: 'actualizarEncuentro',
-        id: encuentroId,
-        equipoId: usuario.equipoId,
-        nombre: document.getElementById('editNombre')?.value || '',
-        flyerUrl: document.getElementById('editFlyerUrl')?.value || '',
-        fechasJSON: encodeURIComponent(JSON.stringify(fechas)),
-        valoresJSON: encodeURIComponent(JSON.stringify(valores)),
-        cupoMaximo: document.getElementById('editCupo')?.value || 8,
-        lugar: document.getElementById('editDireccion')?.value || '',
-        lat: lat,
-        lng: lng,
-        paisId: document.getElementById('editPaisId')?.value || '',
-        provinciaId: document.getElementById('editProvinciaId')?.value || '',
-        ciudadId: document.getElementById('editCiudadId')?.value || '',
-        tipo: tiposSeleccionados.join(', '),
-        descripcion: document.getElementById('editDescripcion')?.value || ''
-    });
-    
-    try {
-        const url = `${API_URL}?${params.toString()}`;
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success) {
-            document.getElementById('modalEditarEncuentro')?.remove();
-            mostrarMensajeEncuentros('Encuentro actualizado correctamente', 'success');
-            renderizarMisEncuentros();
-        } else {
-            mostrarMensajeEncuentros(result.error || 'Error al actualizar', 'error');
-        }
-    } catch (err) {
-        console.error('Error:', err);
-        mostrarMensajeEncuentros('Error de conexión', 'error');
-    }
-}
 // ============================================
-// FUNCIONES AUXILIARES EDITAR
+// FUNCIONES AUXILIARES EDICIÓN
 // ============================================
 function toggleEditOtrosTipos() {
     const chkOtro = document.getElementById('editChkOtro');
@@ -1966,9 +1934,7 @@ function toggleEditOtrosTipos() {
     if (chkOtro.checked) {
         container.style.display = 'flex';
         btnAgregar.style.display = 'block';
-        if (container.children.length <= 1) {
-            agregarEditOtroTipo();
-        }
+        if (container.children.length <= 1) agregarEditOtroTipo();
     } else {
         container.style.display = 'none';
         btnAgregar.style.display = 'none';
@@ -1983,24 +1949,26 @@ function agregarEditOtroTipo() {
     const div = document.createElement('div');
     div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
     div.innerHTML = `
-        <input type="text" class="editOtro-tipo-input" placeholder="Especificar tipo ${index}" style="flex: 1;">
-        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">✕</button>
+        <input type="text" class="editOtro-tipo-input" placeholder="Especificar tipo ${index}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; padding: 5px;">×</button>
     `;
     
     container.appendChild(div);
 }
 
+let editMapaEncuentro, editMarkerEncuentro;
+
 function initEditMapaEncuentro(latExistente, lngExistente) {
     const lat = parseFloat(latExistente) || -34.6037;
     const lng = parseFloat(lngExistente) || -58.3816;
     
-    const mapa = L.map('editMapaEncuentro').setView([lat, lng], 13);
+    editMapaEncuentro = L.map('editMapaEncuentro').setView([lat, lng], 13);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
-    }).addTo(mapa);
+    }).addTo(editMapaEncuentro);
     
-    const marker = L.marker([lat, lng], {
+    editMarkerEncuentro = L.marker([lat, lng], {
         draggable: true,
         icon: L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -2008,15 +1976,15 @@ function initEditMapaEncuentro(latExistente, lngExistente) {
             iconAnchor: [12, 41],
             popupAnchor: [1, -34]
         })
-    }).addTo(mapa);
+    }).addTo(editMapaEncuentro);
     
-    marker.on('dragend', async function() {
-        const pos = marker.getLatLng();
+    editMarkerEncuentro.on('dragend', async function() {
+        const pos = editMarkerEncuentro.getLatLng();
         await actualizarEditUbicacion(pos.lat, pos.lng);
     });
     
-    mapa.on('click', async function(e) {
-        marker.setLatLng(e.latlng);
+    editMapaEncuentro.on('click', async function(e) {
+        editMarkerEncuentro.setLatLng(e.latlng);
         await actualizarEditUbicacion(e.latlng.lat, e.latlng.lng);
     });
 }
@@ -2057,14 +2025,11 @@ function agregarEditDia() {
     diaDiv.style.cssText = 'background: #f8fafc; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0;';
     diaDiv.innerHTML = `
         <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-            <input type="date" class="edit-dia-fecha" required style="flex: 1;">
-            <button type="button" onclick="this.closest('.edit-dia-item').remove()" class="btn-rechazar" style="padding: 8px 12px; font-size: 12px;">✕</button>
+            <input type="date" class="edit-dia-fecha" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+            <button type="button" onclick="this.closest('.edit-dia-item').remove()" style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
         </div>
-        <div class="edit-horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;">
-        </div>
-        <button type="button" onclick="agregarEditHorario(this)" class="btn-secondary" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px;">
-            + Agregar horario
-        </button>
+        <div class="edit-horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;"></div>
+        <button type="button" onclick="agregarEditHorario(this)" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer;">+ Agregar horario</button>
     `;
     
     container.appendChild(diaDiv);
@@ -2077,9 +2042,9 @@ function agregarEditHorario(btn) {
     const horarioDiv = document.createElement('div');
     horarioDiv.style.cssText = 'display: flex; gap: 8px; align-items: center;';
     horarioDiv.innerHTML = `
-        <input type="time" class="edit-horario-hora" required style="width: 100px;">
-        <input type="text" class="edit-horario-desc" placeholder="Descripción (ej: Acreditación)" required style="flex: 1;">
-        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;">✕</button>
+        <input type="time" class="edit-horario-hora" required style="width: 100px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+        <input type="text" class="edit-horario-desc" placeholder="Descripción (ej: Acreditación)" required style="flex: 1; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 5px;">×</button>
     `;
     
     horariosContainer.appendChild(horarioDiv);
@@ -2091,52 +2056,152 @@ function agregarEditValor() {
     const valorDiv = document.createElement('div');
     valorDiv.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0;';
     valorDiv.innerHTML = `
-        <input type="text" class="edit-valor-titulo" placeholder="Título (ej: Completo)" required style="flex: 1;">
-        <input type="number" class="edit-valor-precio" placeholder="$" min="0" required style="width: 100px;">
-        <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" style="flex: 2;">
-        <button type="button" onclick="this.parentElement.remove()" class="btn-rechazar" style="padding: 6px 10px; font-size: 12px;">✕</button>
+        <input type="text" class="edit-valor-titulo" placeholder="Título (ej: Completo)" required style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <input type="number" class="edit-valor-precio" placeholder="$" min="0" required style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" style="flex: 2; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
+        <button type="button" onclick="this.parentElement.remove()" style="padding: 6px 10px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
     `;
     
     container.appendChild(valorDiv);
 }
+
+async function guardarEdicionEncuentro(e, encuentroId) {
+    e.preventDefault();
+    
+    const lat = document.getElementById('editLat')?.value;
+    const lng = document.getElementById('editLng')?.value;
+    
+    if (!lat || !lng) {
+        mostrarMensajeEncuentros('⚠️ Por favor marcá la ubicación en el mapa', 'error');
+        return;
+    }
+    
+    const tiposSeleccionados = [];
+    document.querySelectorAll('input[name="editTipo"]:checked').forEach(cb => {
+        tiposSeleccionados.push(cb.value);
+    });
+    document.querySelectorAll('.editOtro-tipo-input').forEach(input => {
+        if (input.value.trim()) tiposSeleccionados.push(input.value.trim());
+    });
+    
+    if (tiposSeleccionados.length === 0) {
+        mostrarMensajeEncuentros('Debes seleccionar al menos un tipo de encuentro', 'error');
+        return;
+    }
+    
+    const fechas = [];
+    document.querySelectorAll('.edit-dia-item').forEach(dia => {
+        const fechaInput = dia.querySelector('.edit-dia-fecha');
+        if (!fechaInput?.value) return;
+        
+        const horarios = [];
+        dia.querySelectorAll('.edit-horarios-container > div').forEach(h => {
+            const hora = h.querySelector('.edit-horario-hora')?.value;
+            const desc = h.querySelector('.edit-horario-desc')?.value;
+            if (hora && desc) horarios.push({ hora, desc });
+        });
+        
+        fechas.push({ dia: fechaInput.value, horarios });
+    });
+    
+    if (fechas.length === 0) {
+        mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
+        return;
+    }
+    
+    const valores = [];
+    document.querySelectorAll('#editContainerValores > div').forEach(v => {
+        const titulo = v.querySelector('.edit-valor-titulo')?.value;
+        const precio = v.querySelector('.edit-valor-precio')?.value;
+        const desc = v.querySelector('.edit-valor-desc')?.value || '';
+        if (titulo && precio) valores.push({ titulo, precio: parseFloat(precio), desc });
+    });
+    
+    if (valores.length === 0) {
+        mostrarMensajeEncuentros('Debes agregar al menos una opción de valor', 'error');
+        return;
+    }
+    
+    LoadingManager.show('guardar-edicion', 'Guardando cambios...');
+    
+    const usuario = obtenerUsuarioActual();
+    const params = new URLSearchParams({
+        action: 'actualizarEncuentro',
+        id: encuentroId,
+        equipoId: usuario.equipoId,
+        nombre: document.getElementById('editNombre')?.value || '',
+        flyerUrl: document.getElementById('editFlyerUrl')?.value || '',
+        fechasJSON: encodeURIComponent(JSON.stringify(fechas)),
+        valoresJSON: encodeURIComponent(JSON.stringify(valores)),
+        cupoMaximo: document.getElementById('editCupo')?.value || 8,
+        lugar: document.getElementById('editDireccion')?.value || '',
+        lat: lat,
+        lng: lng,
+        paisId: document.getElementById('editPaisId')?.value || '',
+        provinciaId: document.getElementById('editProvinciaId')?.value || '',
+        ciudadId: document.getElementById('editCiudadId')?.value || '',
+        tipo: tiposSeleccionados.join(', '),
+        descripcion: document.getElementById('editDescripcion')?.value || ''
+    });
+    
+    try {
+        const url = `${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`;
+        const result = await fetchWithRetry(url);
+        
+        if (result.success) {
+            document.getElementById('modalEditarEncuentro')?.remove();
+            mostrarMensajeEncuentros('Encuentro actualizado correctamente', 'success');
+            CacheManager.invalidate(`encuentros-${usuario.equipoId}`);
+            renderizarMisEncuentros();
+        } else {
+            throw new Error(result.error || 'Error al actualizar');
+        }
+    } catch (err) {
+        mostrarMensajeEncuentros(err.message || 'Error al actualizar', 'error');
+    } finally {
+        LoadingManager.hide('guardar-edicion');
+    }
+}
+
 // ============================================
 // CANCELAR ENCUENTRO
 // ============================================
-
 async function cancelarEncuentro(encuentroId) {
     if (!confirm('¿Seguro que querés cancelar este encuentro?\n\nEl encuentro seguirá visible pero marcado como cancelado.')) {
         return;
     }
     
-    const usuario = obtenerUsuarioActual();
+    LoadingManager.show('cancelar', 'Cancelando encuentro...');
     
-    // Usar GET en lugar de POST
+    const usuario = obtenerUsuarioActual();
     const params = new URLSearchParams({
         action: 'cancelarEncuentro',
         encuentroId: encuentroId,
         equipoId: usuario.equipoId
     });
     
-    const url = `${API_URL}?${params.toString()}`;
-    
     try {
-        const response = await fetch(url);
-        const result = await response.json();
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
         
         if (result.success) {
             mostrarMensajeEncuentros('Encuentro cancelado', 'success');
+            CacheManager.invalidate(`encuentros-${usuario.equipoId}`);
             renderizarMisEncuentros();
         } else {
-            mostrarMensajeEncuentros(result.error || 'Error al cancelar', 'error');
+            throw new Error(result.error || 'Error al cancelar');
         }
     } catch (err) {
-        console.error('Error:', err);
-        mostrarMensajeEncuentros('Error de conexión', 'error');
+        mostrarMensajeEncuentros(err.message || 'Error al cancelar', 'error');
+    } finally {
+        LoadingManager.hide('cancelar');
     }
 }
+
+// ============================================
+// COMPARTIR ENCUENTRO
+// ============================================
 function compartirEncuentro(id) {
-    // Primero obtenemos los datos del encuentro
-    fetch(`${API_URL}?action=getEncuentroById&id=${id}`)
+    fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentroById&id=${id}`)
         .then(response => response.json())
         .then(result => {
             if (!result.success || !result.data) {
@@ -2145,23 +2210,17 @@ function compartirEncuentro(id) {
             }
             
             const enc = result.data;
-            
-            // Parsear fechas
             let fechas = [];
             try {
                 fechas = JSON.parse(enc.fechasJSON || '[]');
-            } catch(e) {
-                fechas = [];
-            }
+            } catch(e) { fechas = []; }
             
-            // Formatear fechas y horarios
             const fechasTexto = fechas.map(f => {
                 const fechaFormateada = formatearFecha(f.dia);
-                const horariosTexto = f.horarios.map(h => `   ${h.hora}hs - ${h.desc}`).join('\n');
+                const horariosTexto = f.horarios?.map(h => `   ${h.hora}hs - ${h.desc}`).join('\n') || '';
                 return `📅 ${fechaFormateada}\n${horariosTexto}`;
             }).join('\n\n');
             
-            // Construir el mensaje completo
             const linkEncuentro = `https://arvetrugby.com/preview.html?action=getEncuentroById&id=${id}`;
             
             let mensaje = `🏉 *${enc.nombre}*\n\n`;
@@ -2174,10 +2233,8 @@ function compartirEncuentro(id) {
                 mensaje += `\n📝 ${enc.descripcion.substring(0, 100)}${enc.descripcion.length > 100 ? '...' : ''}\n`;
             }
             
-            
             mensaje += `\n🔗 ${linkEncuentro}`;
             
-            // Copiar al portapapeles
             return navigator.clipboard.writeText(mensaje);
         })
         .then(() => {
@@ -2190,16 +2247,127 @@ function compartirEncuentro(id) {
 }
 
 // ============================================
-// PANEL DE JUGADOR - ASISTENCIAS A ENCUENTROS
+// ASISTENCIAS DE JUGADORES
 // ============================================
+async function guardarAsistencia(encuentroId, respuesta) {
+    const usuario = obtenerUsuarioActual();
+    
+    LoadingManager.show('asistencia', 'Guardando...');
+    
+    const params = new URLSearchParams({
+        action: 'guardarAsistenciaJugador',
+        encuentroId: encuentroId,
+        jugadorId: usuario.id,
+        jugadorNombre: usuario.nombre,
+        equipoId: usuario.equipoId,
+        respuesta: respuesta
+    });
+    
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
+        
+        if (result.success) {
+            mostrarMensajeEncuentros(`Confirmado: ${respuesta === 'voy' ? 'VOY ✓' : 'NO VOY ✕'}`, 'success');
+            
+            // Recargar panel si existe
+            const panelContainer = document.getElementById('panelJugadorEncuentros');
+            if (panelContainer && typeof cargarEncuentrosParaJugador === 'function') {
+                setTimeout(() => {
+                    cargarEncuentrosParaJugador(usuario.equipoId, usuario.id, 'panelJugadorEncuentros');
+                }, 300);
+            }
+        } else {
+            throw new Error(result.error || 'Error al guardar');
+        }
+    } catch (err) {
+        mostrarMensajeEncuentros(err.message || 'Error de conexión', 'error');
+    } finally {
+        LoadingManager.hide('asistencia');
+    }
+}
 
+async function adminCambiarAsistencia(encuentroId, jugadorId, equipoId, respuesta) {
+    const usuario = obtenerUsuarioActual();
+    
+    LoadingManager.show('admin-asistencia', 'Actualizando...');
+    
+    const params = new URLSearchParams({
+        action: 'adminEditarAsistencia',
+        encuentroId: encuentroId,
+        jugadorId: jugadorId,
+        equipoId: equipoId,
+        respuesta: respuesta,
+        adminId: usuario.id
+    });
+    
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
+        
+        if (result.success) {
+            mostrarMensajeEncuentros('Asistencia actualizada', 'success');
+            verDetalleEncuentro(encuentroId);
+        } else {
+            throw new Error(result.error || 'Error al actualizar');
+        }
+    } catch (err) {
+        mostrarMensajeEncuentros(err.message || 'Error de conexión', 'error');
+    } finally {
+        LoadingManager.hide('admin-asistencia');
+    }
+}
+
+// ============================================
+// DESCARGAR CSV
+// ============================================
+function descargarAsistenciasCompletasCSV(encuentroId) {
+    const usuario = obtenerUsuarioActual();
+    
+    LoadingManager.show('descargar', 'Generando CSV...');
+    
+    fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`)
+        .then(r => r.json())
+        .then(result => {
+            if (!result.success) {
+                mostrarMensajeEncuentros('Error al cargar datos', 'error');
+                return;
+            }
+            
+            let csv = 'Equipo,Nombre,Apellido,DNI,CUIT/CUIL,Email,Teléfono,Fecha Nacimiento,Respuesta,Fecha Respuesta\n';
+            
+            result.data.forEach(eq => {
+                eq.jugadores.forEach(j => {
+                    csv += `"${eq.equipoNombre}","${j.nombre}","${j.apellido}","${j.dni || ''}","${j.cuitCuil || ''}","${j.email || ''}","${j.telefono || ''}","${j.fechaNacimiento || ''}","${j.respuesta || 'pendiente'}","${j.fechaRespuesta || ''}"\n`;
+                });
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `asistencias_completas_${encuentroId}.csv`;
+            link.click();
+            
+            mostrarMensajeEncuentros('CSV descargado', 'success');
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            mostrarMensajeEncuentros('Error al descargar', 'error');
+        })
+        .finally(() => {
+            LoadingManager.hide('descargar');
+        });
+}
+
+// ============================================
+// CARGAR ENCUENTROS PARA JUGADOR (PANEL)
+// ============================================
 async function cargarEncuentrosParaJugador(equipoId, jugadorId, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
+    container.innerHTML = SkeletonUI.grid(2);
+    
     try {
-        const response = await fetch(`${API_URL}?action=getEncuentrosParaJugador&equipoId=${equipoId}&jugadorId=${jugadorId}`);
-        const result = await response.json();
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentrosParaJugador&equipoId=${equipoId}&jugadorId=${jugadorId}`);
         
         if (!result.success || !result.data || result.data.length === 0) {
             container.innerHTML = `
@@ -2221,43 +2389,30 @@ async function cargarEncuentrosParaJugador(equipoId, jugadorId, containerId) {
             const fechaPrincipal = fechas[0] ? formatearFecha(fechas[0].dia) : 'Fecha a confirmar';
             const horarioPrincipal = fechas[0]?.horarios?.[0]?.hora || '';
             
-            // Estado visual
             let estadoHTML = '';
             let botonesHTML = '';
             
             if (enc.miRespuesta === 'voy') {
                 estadoHTML = `<span style="background: #dcfce7; color: #166534; padding: 6px 16px; border-radius: 20px; font-weight: 600;">✓ VOY</span>`;
                 botonesHTML = `
-                    <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" 
-                        style="flex: 1; padding: 12px; border: 2px solid #fee2e2; border-radius: 8px; background: white; color: #991b1b; font-weight: 600; cursor: pointer;">
-                        Cambiar a NO VOY
-                    </button>
+                    <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" style="flex: 1; padding: 12px; border: 2px solid #fee2e2; border-radius: 8px; background: white; color: #991b1b; font-weight: 600; cursor: pointer;">Cambiar a NO VOY</button>
                 `;
             } else if (enc.miRespuesta === 'no_voy') {
                 estadoHTML = `<span style="background: #fee2e2; color: #991b1b; padding: 6px 16px; border-radius: 20px; font-weight: 600;">✕ NO VOY</span>`;
                 botonesHTML = `
-                    <button onclick="guardarAsistencia('${enc.id}', 'voy')" 
-                        style="flex: 1; padding: 12px; border: 2px solid #dcfce7; border-radius: 8px; background: white; color: #166534; font-weight: 600; cursor: pointer;">
-                        Cambiar a VOY
-                    </button>
+                    <button onclick="guardarAsistencia('${enc.id}', 'voy')" style="flex: 1; padding: 12px; border: 2px solid #dcfce7; border-radius: 8px; background: white; color: #166534; font-weight: 600; cursor: pointer;">Cambiar a VOY</button>
                 `;
             } else {
                 estadoHTML = `<span style="background: #fef3c7; color: #92400e; padding: 6px 16px; border-radius: 20px; font-weight: 600;">⏳ PENDIENTE</span>`;
                 botonesHTML = `
-                    <button onclick="guardarAsistencia('${enc.id}', 'voy')" 
-                        style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #16a34a; color: white; font-weight: 600; cursor: pointer;">
-                        ✓ VOY
-                    </button>
-                    <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" 
-                        style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #dc2626; color: white; font-weight: 600; cursor: pointer;">
-                        ✕ NO VOY
-                    </button>
+                    <button onclick="guardarAsistencia('${enc.id}', 'voy')" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #16a34a; color: white; font-weight: 600; cursor: pointer;">✓ VOY</button>
+                    <button onclick="guardarAsistencia('${enc.id}', 'no_voy')" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #dc2626; color: white; font-weight: 600; cursor: pointer;">✕ NO VOY</button>
                 `;
             }
             
             return `
                 <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                         <div>
                             <h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 1.2rem;">${enc.nombre}</h3>
                             <p style="margin: 0; color: #64748b; font-size: 0.9rem;">
@@ -2285,177 +2440,163 @@ async function cargarEncuentrosParaJugador(equipoId, jugadorId, containerId) {
         
     } catch (err) {
         console.error('Error cargando encuentros del jugador:', err);
-        container.innerHTML = '<p style="color: #dc2626;">Error al cargar encuentros</p>';
+        container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Error al cargar encuentros</p>';
     }
 }
 
-async function guardarAsistencia(encuentroId, respuesta) {
-    const usuario = obtenerUsuarioActual();
-    
-    const params = new URLSearchParams({
-        action: 'guardarAsistenciaJugador',
-        encuentroId: encuentroId,
-        jugadorId: usuario.id,
-        jugadorNombre: usuario.nombre,
-        equipoId: usuario.equipoId,
-        respuesta: respuesta
-    });
-    
-    try {
-        const response = await fetch(`${API_URL}?${params.toString()}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            mostrarMensajeEncuentros(`Confirmado: ${respuesta === 'voy' ? 'VOY ✓' : 'NO VOY ✕'}`, 'success');
-            
-            // 🔥 RECARGAR el panel de encuentros del jugador
-            // Buscar el contenedor específico del panel del jugador
-            const panelContainer = document.getElementById('panelJugadorEncuentros');
-            if (panelContainer && typeof cargarEncuentrosParaJugador === 'function') {
-                // Esperar un momento para que el backend procese
-                setTimeout(() => {
-                    cargarEncuentrosParaJugador(usuario.equipoId, usuario.id, 'panelJugadorEncuentros');
-                }, 300);
-            }
-        } else {
-            mostrarMensajeEncuentros(result.error || 'Error al guardar', 'error');
-        }
-    } catch (err) {
-        console.error('Error:', err);
-        mostrarMensajeEncuentros('Error de conexión', 'error');
-    }
-}
-// Admin cambia asistencia de su jugador
-async function adminCambiarAsistencia(encuentroId, jugadorId, equipoId, respuesta) {
-  const usuario = obtenerUsuarioActual();
-  
-  const params = new URLSearchParams({
-    action: 'adminEditarAsistencia',
-    encuentroId: encuentroId,
-    jugadorId: jugadorId,
-    equipoId: equipoId,
-    respuesta: respuesta,
-    adminId: usuario.id
-  });
-  
-  try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
-    const result = await response.json();
-    
-    if (result.success) {
-      mostrarMensajeEncuentros('Asistencia actualizada', 'success');
-      // Recargar el modal
-      verDetalleEncuentro(encuentroId);
-    } else {
-      mostrarMensajeEncuentros(result.error || 'Error al actualizar', 'error');
-    }
-  } catch (err) {
-    mostrarMensajeEncuentros('Error de conexión', 'error');
-  }
-}
-
-// Descargar CSV completo con datos de contacto
-function descargarAsistenciasCompletasCSV(encuentroId) {
-  const usuario = obtenerUsuarioActual();
-  
-  fetch(`${API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`)
-    .then(r => r.json())
-    .then(result => {
-      if (!result.success) {
-        mostrarMensajeEncuentros('Error al cargar datos', 'error');
-        return;
-      }
-      
-      // CSV con todos los datos
-      let csv = 'Equipo,Nombre,Apellido,DNI,CUIT/CUIL,Email,Teléfono,Fecha Nacimiento,Respuesta,Fecha Respuesta\n';
-      
-      result.data.forEach(eq => {
-        eq.jugadores.forEach(j => {
-          csv += `"${eq.equipoNombre}","${j.nombre}","${j.apellido}","${j.dni || ''}","${j.cuitCuil || ''}","${j.email || ''}","${j.telefono || ''}","${j.fechaNacimiento || ''}","${j.respuesta || 'pendiente'}","${j.fechaRespuesta || ''}"\n`;
-        });
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `asistencias_completas_${encuentroId}.csv`;
-      link.click();
-      
-      mostrarMensajeEncuentros('CSV descargado', 'success');
-    })
-    .catch(err => {
-      console.error('Error:', err);
-      mostrarMensajeEncuentros('Error al descargar', 'error');
-    });
-}
 // ============================================
-// TRAER SOLO IMÁGENES DE ENCUENTROS PÚBLICOS
+// FLYERS PÚBLICOS
 // ============================================
-
-/**
- * Carga solo las imágenes (flyers) de encuentros públicos en una galería
- * @param {string} contenedorId - ID del contenedor donde mostrar las imágenes
- */
 function cargarFlyersEncuentrosPublicos(contenedorId = 'galeriaFlyers') {
     const container = document.getElementById(contenedorId);
-    if (!container) {
-        console.error('No se encontró contenedor:', contenedorId);
+    if (!container) return;
+    
+    container.innerHTML = '<div class="skeleton-encuentros" style="height: 200px; width: 100%;"></div>';
+    
+    const cacheKey = 'flyers-publicos';
+    const cached = CacheManager.get(cacheKey);
+    
+    if (cached) {
+        renderizarFlyers(cached, container);
+        fetchFreshFlyers(container, cacheKey);
         return;
     }
-
-    // Mostrar loader
-    container.innerHTML = '<div class="loading">Cargando flyers...</div>';
-
-   
-
-    fetch(`${API_URL}?action=getEncuentrosPublicos`)
-        .then(response => response.json())
-        .then(result => {
-            if (!result.success || !result.data || result.data.length === 0) {
-                container.innerHTML = '<p class="sin-flyers">No hay encuentros disponibles</p>';
-                return;
-            }
-
-            // Filtrar solo los que tienen imagen
-            const encuentrosConFlyer = result.data.filter(enc => 
-                enc.flyerUrl && 
-                enc.flyerUrl.trim() !== '' && 
-                enc.flyerUrl !== 'null'
-            );
-
-            if (encuentrosConFlyer.length === 0) {
-                container.innerHTML = '<p class="sin-flyers">No hay imágenes disponibles</p>';
-                return;
-            }
-
-            // Generar HTML solo con las imágenes
-            const html = `
-                <div class="flyers-grid">
-                    ${encuentrosConFlyer.map(enc => `
-                        <div class="flyer-item" data-encuentro-id="${enc.id}">
-                            <img src="${enc.flyerUrl}" 
-                                 alt="Flyer: ${enc.nombre}" 
-                                 loading="lazy"
-                                 onerror="this.style.display='none'">
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-
-            container.innerHTML = html;
-
-            // Opcional: agregar click para ver detalle
-            document.querySelectorAll('.flyer-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const encuentroId = this.getAttribute('data-encuentro-id');
-                    // Aquí puedes abrir modal o redirigir al detalle
-                    console.log('Click en encuentro:', encuentroId);
-                });
-            });
-        })
-        .catch(error => {
-            console.error('Error cargando flyers:', error);
-            container.innerHTML = '<p class="error">Error al cargar imágenes</p>';
-        });
+    
+    fetchFreshFlyers(container, cacheKey);
 }
 
+async function fetchFreshFlyers(container, cacheKey) {
+    try {
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentrosPublicos`);
+        
+        if (!result.success || !result.data) {
+            container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 40px;">No hay encuentros disponibles</p>';
+            return;
+        }
+        
+        const encuentrosConFlyer = result.data.filter(enc => 
+            enc.flyerUrl && enc.flyerUrl.trim() !== '' && enc.flyerUrl !== 'null'
+        );
+        
+        CacheManager.set(cacheKey, encuentrosConFlyer);
+        renderizarFlyers(encuentrosConFlyer, container);
+        
+    } catch (error) {
+        console.error('Error cargando flyers:', error);
+        container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 40px;">Error al cargar imágenes</p>';
+    }
+}
+
+function renderizarFlyers(encuentros, container) {
+    if (encuentros.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 40px;">No hay imágenes disponibles</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+            ${encuentros.map(enc => `
+                <div class="flyer-item" data-encuentro-id="${enc.id}" style="cursor: pointer; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <img data-src="${enc.flyerUrl}" 
+                         alt="${enc.nombre}" 
+                         class="lazy-img"
+                         style="width: 100%; height: 300px; object-fit: cover; display: block;"
+                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                    <div style="padding: 15px; background: white;">
+                        <h4 style="margin: 0; color: #1e293b; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${enc.nombre}</h4>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    setupLazyLoading(container);
+    
+    // Event delegation
+    container.querySelectorAll('.flyer-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const encuentroId = this.dataset.encuentroId;
+            verDetalleEncuentro(encuentroId);
+        });
+    });
+}
+
+// ============================================
+// UTILIDADES FINALES
+// ============================================
+function obtenerUsuarioActual() {
+    const stored = localStorage.getItem('arvet_user');
+    if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+            ...parsed,
+            equipoNombre: parsed.equipoNombre || parsed.nombre || 'Equipo'
+        };
+    }
+    return {
+        id: "usr_123",
+        nombre: "Admin",
+        equipoId: "eq_tigres",
+        equipoNombre: "Tigres RC",
+        rol: "admin"
+    };
+}
+
+function formatearFecha(fechaStr) {
+    if (!fechaStr) return '';
+    const partes = fechaStr.split('T')[0].split('-');
+    const año = partes[0];
+    const mes = parseInt(partes[1]);
+    const dia = parseInt(partes[2]);
+    
+    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    
+    const fechaUTC = new Date(Date.UTC(parseInt(año), mes - 1, dia));
+    const nombreDia = dias[fechaUTC.getUTCDay()];
+    const nombreMes = meses[mes - 1];
+    
+    return `${nombreDia} ${dia} ${nombreMes}`;
+}
+
+function usuarioLogueado() {
+    return !!localStorage.getItem('arvet_user');
+}
+
+function mostrarPreviewEncuentro(encuentroId) {
+    // Redirigir a preview o mostrar modal de login
+    window.location.href = `preview.html?encuentroId=${encuentroId}`;
+}
+
+// ============================================
+// EXPONER FUNCIONES GLOBALES
+// ============================================
+window.showEncuentrosTab = showEncuentrosTab;
+window.nuevoEncuentro = nuevoEncuentro;
+window.cerrarModalEncuentro = cerrarModalEncuentro;
+window.toggleOtrosTipos = toggleOtrosTipos;
+window.agregarOtroTipo = agregarOtroTipo;
+window.agregarDia = agregarDia;
+window.agregarHorario = agregarHorario;
+window.agregarValor = agregarValor;
+window.guardarEncuentro = guardarEncuentro;
+window.renderizarMisEncuentros = renderizarMisEncuentros;
+window.renderizarInvitaciones = renderizarInvitaciones;
+window.verDetalleEncuentro = verDetalleEncuentro;
+window.aceptarInvitacion = aceptarInvitacion;
+window.rechazarInvitacion = rechazarInvitacion;
+window.editarEncuentro = editarEncuentro;
+window.cancelarEncuentro = cancelarEncuentro;
+window.compartirEncuentro = compartirEncuentro;
+window.guardarAsistencia = guardarAsistencia;
+window.adminCambiarAsistencia = adminCambiarAsistencia;
+window.descargarAsistenciasCompletasCSV = descargarAsistenciasCompletasCSV;
+window.cargarFlyersEncuentrosPublicos = cargarFlyersEncuentrosPublicos;
+window.cargarEncuentrosParaJugador = cargarEncuentrosParaJugador;
+window.cargarMapaInline = cargarMapaInline;
+window.toggleEditOtrosTipos = toggleEditOtrosTipos;
+window.agregarEditOtroTipo = agregarEditOtroTipo;
+window.agregarEditDia = agregarEditDia;
+window.agregarEditHorario = agregarEditHorario;
+window.agregarEditValor = agregarEditValor;
+window.guardarEdicionEncuentro = guardarEdicionEncuentro;
