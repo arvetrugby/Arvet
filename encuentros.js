@@ -1157,11 +1157,21 @@ function crearModalDetalle(enc, detalle, encuentroId) {
     return modal;
 }
 
+// ============================================
+// CARGAR ASISTENCIAS ASYNC (CORREGIDO)
+// ============================================
 async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     const usuario = obtenerUsuarioActual();
-    const esCreador = equipoCreadorId === usuario.equipoId;
+    const esCreador = String(equipoCreadorId).trim() === String(usuario.equipoId).trim();
     const container = modal.querySelector('#asistenciasContainer');
-    if (!container) return;
+    
+    if (!container) {
+        console.error('No se encontró #asistenciasContainer');
+        return;
+    }
+    
+    // Debug
+    console.log('Cargando asistencias:', { encuentroId, equipoCreadorId, usuarioEquipoId: usuario.equipoId, esCreador });
     
     try {
         let asistenciasHTML = '';
@@ -1171,88 +1181,129 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
             const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
             const data = await resp.json();
             
-            if (data.success && data.data?.length > 0) {
+            console.log('Respuesta asistencias creador:', data);
+            
+            if (data.success && data.data && data.data.length > 0) {
                 const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
                 const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
                 
                 asistenciasHTML = `
-                    <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <span>📋</span> Confirmación de jugadores
-                        <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">(${totalVoy} van de ${totalJugadores} jugadores)</span>
-                        <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" style="margin-left: auto; padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">📥 Descargar listado completo</button>
-                    </h3>
-                    ${data.data.map(eq => {
-                        const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
-                        const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
-                        const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+                    <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                            <h3 style="color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span>📋</span> Confirmación de jugadores
+                                <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">(${totalVoy} van de ${totalJugadores} jugadores)</span>
+                            </h3>
+                            <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
+                                style="padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 4px rgba(22,163,74,0.3);">
+                                📥 Descargar listado completo
+                            </button>
+                        </div>
                         
-                        return `
-                            <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-wrap: wrap; gap: 10px;">
-                                    <h4 style="margin: 0; color: #1e293b; font-size: 1.1rem;">${eq.equipoNombre}</h4>
-                                    <div style="display: flex; gap: 15px; font-size: 0.9rem; flex-wrap: wrap;">
-                                        <span style="color: #16a34a; font-weight: 600; background: #dcfce7; padding: 4px 12px; border-radius: 20px;">✓ ${voy.length} VOY</span>
-                                        <span style="color: #dc2626; font-weight: 600; background: #fee2e2; padding: 4px 12px; border-radius: 20px;">✕ ${noVoy.length} NO VOY</span>
-                                        <span style="color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">⏳ ${pendiente.length} pendientes</span>
+                        ${data.data.map(eq => {
+                            const voy = eq.jugadores.filter(j => j.respuesta === 'voy');
+                            const noVoy = eq.jugadores.filter(j => j.respuesta === 'no_voy');
+                            const pendiente = eq.jugadores.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+                            
+                            return `
+                                <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e2e8f0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-wrap: wrap; gap: 10px;">
+                                        <h4 style="margin: 0; color: #1e293b; font-size: 1.1rem;">${eq.equipoNombre}</h4>
+                                        <div style="display: flex; gap: 15px; font-size: 0.9rem; flex-wrap: wrap;">
+                                            <span style="color: #16a34a; font-weight: 600; background: #dcfce7; padding: 4px 12px; border-radius: 20px;">✓ ${voy.length} VOY</span>
+                                            <span style="color: #dc2626; font-weight: 600; background: #fee2e2; padding: 4px 12px; border-radius: 20px;">✕ ${noVoy.length} NO VOY</span>
+                                            <span style="color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">⏳ ${pendiente.length} pendientes</span>
+                                        </div>
                                     </div>
-                                </div>
-                                ${eq.jugadores.length > 0 ? `
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
-                                        ${eq.jugadores.map(j => `
-                                            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 8px; border-left: 3px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
-                                                <div style="flex: 1;">
-                                                    <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
-                                                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">${j.respuesta === 'voy' ? '✓ Va' : j.respuesta === 'no_voy' ? '✕ No va' : '⏳ Pendiente'}</div>
+                                    ${eq.jugadores.length > 0 ? `
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                                            ${eq.jugadores.map(j => `
+                                                <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 8px; border-left: 3px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'};">
+                                                    <div style="flex: 1;">
+                                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                                                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                                                            ${j.respuesta === 'voy' ? '✓ Va' : j.respuesta === 'no_voy' ? '✕ No va' : '⏳ Pendiente'}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                ` : '<p style="color: #64748b; font-style: italic;">Sin jugadores confirmados</p>'}
-                            </div>
-                        `;
-                    }).join('')}`;
+                                            `).join('')}
+                                        </div>
+                                    ` : '<p style="color: #64748b; font-style: italic;">Sin jugadores confirmados</p>'}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else {
+                asistenciasHTML = `
+                    <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                            <h3 style="color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <span>📋</span> Confirmación de jugadores
+                            </h3>
+                            <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
+                                style="padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600;">
+                                📥 Descargar listado completo
+                            </button>
+                        </div>
+                        <p style="color: #64748b; text-align: center; padding: 20px;">No hay jugadores confirmados todavía</p>
+                    </div>
+                `;
             }
         } else {
             // EQUIPO INVITADO: Ver solo sus jugadores
             const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
             const data = await resp.json();
             
-            if (data.success && data.data?.length > 0) {
+            console.log('Respuesta asistencias equipo:', data);
+            
+            if (data.success && data.data && data.data.length > 0) {
                 const voy = data.data.filter(j => j.respuesta === 'voy');
                 const noVoy = data.data.filter(j => j.respuesta === 'no_voy');
                 const pendientes = data.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
                 const puedeEditar = ['Admin', 'Capitán', 'Manager'].includes(usuario.rol);
                 
                 asistenciasHTML = `
-                    <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: clamp(1rem, 4vw, 1.25rem);">
-                        <span>📋</span> Mi equipo - Confirmaciones
-                        <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; white-space: nowrap;">${voy.length} van · ${noVoy.length} no van · ${pendientes.length} pendientes</span>
-                        ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.75rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">Podés editar</span>` : ''}
-                    </h3>
-                    <div style="background: white; border-radius: 12px; padding: 15px; border: 2px solid #e2e8f0;">
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            ${data.data.map(j => `
-                                <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'}; flex-wrap: wrap;">
-                                    <div style="flex: 1; min-width: 150px;">
-                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; word-break: break-word;">${j.nombreCompleto}</div>
-                                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
-                                            ${j.dni ? `<span>DNI: ${j.dni}</span>` : ''}
-                                            ${j.telefono ? `<span>· Tel: ${j.telefono}</span>` : ''}
+                    <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                        <h3 style="color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: clamp(1rem, 4vw, 1.25rem);">
+                            <span>📋</span> Mi equipo - Confirmaciones
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 6px 12px; border-radius: 20px; white-space: nowrap;">
+                                ${voy.length} van · ${noVoy.length} no van · ${pendientes.length} pendientes
+                            </span>
+                            ${puedeEditar ? `<span style="margin-left: auto; font-size: 0.75rem; color: #4f46e5; background: #e0e7ff; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">Podés editar</span>` : ''}
+                        </h3>
+                        <div style="background: white; border-radius: 12px; padding: 15px; border: 2px solid #e2e8f0;">
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                ${data.data.map(j => `
+                                    <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${j.respuesta === 'voy' ? '#dcfce7' : j.respuesta === 'no_voy' ? '#fee2e2' : '#fef3c7'}; border-radius: 10px; border-left: 4px solid ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#f59e0b'}; flex-wrap: wrap;">
+                                        <div style="flex: 1; min-width: 150px;">
+                                            <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; word-break: break-word;">${j.nombreCompleto}</div>
+                                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                                ${j.dni ? `<span>DNI: ${j.dni}</span>` : ''}
+                                                ${j.telefono ? `<span>· Tel: ${j.telefono}</span>` : ''}
+                                            </div>
+                                            <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 6px; font-weight: 700;">
+                                                ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
+                                            </div>
                                         </div>
-                                        <div style="font-size: 0.8rem; color: ${j.respuesta === 'voy' ? '#16a34a' : j.respuesta === 'no_voy' ? '#dc2626' : '#92400e'}; margin-top: 6px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                                            ${j.respuesta === 'voy' ? '✓ VOY' : j.respuesta === 'no_voy' ? '✕ NO VOY' : '⏳ PENDIENTE'}
-                                        </div>
+                                        ${puedeEditar ? `
+                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" 
+                                                    style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                                                    ✓ VOY
+                                                </button>
+                                                <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" 
+                                                    style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap;">
+                                                    ✕ NO
+                                                </button>
+                                            </div>
+                                        ` : ''}
                                     </div>
-                                    ${puedeEditar ? `
-                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                            <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'voy')" style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'voy' ? '#16a34a' : '#dcfce7'}; color: ${j.respuesta === 'voy' ? 'white' : '#166534'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">✓ VOY</button>
-                                            <button onclick="adminCambiarAsistencia('${encuentroId}', '${j.jugadorId}', '${usuario.equipoId}', 'no_voy')" style="padding: 8px 16px; border: none; border-radius: 8px; background: ${j.respuesta === 'no_voy' ? '#dc2626' : '#fee2e2'}; color: ${j.respuesta === 'no_voy' ? 'white' : '#991b1b'}; font-size: 0.85rem; cursor: pointer; font-weight: 600; white-space: nowrap; flex: 1; min-width: 80px;">✕ NO</button>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
             }
         }
         
@@ -1263,7 +1314,6 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
         container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Error al cargar asistencias</p>';
     }
 }
-
 // ============================================
 // MODAL CREAR ENCUENTRO (COMPLETO)
 // ============================================
