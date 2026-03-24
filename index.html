@@ -1040,6 +1040,28 @@
     text-decoration: none;
     font-weight: 600;
 }
+    .features-grid {
+    /* Inicia colapsado */
+    max-height: 320px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.6s ease, opacity 0.3s ease;
+}
+
+/* CUANDO ESTÁ ABIERTO */
+.features-grid.open {
+    max-height: 2000px; /* Suficiente para mostrar todo */
+}
+
+/* Responsive para mobile */
+@media (max-width: 968px) {
+    .features-grid {
+        max-height: 640px; /* 2 filas en móvil */
+    }
+    .features-grid.open {
+        max-height: 2000px;
+    }
+}
 </style>
     <script>
 (function() {
