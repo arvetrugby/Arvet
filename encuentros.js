@@ -1192,13 +1192,10 @@ function crearModalDetalle(enc, detalle, encuentroId) {
 // ============================================
 async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     const usuario = obtenerUsuarioActual();
-  const esCreador = String(equipoCreadorId).trim().toLowerCase() === String(usuario.equipoId).trim().toLowerCase();
-    // Mostrar resumen sticky si es creador
-const resumenSticky = document.getElementById('resumenCreadorSticky');
-if (resumenSticky && esCreador) {
-    resumenSticky.style.display = 'block';
-}
+    const esCreador = String(equipoCreadorId).trim().toLowerCase() === String(usuario.equipoId).trim().toLowerCase();
+    
     console.log('Cargando asistencias:', { encuentroId, equipoCreadorId, usuarioEquipoId: usuario.equipoId, esCreador });
+    
     const container = modal.querySelector('#asistenciasContainer');
     
     if (!container) {
@@ -1206,33 +1203,35 @@ if (resumenSticky && esCreador) {
         return;
     }
     
-    // Debug
-    console.log('Cargando asistencias:', { encuentroId, equipoCreadorId, usuarioEquipoId: usuario.equipoId, esCreador });
+    // Mostrar resumen sticky si es creador
+    const resumenSticky = document.getElementById('resumenCreadorSticky');
+    if (resumenSticky && esCreador) {
+        resumenSticky.style.display = 'block';
+    }
     
     try {
         let asistenciasHTML = '';
         
-       if (esCreador) {
-    // CREADOR: Ver todos los jugadores
-    const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
-    const data = await resp.json();
-    
-    console.log('Respuesta asistencias creador:', data);
-    
-    if (data.success && data.data && data.data.length > 0) {
-        
-        // 🔢 CALCULAR TOTALES PARA RESUMEN STICKY
-        const totalEquipos = data.data.length;
-        const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
-        const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
-        
-        // 📝 ACTUALIZAR RESUMEN STICKY
-        const elEquipos = document.getElementById('resumenEquiposTotal');
-        const elJugadores = document.getElementById('resumenJugadoresTotal');
-        if (elEquipos) elEquipos.textContent = totalEquipos;
-        if (elJugadores) elJugadores.textContent = totalVoy; // Solo los que van
-        
-        
+        if (esCreador) {
+            // ========== CREADOR ==========
+            const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
+            const data = await resp.json();
+            
+            console.log('Respuesta asistencias creador:', data);
+            
+            if (data.success && data.data && data.data.length > 0) {
+                
+                // 🔢 CALCULAR TOTALES PARA RESUMEN STICKY
+                const totalEquipos = data.data.length;
+                const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
+                const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
+                
+                // 📝 ACTUALIZAR RESUMEN STICKY
+                const elEquipos = document.getElementById('resumenEquiposTotal');
+                const elJugadores = document.getElementById('resumenJugadoresTotal');
+                if (elEquipos) elEquipos.textContent = totalEquipos;
+                if (elJugadores) elJugadores.textContent = totalVoy;
+                
                 asistenciasHTML = `
                     <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
@@ -1280,7 +1279,14 @@ if (resumenSticky && esCreador) {
                         }).join('')}
                     </div>
                 `;
+                
             } else {
+                // SIN DATOS - CREADOR
+                const elEquipos = document.getElementById('resumenEquiposTotal');
+                const elJugadores = document.getElementById('resumenJugadoresTotal');
+                if (elEquipos) elEquipos.textContent = '0';
+                if (elJugadores) elJugadores.textContent = '0';
+                
                 asistenciasHTML = `
                     <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
@@ -1295,15 +1301,10 @@ if (resumenSticky && esCreador) {
                         <p style="color: #64748b; text-align: center; padding: 20px;">No hay jugadores confirmados todavía</p>
                     </div>
                 `;
-        // Agregar esto:
-    const elEquipos = document.getElementById('resumenEquiposTotal');
-    const elJugadores = document.getElementById('resumenJugadoresTotal');
-    if (elEquipos) elEquipos.textContent = '0';
-    if (elJugadores) elJugadores.textContent = '0';
-}
             }
+            
         } else {
-            // EQUIPO INVITADO: Ver solo sus jugadores
+            // ========== EQUIPO INVITADO ==========
             const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`);
             const data = await resp.json();
             
