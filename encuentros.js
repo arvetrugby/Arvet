@@ -1900,7 +1900,7 @@ function cerrarModalEncuentro() {
 // EDITAR ENCUENTRO (COMPLETO)
 // ============================================
 async function editarEncuentro(encuentroId) {
-    LoadingManager.show('editar', 'Cargando datos del encuentro...');
+    LoadingManager.show('editar', 'Cargando datos...');
     
     try {
         const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentroById&id=${encuentroId}`);
