@@ -953,7 +953,6 @@ async function rechazarInvitacion(encuentroId) {
 // VER DETALLE DE ENCUENTRO (OPTIMIZADO)
 // ============================================
 async function verDetalleEncuentro(encuentroId) {
-    // Cerrar modal existente
     const modalExistente = document.getElementById('modalDetalleEncuentro');
     if (modalExistente) modalExistente.remove();
     
@@ -971,16 +970,23 @@ async function verDetalleEncuentro(encuentroId) {
         }
         
         const enc = respEncuentro.data;
-        const detalle = respDetalle.success ? respDetalle.data : { 
-            aceptados: [], rechazados: [], pendientes: [],
-            cantidadAceptados: 0, cantidadRechazados: 0, cantidadPendientes: 0, totalEquipos: 0
-        };
+        const detalle = respDetalle.success ? respDetalle.data : {};
+        
+        // 🔧 FIX: Obtener equipoCreadorId desde los aceptados (el que tiene esCreador=true)
+        let equipoCreadorId = enc.equipoCreadorId;
+        if (!equipoCreadorId && detalle.aceptados) {
+            const creador = detalle.aceptados.find(eq => eq.esCreador);
+            if (creador) equipoCreadorId = creador.id;
+        }
+        
+        // Guardarlo en el objeto enc para que pase al modal
+        enc.equipoCreadorId = equipoCreadorId;
         
         const modal = crearModalDetalle(enc, detalle, encuentroId);
         document.body.appendChild(modal);
         
-        // Cargar asistencias en background
-        cargarAsistenciasAsync(encuentroId, enc.equipoCreadorId, modal);
+        // Pasar el ID correcto
+        cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal);
         
     } catch (err) {
         console.error('Error cargando detalle:', err);
@@ -989,7 +995,6 @@ async function verDetalleEncuentro(encuentroId) {
         LoadingManager.hide('detalle');
     }
 }
-
 function crearModalDetalle(enc, detalle, encuentroId) {
     let fechas = [], valores = [];
     try {
@@ -1163,6 +1168,8 @@ function crearModalDetalle(enc, detalle, encuentroId) {
 async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     const usuario = obtenerUsuarioActual();
   const esCreador = String(equipoCreadorId).trim().toLowerCase() === String(usuario.equipoId).trim().toLowerCase();
+    
+    console.log('Cargando asistencias:', { encuentroId, equipoCreadorId, usuarioEquipoId: usuario.equipoId, esCreador });
     const container = modal.querySelector('#asistenciasContainer');
     
     if (!container) {
