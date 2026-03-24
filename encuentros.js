@@ -1,42 +1,7 @@
 // ============================================
 // ARVET - SISTEMA DE ENCUENTROS/PARTIDOS - OPTIMIZADO V2
 // ============================================
-async function renderizarMisEncuentros() {
-    const container = document.getElementById('listaMisEncuentros');
-    const empty = document.getElementById('emptyCreados');
-    
-    if (!container) return;
-    
-    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 40px;">Cargando...</p>';
-    if (empty) empty.style.display = 'none';
-    
-    const usuario = obtenerUsuarioActual();
-    
-    try {
-        const response = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getEncuentros&equipoId=${usuario.equipoId}`);
-        const result = await response.json();
-        
-        if (!result.success) {
-            container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 40px;">Error al cargar</p>';
-            return;
-        }
-        
-        const encuentros = result.data || [];
-        
-        if (encuentros.length === 0) {
-            container.innerHTML = '';
-            if (empty) empty.style.display = 'block';
-            return;
-        }
-        
-        if (empty) empty.style.display = 'none';
-        container.innerHTML = encuentros.map(enc => generarCardEncuentroHTML(enc)).join('');
-        
-    } catch (err) {
-        console.error('Error:', err);
-        container.innerHTML = '<p style="text-align: center; color: #dc2626; padding: 40px;">Error de conexión</p>';
-    }
-}
+
 // ============================================
 // CONFIGURACIÓN GLOBAL
 // ============================================
@@ -47,6 +12,12 @@ const ENCUENTROS_CONFIG = {
     MAX_RETRIES: 3,
     API_URL: typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbzxxxxxxxxxxxxxxxx/exec'
 };
+
+// ============================================
+// CACHE EN MEMORIA
+// ============================================
+const encuentrosCache = new Map();
+const abortControllers = new Map();
 
 const CacheManager = {
     get(key) {
@@ -1480,7 +1451,6 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
         container.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 20px;">Error al cargar asistencias</p>';
     }
 }
-
 // ============================================
 // MODAL CREAR ENCUENTRO (COMPLETO)
 // ============================================
@@ -1594,6 +1564,7 @@ function nuevoEncuentro() {
     
     document.getElementById('inputFlyer').addEventListener('change', subirFlyerOptimizado);
 }
+
 // ============================================
 // FUNCIONES AUXILIARES DEL MODAL
 // ============================================
@@ -2837,4 +2808,3 @@ window.agregarEditDia = agregarEditDia;
 window.agregarEditHorario = agregarEditHorario;
 window.agregarEditValor = agregarEditValor;
 window.guardarEdicionEncuentro = guardarEdicionEncuentro;
-
