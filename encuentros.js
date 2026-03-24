@@ -2012,17 +2012,17 @@ async function editarEncuentro(encuentroId) {
                         <div id="editContainerFechas" style="display: flex; flex-direction: column; gap: 15px;">
                             ${fechas.length > 0 ? fechas.map((f, idx) => `
                                 <div class="edit-dia-item" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0;">
-                                    <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                                        <input type="date" class="edit-dia-fecha" required value="${f.dia}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
-                                        <button type="button" onclick="this.closest('.edit-dia-item').remove()" style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
-                                    </div>
+                                    <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap;">
+    <input type="date" class="edit-dia-fecha" required value="${f.dia}" style="flex: 1; min-width: 140px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+    <button type="button" onclick="this.closest('.edit-dia-item').remove()" style="padding: 8px 12px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; flex-shrink: 0;">✕</button>
+</div>
                                     <div class="edit-horarios-container" style="display: flex; flex-direction: column; gap: 8px; margin-left: 10px; padding-left: 15px; border-left: 3px solid #cbd5e1;">
                                         ${f.horarios?.map(h => `
-                                            <div style="display: flex; gap: 8px; align-items: center;">
-                                                <input type="time" class="edit-horario-hora" required value="${h.hora}" style="width: 100px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                                                <input type="text" class="edit-horario-desc" placeholder="Descripción" required value="${h.desc}" style="flex: 1; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                                                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 5px;">×</button>
-                                            </div>
+                                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <input type="time" class="edit-horario-hora" required value="${h.hora}" style="width: 100px; min-width: 80px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+    <input type="text" class="edit-horario-desc" placeholder="Descripción" required value="${h.desc}" style="flex: 1; min-width: 150px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box;">
+    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 5px; flex-shrink: 0;">×</button>
+</div>
                                         `).join('') || ''}
                                     </div>
                                     <button type="button" onclick="agregarEditHorario(this)" style="margin-top: 10px; margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer;">+ Agregar horario</button>
@@ -2036,12 +2036,12 @@ async function editarEncuentro(encuentroId) {
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Valores / Opciones de inscripción *</label>
                         <div id="editContainerValores" style="display: flex; flex-direction: column; gap: 10px;">
                             ${valores.length > 0 ? valores.map(v => `
-                                <div style="display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0;">
-                                    <input type="text" class="edit-valor-titulo" placeholder="Título" required value="${v.titulo}" style="flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
-                                    <input type="number" class="edit-valor-precio" placeholder="$" min="0" required value="${v.precio}" style="width: 100px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
-                                    <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" value="${v.desc || ''}" style="flex: 2; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem;">
-                                    <button type="button" onclick="this.parentElement.remove()" style="padding: 6px 10px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">✕</button>
-                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8fafc; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0;">
+    <input type="text" class="edit-valor-titulo" placeholder="Título" required value="${v.titulo}" style="flex: 1; min-width: 120px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+    <input type="number" class="edit-valor-precio" placeholder="$" min="0" required value="${v.precio}" style="flex: 0 0 100px; min-width: 80px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+    <input type="text" class="edit-valor-desc" placeholder="Descripción opcional" value="${v.desc || ''}" style="flex: 2; min-width: 150px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+    <button type="button" onclick="this.parentElement.remove()" style="padding: 6px 10px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; flex-shrink: 0;">✕</button>
+</div>
                             `).join('') : ''}
                         </div>
                         <button type="button" onclick="agregarEditValor()" style="margin-top: 15px; width: 100%; padding: 12px; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600;">+ Agregar opción de valor</button>
