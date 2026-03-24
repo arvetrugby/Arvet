@@ -1015,42 +1015,84 @@ function crearModalDetalle(enc, detalle, encuentroId) {
         `;
     }).join('');
 
-    // Listas de equipos
-    const listaAceptados = detalle.aceptados?.length > 0 ? detalle.aceptados.map(eq => `
-        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; border-radius: 10px; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'}; margin-bottom: 8px; flex-wrap: wrap;">
-            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-            <div style="flex: 1; min-width: 200px;">
-                <div style="font-weight: 600; color: ${eq.esCreador ? '#3730a3' : '#166534'}; font-size: 0.95rem; word-break: break-word;">${eq.nombre} ${eq.esCreador ? '👑' : ''}</div>
-                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
-            </div>
-            ${eq.telefonoContacto && !eq.esCreador ? `
-                <a href="https://wa.me/${String(eq.telefonoContacto).replace(/[^0-9]/g, '')}" target="_blank" style="background: #25D366; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">WhatsApp</a>
-            ` : ''}
-            <span style="background: ${eq.esCreador ? '#4f46e5' : '#22c55e'}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">${eq.esCreador ? '★ CREADOR' : '✓ Aceptado'}</span>
-        </div>
-    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha aceptado aún</p>';
+    // Calcular totales para el resumen sticky
+    const totalAceptados = detalle.aceptados?.length || 0;
+    const totalRechazados = detalle.rechazados?.length || 0;
+    const totalPendientes = detalle.pendientes?.length || 0;
+    const totalEquipos = totalAceptados + totalRechazados + totalPendientes;
 
-    const listaRechazados = detalle.rechazados?.length > 0 ? detalle.rechazados.map(eq => `
-        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444; margin-bottom: 8px; opacity: 0.9; flex-wrap: wrap;">
-            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-            <div style="flex: 1; min-width: 200px;">
-                <div style="font-weight: 600; color: #991b1b; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
-                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+    // Generar HTML de equipos aceptados (con acordeón por equipo)
+    const equiposAceptadosHTML = detalle.aceptados?.map((eq, index) => {
+        // Este equipo se renderiza vacío inicialmente, se llena con JS
+        return `
+            <div class="equipo-acordeon" data-equipo-id="${eq.id}" style="margin-bottom: 12px; border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div class="equipo-header" onclick="toggleEquipo('${eq.id}')" style="display: flex; align-items: center; gap: 12px; padding: 15px; background: ${eq.esCreador ? '#e0e7ff' : '#f0fdf4'}; cursor: pointer; border-left: 4px solid ${eq.esCreador ? '#4f46e5' : '#22c55e'};">
+                    <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; color: ${eq.esCreador ? '#3730a3' : '#166534'}; font-size: 1rem;">
+                            ${eq.nombre} ${eq.esCreador ? '👑' : ''}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+                    </div>
+                    <span class="equipo-badge voy-${eq.id}" style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">⏳ Cargando...</span>
+                    <span style="font-size: 1.2rem; transition: transform 0.2s;" id="flecha-${eq.id}">▼</span>
+                </div>
+                <div id="equipo-content-${eq.id}" style="display: none; padding: 15px; background: white;">
+                    <div class="skeleton-encuentros" style="height: 80px;"></div>
+                </div>
             </div>
-            <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">✕ Rechazado</span>
-        </div>
-    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha rechazado</p>';
+        `;
+    }).join('') || '<p style="color: #64748b; font-style: italic; padding: 10px;">Ningún equipo ha aceptado aún</p>';
 
-    const listaPendientes = detalle.pendientes?.length > 0 ? detalle.pendientes.map(eq => `
-        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #f59e0b; margin-bottom: 8px; flex-wrap: wrap;">
-            <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-            <div style="flex: 1; min-width: 200px;">
-                <div style="font-weight: 600; color: #92400e; font-size: 0.95rem; word-break: break-word;">${eq.nombre}</div>
-                <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+    // Generar HTML de rechazados (acordeón simple)
+    const rechazadosHTML = detalle.rechazados?.length > 0 ? `
+        <div style="margin-bottom: 20px; border: 2px solid #fecaca; border-radius: 12px; overflow: hidden;">
+            <div onclick="toggleSeccion('rechazados')" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #fee2e2; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                    <span style="font-weight: 600; color: #991b1b;">Rechazados (${totalRechazados})</span>
+                </div>
+                <span style="font-size: 1.2rem;" id="flecha-rechazados">▼</span>
             </div>
-            <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">⏳ Pendiente</span>
+            <div id="seccion-rechazados" style="display: none; padding: 15px; background: white;">
+                ${detalle.rechazados.map(eq => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fef2f2; border-radius: 10px; margin-bottom: 8px; opacity: 0.9;">
+                        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #991b1b;">${eq.nombre}</div>
+                            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+                        </div>
+                        <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">✕ Rechazado</span>
+                    </div>
+                `).join('')}
+            </div>
         </div>
-    `).join('') : '<p style="color: #64748b; font-style: italic; padding: 10px;">No hay equipos pendientes</p>';
+    ` : '';
+
+    // Generar HTML de pendientes (acordeón simple)
+    const pendientesHTML = detalle.pendientes?.length > 0 ? `
+        <div style="margin-bottom: 20px; border: 2px solid #fde68a; border-radius: 12px; overflow: hidden;">
+            <div onclick="toggleSeccion('pendientes')" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #fef3c7; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
+                    <span style="font-weight: 600; color: #92400e;">Pendientes (${totalPendientes})</span>
+                </div>
+                <span style="font-size: 1.2rem;" id="flecha-pendientes">▼</span>
+            </div>
+            <div id="seccion-pendientes" style="display: none; padding: 15px; background: white;">
+                ${detalle.pendientes.map(eq => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #fffbeb; border-radius: 10px; margin-bottom: 8px;">
+                        <img src="${eq.logoUrl || 'https://i.ibb.co/Y7BMDcjt/logo-generico.png'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #92400e;">${eq.nombre}</div>
+                            <div style="font-size: 0.8rem; color: #64748b;">${eq.ciudad}, ${eq.provincia}</div>
+                        </div>
+                        <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">⏳ Pendiente</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay active';
@@ -1059,9 +1101,26 @@ function crearModalDetalle(enc, detalle, encuentroId) {
     
     modal.innerHTML = `
         <div style="width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; background: white; border-radius: 16px; position: relative; animation: slideUpMsg 0.3s ease;">
-            <div style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
-                <button onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+            
+            <!-- 🔥 STICKY HEADER CON RESUMEN Y BOTÓN DESCARGAR -->
+            <div style="position: sticky; top: 0; background: white; z-index: 100; padding: 20px; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.3rem); line-height: 1.3; flex: 1; color: #1e293b;">${enc.nombre}</h2>
+                    <button onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+                </div>
+                
+                <!-- Resumen de equipos -->
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; font-size: 0.9rem;">
+                    <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 20px; font-weight: 600;">✓ ${totalAceptados} equipos</span>
+                    ${totalRechazados > 0 ? `<span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 20px; font-weight: 600;">✕ ${totalRechazados} rechazados</span>` : ''}
+                    ${totalPendientes > 0 ? `<span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-weight: 600;">⏳ ${totalPendientes} pendientes</span>` : ''}
+                </div>
+                
+                <!-- Botón descargar siempre visible -->
+                <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
+                    style="width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 4px rgba(22,163,74,0.3);">
+                    📥 Descargar listado de asistencias
+                </button>
             </div>
             
             <div style="padding: 20px;">
@@ -1116,51 +1175,68 @@ function crearModalDetalle(enc, detalle, encuentroId) {
                     </div>
                 ` : ''}
 
+                <!-- SECCIÓN EQUIPOS -->
                 <div style="margin-top: 25px;">
-                    <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span>👥</span> Equipos invitados
-                        <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; background: #f1f5f9; padding: 4px 10px; border-radius: 20px;">${detalle.totalEquipos || 0} equipos</span>
+                    <h3 style="color: #1e293b; margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                        👥 Equipos
                     </h3>
                     
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #166534; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
-                            Aceptados (${detalle.cantidadAceptados || 0})
-                        </h4>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">${listaAceptados}</div>
+                    <!-- ACEPTADOS - Acordeón principal -->
+                    <div style="margin-bottom: 20px; border: 2px solid #bbf7d0; border-radius: 12px; overflow: hidden;">
+                        <div onclick="toggleSeccion('aceptados')" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #dcfce7; cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+                                <span style="font-weight: 700; color: #166534; font-size: 1.1rem;">✓ Aceptados (${totalAceptados})</span>
+                            </div>
+                            <span style="font-size: 1.2rem;" id="flecha-aceptados">▼</span>
+                        </div>
+                        <div id="seccion-aceptados" style="display: block; padding: 15px; background: white;">
+                            ${equiposAceptadosHTML}
+                        </div>
                     </div>
 
-                    ${detalle.rechazados?.length > 0 ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #991b1b; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
-                                Rechazados (${detalle.cantidadRechazados || 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">${listaRechazados}</div>
-                        </div>
-                    ` : ''}
-
-                    ${detalle.pendientes?.length > 0 ? `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #92400e; font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                                <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
-                                Pendientes (${detalle.cantidadPendientes || 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">${listaPendientes}</div>
-                        </div>
-                    ` : ''}
+                    ${rechazadosHTML}
+                    ${pendientesHTML}
                 </div>
                 
-                <!-- Contenedor para asistencias (se carga async) -->
-                <div id="asistenciasContainer" style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
-                    <div class="skeleton-encuentros" style="height: 100px; width: 100%;"></div>
-                </div>
+                <!-- Contenedor para asistencias de equipos (se carga async) -->
+                <div id="asistenciasContainer" style="display: none;"></div>
             </div>
         </div>
     `;
     
+    // Agregar funciones de toggle al objeto window para que funcionen los onclick
+    window.toggleSeccion = function(id) {
+        const el = document.getElementById('seccion-' + id);
+        const flecha = document.getElementById('flecha-' + id);
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            flecha.textContent = '▲';
+        } else {
+            el.style.display = 'none';
+            flecha.textContent = '▼';
+        }
+    };
+    
+    window.toggleEquipo = function(equipoId) {
+        const el = document.getElementById('equipo-content-' + equipoId);
+        const flecha = document.getElementById('flecha-' + equipoId);
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            flecha.style.transform = 'rotate(180deg)';
+            // Cargar asistencias si no se cargaron aún
+            if (el.querySelector('.skeleton-encuentros')) {
+                cargarAsistenciasEquipo(equipoId, el);
+            }
+        } else {
+            el.style.display = 'none';
+            flecha.style.transform = 'rotate(0deg)';
+        }
+    };
+    
     return modal;
 }
+
 
 // ============================================
 // CARGAR ASISTENCIAS ASYNC (CORREGIDO)
@@ -2645,7 +2721,88 @@ function mostrarPreviewEncuentro(encuentroId) {
     // Redirigir a preview o mostrar modal de login
     window.location.href = `preview.html?encuentroId=${encuentroId}`;
 }
-
+async function cargarAsistenciasEquipo(equipoId, container) {
+    const encuentroId = document.getElementById('modalDetalleEncuentro')?.dataset?.encuentroId;
+    if (!encuentroId) return;
+    
+    try {
+        const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasPorEquipo&encuentroId=${encuentroId}&equipoId=${equipoId}`);
+        const data = await resp.json();
+        
+        if (!data.success || !data.data) {
+            container.innerHTML = '<p style="color: #64748b;">Sin datos de asistencia</p>';
+            return;
+        }
+        
+        const voy = data.data.filter(j => j.respuesta === 'voy');
+        const noVoy = data.data.filter(j => j.respuesta === 'no_voy');
+        const pendientes = data.data.filter(j => !j.respuesta || j.respuesta === 'pendiente');
+        
+        // Actualizar el badge del header
+        const badge = document.querySelector(`.equipo-badge.voy-${equipoId}`);
+        if (badge) {
+            badge.textContent = `✓ ${voy.length} van`;
+        }
+        
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${voy.length > 0 ? `
+                    <div style="background: #dcfce7; border-radius: 8px; padding: 12px;">
+                        <div style="font-weight: 700; color: #166534; margin-bottom: 8px; font-size: 0.9rem;">✓ VOY (${voy.length})</div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            ${voy.map(j => `
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                                        ${j.dni ? `<div style="font-size: 0.75rem; color: #64748b;">DNI: ${j.dni}</div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${noVoy.length > 0 ? `
+                    <div style="background: #fee2e2; border-radius: 8px; padding: 12px;">
+                        <div style="font-weight: 700; color: #991b1b; margin-bottom: 8px; font-size: 0.9rem; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                            ✕ NO VOY (${noVoy.length}) ▼
+                        </div>
+                        <div style="display: none; flex-direction: column; gap: 6px;">
+                            ${noVoy.map(j => `
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; opacity: 0.8;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${pendientes.length > 0 ? `
+                    <div style="background: #fef3c7; border-radius: 8px; padding: 12px;">
+                        <div style="font-weight: 700; color: #92400e; margin-bottom: 8px; font-size: 0.9rem; cursor: pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                            ⏳ PENDIENTES (${pendientes.length}) ▼
+                        </div>
+                        <div style="display: none; flex-direction: column; gap: 6px;">
+                            ${pendientes.map(j => `
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; opacity: 0.8;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 0.9rem;">${j.nombreCompleto}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+    } catch (err) {
+        console.error('Error cargando asistencias del equipo:', err);
+        container.innerHTML = '<p style="color: #dc2626;">Error al cargar asistencias</p>';
+    }
+}
 // ============================================
 // EXPONER FUNCIONES GLOBALES
 // ============================================
@@ -2678,3 +2835,4 @@ window.agregarEditDia = agregarEditDia;
 window.agregarEditHorario = agregarEditHorario;
 window.agregarEditValor = agregarEditValor;
 window.guardarEdicionEncuentro = guardarEdicionEncuentro;
+window.cargarAsistenciasEquipo = cargarAsistenciasEquipo;
