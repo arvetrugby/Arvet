@@ -44,109 +44,193 @@ const CacheManager = {
 };
 
 // ============================================
-// SISTEMA DE LOADING GLOBAL
+// LOADING SCREEN (igual que index)
 // ============================================
 const LoadingManager = {
     overlays: new Map(),
-    
+
     show(id, message = 'Cargando...') {
         if (this.overlays.has(id)) return;
-        
-        const overlay = document.createElement('div');
-        overlay.id = `loading-${id}`;
-        overlay.className = 'loading-overlay-encuentros';
-        overlay.innerHTML = `
-            <div class="loading-content">
-                <div class="spinner-encuentros"></div>
-                <p class="loading-text">${message}</p>
-            </div>
-        `;
-        
-        // Estilos inline para que funcione sin depender de CSS externo
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            backdrop-filter: blur(4px);
-            animation: fadeInLoading 0.2s ease;
-        `;
-        
-        // Agregar estilos del spinner si no existen
-        if (!document.getElementById('encuentros-loading-styles')) {
+
+        // Inyectar estilos si no existen
+        if (!document.getElementById('arvet-loader-styles')) {
             const style = document.createElement('style');
-            style.id = 'encuentros-loading-styles';
+            style.id = 'arvet-loader-styles';
             style.textContent = `
-                @keyframes fadeInLoading {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
+                .loading-particles {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+                    background-size: 40px 40px;
+                    animation: particlesMove 20s linear infinite;
+                    opacity: .4;
                 }
-                @keyframes fadeOutLoading {
-                    from { opacity: 1; }
-                    to { opacity: 0; }
+                .logo-glow {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 220px;
+                    height: 220px;
+                    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+                    filter: blur(60px);
+                    opacity: .45;
+                    animation: glowPulse 3s ease-in-out infinite;
                 }
-                @keyframes spinEncuentros {
-                    to { transform: rotate(360deg); }
+                @keyframes logoFloat {
+                    0%, 100% { transform: translateY(0); }
+                    50%       { transform: translateY(-8px); }
                 }
-                .loading-content {
-                    text-align: center;
-                    background: white;
-                    padding: 30px 50px;
-                    border-radius: 16px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                @keyframes glowPulse {
+                    0%, 100% { opacity: .35; transform: translate(-50%,-50%) scale(1); }
+                    50%      { opacity: .65; transform: translate(-50%,-50%) scale(1.1); }
                 }
-                .spinner-encuentros {
-                    width: 50px;
-                    height: 50px;
-                    border: 4px solid #e2e8f0;
-                    border-top-color: #4f46e5;
-                    border-radius: 50%;
-                    animation: spinEncuentros 1s linear infinite;
-                    margin: 0 auto 15px;
-                }
-                .loading-text {
-                    color: #1e293b;
-                    font-size: 16px;
-                    font-weight: 600;
-                    margin: 0;
-                }
-                .skeleton-encuentros {
-                    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-                    background-size: 200% 100%;
-                    animation: skeletonShimmer 1.5s infinite;
-                    border-radius: 8px;
-                }
-                @keyframes skeletonShimmer {
-                    0% { background-position: 200% 0; }
+                @keyframes progressGlow {
+                    0%   { background-position: 200% 0; }
                     100% { background-position: -200% 0; }
+                }
+                @keyframes textPulse {
+                    0%, 100% { opacity: .6; }
+                    50%      { opacity: 1; }
+                }
+                @keyframes particlesMove {
+                    0%   { transform: translateY(0); }
+                    100% { transform: translateY(-200px); }
+                }
+                @keyframes fadeOutLoader {
+                    from { opacity: 1; }
+                    to   { opacity: 0; }
+                }
+                .arvet-loader-hidden {
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                    pointer-events: none;
+                }
+                @media (max-width: 768px) {
+                    .arvet-loader-logo { width: 160px !important; }
+                    .logo-glow { width: 180px; height: 180px; }
                 }
             `;
             document.head.appendChild(style);
         }
-        
+
+        // Crear overlay
+        const overlay = document.createElement('div');
+        overlay.id = `arvet-loader-${id}`;
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 60%, #020617 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            overflow: hidden;
+            transition: opacity .6s ease, visibility .6s ease;
+        `;
+
+        overlay.innerHTML = `
+            <div class="loading-particles"></div>
+            <div style="position: relative; margin-bottom: 50px;">
+                <img class="arvet-loader-logo" src="images/ARVET.png" alt="ARVET" style="
+                    width: 200px; height: auto;
+                    position: relative; z-index: 2;
+                    opacity: 0;
+                    animation: logoFloat 4s ease-in-out infinite 1.4s;
+                    transition: opacity .4s ease;
+                ">
+                <div class="logo-glow"></div>
+            </div>
+            <div style="
+                width: 300px; height: 4px;
+                background: rgba(255,255,255,0.08);
+                border-radius: 10px;
+                overflow: hidden;
+                margin-bottom: 25px;
+            ">
+                <div id="arvet-progress-${id}" style="
+                    width: 0%; height: 100%;
+                    background: linear-gradient(90deg, #38bdf8, #60a5fa, #38bdf8);
+                    background-size: 200% 100%;
+                    border-radius: 10px;
+                    animation: progressGlow 2s linear infinite;
+                    transition: width .4s ease;
+                "></div>
+            </div>
+            <p id="arvet-text-${id}" style="
+                color: #94a3b8;
+                font-size: 14px;
+                letter-spacing: 3px;
+                text-transform: uppercase;
+                margin: 0;
+                animation: textPulse 2s ease-in-out infinite;
+            ">${message}</p>
+        `;
+
         document.body.appendChild(overlay);
         this.overlays.set(id, overlay);
+
+        // Logo fade in
+        const logoEl = overlay.querySelector('.arvet-loader-logo');
+        if (logoEl.complete) {
+            logoEl.style.opacity = '1';
+        } else {
+            logoEl.onload  = () => logoEl.style.opacity = '1';
+            logoEl.onerror = () => logoEl.style.display = 'none';
+        }
+
+        // Animar barra de progreso
+        const textos = [
+            'Alistando los botines...',
+            'Preparando el scrum...',
+            'La cerveza en hielo...',
+            'Inflando la pelota...',
+            '¡Listo para jugar!'
+        ];
+        const progressEl = overlay.querySelector(`#arvet-progress-${id}`);
+        const textEl     = overlay.querySelector(`#arvet-text-${id}`);
+        const startTime  = Date.now();
+        let textIndex    = 0;
+
+        const tick = () => {
+            if (!document.body.contains(overlay)) return;
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min((elapsed / 3500) * 90, 90);
+            progressEl.style.width = progress + '%';
+
+            const newIndex = Math.min(Math.floor(elapsed / 900), textos.length - 1);
+            if (newIndex !== textIndex) {
+                textIndex = newIndex;
+                textEl.textContent = textos[textIndex];
+            }
+            requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
     },
-    
+
     hide(id) {
         const overlay = this.overlays.get(id);
-        if (overlay) {
-            overlay.style.animation = 'fadeOutLoading 0.2s ease';
+        if (!overlay) return;
+
+        const progressEl = overlay.querySelector(`#arvet-progress-${id}`);
+        if (progressEl) progressEl.style.width = '100%';
+
+        setTimeout(() => {
+            overlay.classList.add('arvet-loader-hidden');
             setTimeout(() => {
                 overlay.remove();
                 this.overlays.delete(id);
-            }, 200);
-        }
+            }, 600);
+        }, 400);
     },
-    
+
     hideAll() {
-        this.overlays.forEach((overlay, id) => this.hide(id));
+        this.overlays.forEach((_, id) => this.hide(id));
     }
 };
-
 // ============================================
 // SKELETON UI
 // ============================================
