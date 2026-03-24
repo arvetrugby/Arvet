@@ -1162,7 +1162,7 @@ function crearModalDetalle(enc, detalle, encuentroId) {
 // ============================================
 async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     const usuario = obtenerUsuarioActual();
-    const esCreador = String(equipoCreadorId).trim() === String(usuario.equipoId).trim();
+  const esCreador = String(equipoCreadorId).trim().toLowerCase() === String(usuario.equipoId).trim().toLowerCase();
     const container = modal.querySelector('#asistenciasContainer');
     
     if (!container) {
