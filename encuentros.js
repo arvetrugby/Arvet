@@ -13,12 +13,6 @@ const ENCUENTROS_CONFIG = {
     API_URL: typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbzxxxxxxxxxxxxxxxx/exec'
 };
 
-// ============================================
-// CACHE EN MEMORIA
-// ============================================
-const encuentrosCache = new Map();
-const abortControllers = new Map();
-
 const CacheManager = {
     get(key) {
         const item = encuentrosCache.get(key);
@@ -1453,7 +1447,7 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
 }
 
 // ============================================
-// MODAL CREAR ENCUENTRO V3 - RÁPIDO Y FUNCIONAL
+// MODAL CREAR ENCUENTRO V4 - MEJORADO Y RÁPIDO
 // ============================================
 
 function nuevoEncuentro() {
@@ -1461,157 +1455,134 @@ function nuevoEncuentro() {
     
     const modal = document.createElement('div');
     modal.id = 'modalEncuentro';
-    modal.className = 'modal-encuentro';
+    modal.className = 'modal-encuentro-v4';
     
     modal.innerHTML = `
-        <div class="encuentro-form-container">
-            <!-- Header sticky -->
-            <div class="form-header">
+        <div class="encuentro-modal-container">
+            <div class="modal-header">
                 <h2>🏉 Nuevo Encuentro</h2>
                 <button class="btn-cerrar" onclick="cerrarModalEncuentro()">×</button>
             </div>
-
-            <!-- Body scrolleable -->
-            <div class="form-body">
-                
-                <!-- SECCIÓN 1: INFO BÁSICA -->
-                <div class="seccion">
-                    <div class="seccion-titulo">
-                        <span class="numero">1</span>
-                        <span>Información básica</span>
-                    </div>
+            
+            <div class="modal-body">
+                <form id="formEncuentro" onsubmit="guardarEncuentro(event)">
                     
-                    <!-- Flyer -->
-                    <div class="campo-flyer" id="zonaFlyer" onclick="document.getElementById('inputFlyer').click()">
-                        <div class="flyer-vacio" id="flyerVacio">
-                            <span class="icono">📸</span>
-                            <span class="texto">Tocá para subir flyer</span>
-                            <span class="hint">JPG o PNG · Recomendado 800×600</span>
+                    <!-- FLYER -->
+                    <div class="seccion">
+                        <div class="upload-zone" id="zonaFlyer" onclick="document.getElementById('inputFlyer').click()">
+                            <div class="upload-placeholder" id="flyerPlaceholder">
+                                <span class="icon">📸</span>
+                                <span class="text">Tocá para subir flyer</span>
+                                <span class="hint">JPG o PNG · 800×600 recomendado</span>
+                            </div>
+                            <img id="previewFlyer" class="flyer-img" style="display: none;">
+                            <button type="button" class="btn-cambiar" id="btnCambiarFlyer" style="display: none;" onclick="event.stopPropagation(); document.getElementById('inputFlyer').click()">
+                                Cambiar
+                            </button>
                         </div>
-                        <img id="previewFlyer" class="flyer-preview" style="display: none;">
-                        <button type="button" class="btn-cambiar-flyer" id="btnCambiarFlyer" style="display: none;" onclick="event.stopPropagation(); document.getElementById('inputFlyer').click()">
-                            Cambiar imagen
-                        </button>
+                        <input type="file" id="inputFlyer" accept="image/*" style="display: none;" onchange="subirFlyerOptimizado()">
+                        <input type="hidden" id="flyerUrl">
                     </div>
-                    <input type="file" id="inputFlyer" accept="image/*" style="display: none;" onchange="handleFlyerChange(this)">
-                    <input type="hidden" id="flyerUrl" value="">
 
-                    <!-- Nombre -->
+                    <!-- NOMBRE -->
                     <div class="campo">
                         <label class="label">Nombre del encuentro *</label>
                         <input type="text" id="encNombre" class="input" placeholder="Ej: Encuentro Veteranos - Mar del Plata 2026" required>
                     </div>
 
-                    <!-- Tipo -->
+                    <!-- TIPO -->
                     <div class="campo">
-                        <label class="label">Tipo de encuentro * (elegí uno o varios)</label>
-                        <div class="tipo-chips" id="tipoChips">
-                            <button type="button" class="chip" data-tipo="Veteranos +35" onclick="toggleChip(this)">👴 +35</button>
-                            <button type="button" class="chip" data-tipo="Veteranos +50" onclick="toggleChip(this)">👴👴 +50</button>
-                            <button type="button" class="chip" data-tipo="Mixto" onclick="toggleChip(this)">👥 Mixto</button>
-                            <button type="button" class="chip" data-tipo="Femenino" onclick="toggleChip(this)">👩 Femenino</button>
-                            <button type="button" class="chip" data-tipo="Juvenil" onclick="toggleChip(this)">🧒 Juvenil</button>
+                        <label class="label">Tipo de encuentro *</label>
+                        <div class="tipo-grid">
+                            <label class="tipo-card">
+                                <input type="checkbox" name="encTipo" value="Veteranos +35" hidden>
+                                <span class="tipo-icon">👴</span>
+                                <span class="tipo-text">+35</span>
+                            </label>
+                            <label class="tipo-card">
+                                <input type="checkbox" name="encTipo" value="Veteranos +50" hidden>
+                                <span class="tipo-icon">👴👴</span>
+                                <span class="tipo-text">+50</span>
+                            </label>
+                            <label class="tipo-card">
+                                <input type="checkbox" name="encTipo" value="Mixto" hidden>
+                                <span class="tipo-icon">👥</span>
+                                <span class="tipo-text">Mixto</span>
+                            </label>
+                            <label class="tipo-card">
+                                <input type="checkbox" name="encTipo" value="Femenino" hidden>
+                                <span class="tipo-icon">👩</span>
+                                <span class="tipo-text">Femenino</span>
+                            </label>
                         </div>
-                        <div class="otros-tipos" id="otrosTiposContainer">
-                            <input type="text" id="inputOtroTipo" placeholder="¿Otro tipo? Escribilo acá..." onkeypress="if(event.key === 'Enter') agregarOtroTipo()">
+                        
+                        <div class="otros-tipos">
+                            <input type="text" id="inputOtroTipo" placeholder="¿Otro tipo? Agregalo acá..." onkeypress="if(event.key === 'Enter') { event.preventDefault(); agregarOtroTipo(); }">
                             <button type="button" onclick="agregarOtroTipo()">+</button>
                         </div>
-                        <div class="tags-seleccionados" id="tagsSeleccionados"></div>
+                        <div class="tags-container" id="tagsContainer"></div>
                     </div>
-                </div>
 
-                <!-- SECCIÓN 2: FECHAS -->
-                <div class="seccion">
-                    <div class="seccion-titulo">
-                        <span class="numero">2</span>
-                        <span>Fechas y horarios *</span>
-                    </div>
-                    
-                    <div id="listaFechas" class="lista-fechas">
-                        <!-- Las fechas se agregan acá -->
-                    </div>
-                    
-                    <button type="button" class="btn-agregar" onclick="agregarFechaForm()">
-                        <span>+</span> Agregar fecha
-                    </button>
-                </div>
-
-                <!-- SECCIÓN 3: UBICACIÓN -->
-                <div class="seccion">
-                    <div class="seccion-titulo">
-                        <span class="numero">3</span>
-                        <span>Ubicación *</span>
-                    </div>
-                    
-                    <div class="mapa-wrapper">
-                        <div id="mapaEncuentro" class="mapa-box"></div>
-                        <div class="mapa-hint">📍 Arrastrá el pin o tocá el mapa</div>
-                    </div>
-                    
-                    <input type="hidden" id="encLat">
-                    <input type="hidden" id="encLng">
-                    <input type="hidden" id="encPaisId">
-                    <input type="hidden" id="encProvinciaId">
-                    <input type="hidden" id="encCiudadId">
-                    
+                    <!-- FECHAS -->
                     <div class="campo">
-                        <label class="label">Dirección completa</label>
-                        <input type="text" id="encDireccion" class="input" placeholder="Se completa automáticamente al mover el pin..." readonly>
+                        <label class="label">Fechas y horarios *</label>
+                        <div id="containerFechas" class="fechas-lista"></div>
+                        <button type="button" class="btn-agregar" onclick="agregarDia()">
+                            <span>+</span> Agregar día
+                        </button>
                     </div>
-                    
-                    <div class="ubicacion-ok" id="ubicacionOk" style="display: none;">
-                        ✅ <span id="ubicacionTexto"></span>
-                    </div>
-                </div>
 
-                <!-- SECCIÓN 4: CUPO Y VALORES -->
-                <div class="seccion">
-                    <div class="seccion-titulo">
-                        <span class="numero">4</span>
-                        <span>Cupo y valores *</span>
-                    </div>
-                    
-                    <!-- Cupo -->
-                    <div class="campo-cupo">
-                        <label class="label">¿Cuántos equipos?</label>
-                        <div class="cupo-control">
-                            <button type="button" onclick="cambiarCupoForm(-1)">−</button>
-                            <span id="cupoValor">8</span>
-                            <button type="button" onclick="cambiarCupoForm(1)">+</button>
+                    <!-- UBICACIÓN -->
+                    <div class="campo">
+                        <label class="label">Ubicación *</label>
+                        <div class="mapa-box" id="mapaEncuentro"></div>
+                        <div class="mapa-hint">📍 Mové el pin o tocá el mapa</div>
+                        
+                        <input type="hidden" id="encLat">
+                        <input type="hidden" id="encLng">
+                        <input type="hidden" id="encPaisId">
+                        <input type="hidden" id="encProvinciaId">
+                        <input type="hidden" id="encCiudadId">
+                        
+                        <input type="text" id="encDireccion" class="input" placeholder="Dirección..." readonly style="margin-top: 12px;">
+                        <div class="ubicacion-ok" id="encUbicacionInfo" style="display: none;">
+                            ✅ Ubicación confirmada
                         </div>
                     </div>
-                    <input type="hidden" id="encCupo" value="8">
 
-                    <!-- Valores -->
+                    <!-- CUPO -->
                     <div class="campo">
-                        <label class="label">Opciones de inscripción</label>
-                        <div id="listaValores" class="lista-valores">
-                            <!-- Los valores se agregan acá -->
+                        <label class="label">Cupo de equipos *</label>
+                        <div class="cupo-selector">
+                            <button type="button" onclick="ajustarCupo(-1)">−</button>
+                            <span id="cupoDisplay">8</span>
+                            <button type="button" onclick="ajustarCupo(1)">+</button>
                         </div>
-                        <button type="button" class="btn-agregar" onclick="agregarValorForm()">
+                        <input type="hidden" id="encCupo" value="8">
+                    </div>
+
+                    <!-- VALORES -->
+                    <div class="campo">
+                        <label class="label">Valores / Inscripción *</label>
+                        <div id="containerValores" class="valores-lista"></div>
+                        <button type="button" class="btn-agregar" onclick="agregarValor()">
                             <span>+</span> Agregar opción
                         </button>
                     </div>
-                </div>
 
-                <!-- SECCIÓN 5: DESCRIPCIÓN -->
-                <div class="seccion">
-                    <div class="seccion-titulo">
-                        <span class="numero">5</span>
-                        <span>Descripción (opcional)</span>
+                    <!-- DESCRIPCIÓN -->
+                    <div class="campo">
+                        <label class="label">Descripción (opcional)</label>
+                        <textarea id="encDescripcion" class="textarea" rows="3" placeholder="Formas de pago, menú, observaciones..."></textarea>
                     </div>
-                    
-                    <textarea id="encDescripcion" class="textarea" rows="3" placeholder="Información extra: formas de pago, menú del 3er tiempo, observaciones importantes..."></textarea>
-                </div>
 
-                <!-- Espacio para el footer sticky -->
-                <div style="height: 100px;"></div>
+                    <div style="height: 80px;"></div>
+                </form>
             </div>
 
-            <!-- Footer sticky -->
-            <div class="form-footer">
+            <div class="modal-footer">
                 <button type="button" class="btn-cancelar" onclick="cerrarModalEncuentro()">Cancelar</button>
-                <button type="button" class="btn-crear" onclick="guardarEncuentroForm()" id="btnGuardar">
+                <button type="button" class="btn-guardar" onclick="document.getElementById('formEncuentro').dispatchEvent(new Event('submit'))">
                     Crear encuentro
                 </button>
             </div>
@@ -1620,12 +1591,12 @@ function nuevoEncuentro() {
     
     document.body.appendChild(modal);
     
-    // Inyectar CSS si no existe
-    if (!document.getElementById('encuentro-form-styles')) {
+    // CSS inline rápido
+    if (!document.getElementById('encuentro-v4-styles')) {
         const style = document.createElement('style');
-        style.id = 'encuentro-form-styles';
+        style.id = 'encuentro-v4-styles';
         style.textContent = `
-            .modal-encuentro {
+            .modal-encuentro-v4 {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -1638,49 +1609,47 @@ function nuevoEncuentro() {
                 justify-content: center;
             }
             
-            @media (min-width: 600px) {
-                .modal-encuentro {
-                    align-items: center;
-                }
+            @media (min-width: 640px) {
+                .modal-encuentro-v4 { align-items: center; }
             }
             
-            .encuentro-form-container {
+            .encuentro-modal-container {
                 background: white;
                 width: 100%;
                 max-width: 600px;
                 max-height: 95vh;
-                border-radius: 20px 20px 0 0;
+                border-radius: 24px 24px 0 0;
                 display: flex;
                 flex-direction: column;
-                animation: slideUpForm 0.25s ease;
+                animation: slideUpV4 0.2s ease;
             }
             
-            @media (min-width: 600px) {
-                .encuentro-form-container {
-                    border-radius: 16px;
+            @media (min-width: 640px) {
+                .encuentro-modal-container {
+                    border-radius: 20px;
                     max-height: 90vh;
                 }
             }
             
-            @keyframes slideUpForm {
-                from { transform: translateY(100%); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
+            @keyframes slideUpV4 {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
             }
             
-            .form-header {
-                padding: 16px 20px;
+            .modal-header {
+                padding: 20px;
                 border-bottom: 1px solid #e2e8f0;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                background: white;
-                border-radius: 20px 20px 0 0;
                 position: sticky;
                 top: 0;
+                background: white;
                 z-index: 10;
+                border-radius: 24px 24px 0 0;
             }
             
-            .form-header h2 {
+            .modal-header h2 {
                 margin: 0;
                 font-size: 20px;
                 color: #0f172a;
@@ -1695,18 +1664,15 @@ function nuevoEncuentro() {
                 color: #64748b;
                 font-size: 24px;
                 cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
             
-            .form-body {
+            .modal-body {
                 flex: 1;
                 overflow-y: auto;
                 padding: 20px;
             }
             
-            .form-footer {
+            .modal-footer {
                 padding: 16px 20px;
                 border-top: 1px solid #e2e8f0;
                 display: flex;
@@ -1716,35 +1682,9 @@ function nuevoEncuentro() {
                 bottom: 0;
             }
             
-            .seccion {
-                margin-bottom: 28px;
-            }
+            .seccion { margin-bottom: 24px; }
             
-            .seccion-titulo {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-size: 16px;
-                font-weight: 700;
-                color: #0f172a;
-                margin-bottom: 16px;
-            }
-            
-            .seccion-titulo .numero {
-                width: 28px;
-                height: 28px;
-                background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                font-weight: 800;
-            }
-            
-            /* FLYER */
-            .campo-flyer {
+            .upload-zone {
                 border: 2px dashed #cbd5e1;
                 border-radius: 16px;
                 padding: 32px 20px;
@@ -1753,48 +1693,28 @@ function nuevoEncuentro() {
                 transition: all 0.2s;
                 background: #f8fafc;
                 position: relative;
-                margin-bottom: 20px;
             }
             
-            .campo-flyer:hover {
-                border-color: #38bdf8;
-                background: #f0f9ff;
-            }
-            
-            .campo-flyer.tiene-imagen {
+            .upload-zone:hover { border-color: #38bdf8; background: #f0f9ff; }
+            .upload-zone.tiene-imagen {
                 border-style: solid;
                 border-color: #22c55e;
                 padding: 16px;
             }
             
-            .flyer-vacio .icono {
-                font-size: 48px;
-                display: block;
-                margin-bottom: 8px;
-            }
+            .upload-placeholder .icon { font-size: 40px; display: block; margin-bottom: 8px; }
+            .upload-placeholder .text { font-size: 15px; font-weight: 600; color: #475569; display: block; }
+            .upload-placeholder .hint { font-size: 12px; color: #94a3b8; }
             
-            .flyer-vacio .texto {
-                font-size: 16px;
-                font-weight: 600;
-                color: #475569;
-                display: block;
-                margin-bottom: 4px;
-            }
-            
-            .flyer-vacio .hint {
-                font-size: 13px;
-                color: #94a3b8;
-            }
-            
-            .flyer-preview {
+            .flyer-img {
                 max-width: 100%;
-                max-height: 200px;
+                max-height: 180px;
                 border-radius: 12px;
                 display: block;
                 margin: 0 auto;
             }
             
-            .btn-cambiar-flyer {
+            .btn-cambiar {
                 margin-top: 12px;
                 padding: 8px 16px;
                 background: #f1f5f9;
@@ -1805,10 +1725,7 @@ function nuevoEncuentro() {
                 cursor: pointer;
             }
             
-            /* CAMPOS */
-            .campo {
-                margin-bottom: 20px;
-            }
+            .campo { margin-bottom: 20px; }
             
             .label {
                 display: block;
@@ -1824,9 +1741,8 @@ function nuevoEncuentro() {
                 border: 2px solid #e2e8f0;
                 border-radius: 12px;
                 font-size: 16px;
-                transition: all 0.2s;
                 box-sizing: border-box;
-                font-family: inherit;
+                transition: border-color 0.2s;
             }
             
             .input:focus, .textarea:focus {
@@ -1834,46 +1750,45 @@ function nuevoEncuentro() {
                 border-color: #38bdf8;
             }
             
-            .textarea {
-                resize: vertical;
-                min-height: 100px;
-            }
+            .textarea { resize: vertical; min-height: 80px; }
             
-            /* TIPO CHIPS */
-            .tipo-chips {
-                display: flex;
-                flex-wrap: wrap;
+            .tipo-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
                 margin-bottom: 12px;
             }
             
-            .chip {
-                padding: 10px 16px;
+            @media (max-width: 400px) {
+                .tipo-grid { grid-template-columns: repeat(2, 1fr); }
+            }
+            
+            .tipo-card {
                 border: 2px solid #e2e8f0;
-                border-radius: 50px;
-                background: white;
-                font-size: 14px;
-                font-weight: 600;
-                color: #475569;
+                border-radius: 12px;
+                padding: 16px 8px;
+                text-align: center;
                 cursor: pointer;
                 transition: all 0.2s;
+                background: white;
             }
             
-            .chip:hover {
-                border-color: #38bdf8;
-                background: #f0f9ff;
-            }
+            .tipo-card:hover { border-color: #38bdf8; }
             
-            .chip.seleccionado {
+            .tipo-card:has(input:checked) {
                 background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
                 border-color: #2563eb;
                 color: white;
             }
             
+            .tipo-card input { display: none; }
+            .tipo-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+            .tipo-text { font-size: 12px; font-weight: 600; }
+            
             .otros-tipos {
                 display: flex;
                 gap: 8px;
-                margin-bottom: 12px;
+                margin-bottom: 8px;
             }
             
             .otros-tipos input {
@@ -1894,7 +1809,7 @@ function nuevoEncuentro() {
                 cursor: pointer;
             }
             
-            .tags-seleccionados {
+            .tags-container {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
@@ -1916,25 +1831,21 @@ function nuevoEncuentro() {
                 background: rgba(255,255,255,0.3);
                 border: none;
                 color: white;
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
                 border-radius: 50%;
                 cursor: pointer;
-                font-size: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                font-size: 11px;
             }
             
-            /* FECHAS */
-            .lista-fechas {
+            .fechas-lista, .valores-lista {
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
                 margin-bottom: 12px;
             }
             
-            .fecha-item {
+            .fecha-box, .valor-box {
                 background: #f8fafc;
                 border: 2px solid #e2e8f0;
                 border-radius: 16px;
@@ -1955,9 +1866,9 @@ function nuevoEncuentro() {
                 font-size: 16px;
             }
             
-            .btn-eliminar-fecha {
-                width: 40px;
-                height: 40px;
+            .btn-eliminar {
+                width: 44px;
+                height: 44px;
                 border-radius: 10px;
                 border: none;
                 background: #fee2e2;
@@ -1975,37 +1886,23 @@ function nuevoEncuentro() {
                 border-left: 3px solid #cbd5e1;
             }
             
-            .horario-item {
+            .horario-line {
                 display: flex;
                 gap: 8px;
-                align-items: center;
             }
             
-            .horario-item input[type="time"] {
+            .horario-line input[type="time"] {
                 width: 100px;
                 padding: 10px;
                 border: 2px solid #e2e8f0;
                 border-radius: 8px;
-                font-size: 14px;
             }
             
-            .horario-item input[type="text"] {
+            .horario-line input[type="text"] {
                 flex: 1;
                 padding: 10px;
                 border: 2px solid #e2e8f0;
                 border-radius: 8px;
-                font-size: 14px;
-            }
-            
-            .btn-eliminar-horario {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                border: none;
-                background: #fee2e2;
-                color: #dc2626;
-                font-size: 16px;
-                cursor: pointer;
             }
             
             .btn-agregar-horario {
@@ -2036,12 +1933,6 @@ function nuevoEncuentro() {
                 gap: 8px;
             }
             
-            /* MAPA */
-            .mapa-wrapper {
-                position: relative;
-                margin-bottom: 16px;
-            }
-            
             .mapa-box {
                 height: 200px;
                 border-radius: 16px;
@@ -2050,33 +1941,22 @@ function nuevoEncuentro() {
             }
             
             .mapa-hint {
-                position: absolute;
-                bottom: 12px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0,0,0,0.7);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 50px;
+                text-align: center;
+                color: #64748b;
                 font-size: 13px;
-                white-space: nowrap;
+                margin-top: 8px;
             }
             
             .ubicacion-ok {
                 background: #dcfce7;
-                border: 1px solid #86efac;
                 border-radius: 10px;
                 padding: 12px 16px;
                 color: #166534;
                 font-size: 14px;
+                margin-top: 8px;
             }
             
-            /* CUPO */
-            .campo-cupo {
-                margin-bottom: 20px;
-            }
-            
-            .cupo-control {
+            .cupo-selector {
                 display: flex;
                 align-items: center;
                 gap: 20px;
@@ -2086,7 +1966,7 @@ function nuevoEncuentro() {
                 width: fit-content;
             }
             
-            .cupo-control button {
+            .cupo-selector button {
                 width: 48px;
                 height: 48px;
                 border-radius: 50%;
@@ -2095,17 +1975,9 @@ function nuevoEncuentro() {
                 font-size: 24px;
                 color: #475569;
                 cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
             
-            .cupo-control button:hover {
-                border-color: #38bdf8;
-                background: #f0f9ff;
-            }
-            
-            .cupo-control span {
+            .cupo-selector span {
                 font-size: 32px;
                 font-weight: 800;
                 color: #2563eb;
@@ -2113,24 +1985,12 @@ function nuevoEncuentro() {
                 text-align: center;
             }
             
-            /* VALORES */
-            .lista-valores {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-            
-            .valor-item {
-                background: white;
-                border: 2px solid #e2e8f0;
-                border-radius: 12px;
-                padding: 16px;
+            .valor-box {
                 display: grid;
                 gap: 12px;
             }
             
-            .valor-item input {
+            .valor-box input {
                 padding: 12px;
                 border: 2px solid #e2e8f0;
                 border-radius: 10px;
@@ -2142,13 +2002,8 @@ function nuevoEncuentro() {
                 gap: 12px;
             }
             
-            .valor-row input[type="number"] {
-                flex: 1;
-            }
-            
-            .valor-row input[type="text"] {
-                flex: 2;
-            }
+            .valor-row input[type="number"] { flex: 1; }
+            .valor-row input[type="text"] { flex: 2; }
             
             .btn-eliminar-valor {
                 padding: 10px;
@@ -2160,7 +2015,6 @@ function nuevoEncuentro() {
                 cursor: pointer;
             }
             
-            /* FOOTER BOTONES */
             .btn-cancelar {
                 flex: 1;
                 padding: 14px;
@@ -2173,7 +2027,7 @@ function nuevoEncuentro() {
                 cursor: pointer;
             }
             
-            .btn-crear {
+            .btn-guardar {
                 flex: 2;
                 padding: 14px;
                 background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
@@ -2185,77 +2039,24 @@ function nuevoEncuentro() {
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
             }
-            
-            .btn-crear:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            
-            /* SKELETON MAPA */
-            .mapa-cargando {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #94a3b8;
-                font-size: 14px;
-            }
         `;
         document.head.appendChild(style);
     }
     
     // Inicializar
     setTimeout(() => {
-        initMapaForm();
-        agregarFechaForm();
-        agregarValorForm();
+        initMapaEncuentro();
+        agregarDia();
+        agregarValor();
     }, 50);
 }
 
 // ============================================
-// HANDLERS DEL FORMULARIO
+// FUNCIONES MEJORADAS (manteniendo nombres originales)
 // ============================================
 
-function handleFlyerChange(input) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-        alert('El archivo debe ser una imagen');
-        return;
-    }
-    
-    // Preview local inmediata
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('flyerVacio').style.display = 'none';
-        const preview = document.getElementById('previewFlyer');
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-        document.getElementById('zonaFlyer').classList.add('tiene-imagen');
-        document.getElementById('btnCambiarFlyer').style.display = 'inline-block';
-    };
-    reader.readAsDataURL(file);
-    
-    // Subir en background
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(result => {
-        if (result.success) {
-            document.getElementById('flyerUrl').value = result.data.url;
-        }
-    })
-    .catch(err => console.error('Error subiendo:', err));
-}
-
-function toggleChip(btn) {
-    btn.classList.toggle('seleccionado');
-    actualizarTagsMostrados();
+function toggleOtrosTipos() {
+    // Ya no se usa, los chips son clickeables directamente
 }
 
 function agregarOtroTipo() {
@@ -2263,345 +2064,130 @@ function agregarOtroTipo() {
     const valor = input.value.trim();
     if (!valor) return;
     
-    // Crear chip temporal
-    const chipsContainer = document.getElementById('tipoChips');
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'chip seleccionado';
-    chip.dataset.tipo = valor;
-    chip.textContent = valor;
-    chip.onclick = function() { toggleChip(this); };
+    // Crear chip visual
+    const container = document.getElementById('tagsContainer');
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${valor} <button onclick="this.parentElement.remove()">×</button>`;
+    tag.dataset.tipo = valor;
+    container.appendChild(tag);
     
-    chipsContainer.appendChild(chip);
+    // Agregar checkbox hidden para el form
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.name = 'encTipo';
+    checkbox.value = valor;
+    checkbox.checked = true;
+    checkbox.style.display = 'none';
+    tag.appendChild(checkbox);
+    
     input.value = '';
-    actualizarTagsMostrados();
 }
 
-function actualizarTagsMostrados() {
-    const seleccionados = document.querySelectorAll('.chip.seleccionado');
-    const container = document.getElementById('tagsSeleccionados');
-    
-    container.innerHTML = Array.from(seleccionados).map(chip => `
-        <span class="tag">
-            ${chip.dataset.tipo}
-            <button onclick="deseleccionarTipo('${chip.dataset.tipo}')">×</button>
-        </span>
-    `).join('');
+function ajustarCupo(delta) {
+    const display = document.getElementById('cupoDisplay');
+    const input = document.getElementById('encCupo');
+    let valor = parseInt(display.textContent) + delta;
+    if (valor < 2) valor = 2;
+    if (valor > 50) valor = 50;
+    display.textContent = valor;
+    input.value = valor;
 }
 
-function deseleccionarTipo(tipo) {
-    const chip = document.querySelector(`.chip[data-tipo="${tipo}"]`);
-    if (chip) {
-        chip.classList.remove('seleccionado');
-        actualizarTagsMostrados();
-    }
-}
-
-function agregarFechaForm() {
-    const container = document.getElementById('listaFechas');
-    const id = Date.now();
+// Sobreescribir agregarDia para usar nuevo diseño
+const agregarDiaOriginal = agregarDia;
+agregarDia = function() {
+    const container = document.getElementById('containerFechas');
     
     const div = document.createElement('div');
-    div.className = 'fecha-item';
-    div.dataset.id = id;
+    div.className = 'fecha-box';
     div.innerHTML = `
         <div class="fecha-header">
-            <input type="date" required onchange="validarFechas()">
-            <button type="button" class="btn-eliminar-fecha" onclick="this.closest('.fecha-item').remove(); validarFechas()">×</button>
+            <input type="date" required onchange="validarForm()">
+            <button type="button" class="btn-eliminar" onclick="this.closest('.fecha-box').remove()">×</button>
         </div>
         <div class="horarios-lista">
-            <div class="horario-item">
+            <div class="horario-line">
                 <input type="time" value="10:00" required>
-                <input type="text" placeholder="Ej: Acreditación" value="Acreditación" required>
-                <button type="button" class="btn-eliminar-horario" onclick="this.closest('.horario-item').remove()">×</button>
+                <input type="text" value="Acreditación" placeholder="Actividad" required>
+                <button type="button" class="btn-eliminar" onclick="this.parentElement.remove()" style="width: 36px; height: 36px;">×</button>
             </div>
         </div>
-        <button type="button" class="btn-agregar-horario" onclick="agregarHorarioForm(this)">+ Agregar horario</button>
+        <button type="button" class="btn-agregar-horario" onclick="agregarHorario(this)">+ Agregar horario</button>
     `;
     
     container.appendChild(div);
     
-    // Setear fecha de hoy por defecto
+    // Fecha de hoy por defecto
     const dateInput = div.querySelector('input[type="date"]');
     dateInput.value = new Date().toISOString().split('T')[0];
-}
+};
 
-function agregarHorarioForm(btn) {
+// Sobreescribir agregarHorario
+const agregarHorarioOriginal = agregarHorario;
+agregarHorario = function(btn) {
     const lista = btn.previousElementSibling;
     const div = document.createElement('div');
-    div.className = 'horario-item';
+    div.className = 'horario-line';
     div.innerHTML = `
         <input type="time" value="14:00" required>
         <input type="text" placeholder="¿Qué pasa a esta hora?" required>
-        <button type="button" class="btn-eliminar-horario" onclick="this.closest('.horario-item').remove()">×</button>
+        <button type="button" class="btn-eliminar" onclick="this.parentElement.remove()" style="width: 36px; height: 36px;">×</button>
     `;
     lista.appendChild(div);
-}
+};
 
-function cambiarCupoForm(delta) {
-    const span = document.getElementById('cupoValor');
-    const input = document.getElementById('encCupo');
-    let valor = parseInt(span.textContent) + delta;
-    if (valor < 2) valor = 2;
-    if (valor > 50) valor = 50;
-    span.textContent = valor;
-    input.value = valor;
-}
-
-let mapaForm, markerForm;
-
-function initMapaForm() {
-    const defaultLat = -34.6037;
-    const defaultLat = -58.3816;
-    
-    // Mostrar loading mientras carga
-    document.getElementById('mapaEncuentro').innerHTML = '<div class="mapa-cargando">Cargando mapa...</div>';
-    
-    // Esperar a que Leaflet esté listo
-    if (typeof L === 'undefined') {
-        setTimeout(initMapaForm, 100);
-        return;
-    }
-    
-    const container = document.getElementById('mapaEncuentro');
-    container.innerHTML = '';
-    container.classList.remove('mapa-cargando');
-    
-    mapaForm = L.map(container).setView([defaultLat, defaultLng], 13);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(mapaForm);
-    
-    markerForm = L.marker([defaultLat, defaultLng], {
-        draggable: true,
-        icon: L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-        })
-    }).addTo(mapaForm);
-    
-    markerForm.on('dragend', function() {
-        const pos = markerForm.getLatLng();
-        actualizarUbicacionForm(pos.lat, pos.lng);
-    });
-    
-    mapaForm.on('click', function(e) {
-        markerForm.setLatLng(e.latlng);
-        actualizarUbicacionForm(e.latlng.lat, e.latlng.lng);
-    });
-    
-    // Geolocalización rápida
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                mapaForm.setView([lat, lng], 13);
-                markerForm.setLatLng([lat, lng]);
-                actualizarUbicacionForm(lat, lng);
-            },
-            () => {
-                actualizarUbicacionForm(defaultLat, defaultLng);
-            },
-            { timeout: 5000 }
-        );
-    } else {
-        actualizarUbicacionForm(defaultLat, defaultLng);
-    }
-}
-
-async function actualizarUbicacionForm(lat, lng) {
-    document.getElementById('encLat').value = lat;
-    document.getElementById('encLng').value = lng;
-    
-    try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-        const data = await response.json();
-        
-        if (data && data.address) {
-            const addr = data.address;
-            const partes = [];
-            if (addr.road) partes.push(addr.road);
-            if (addr.house_number) partes.push(addr.house_number);
-            if (addr.suburb || addr.neighbourhood) partes.push(addr.suburb || addr.neighbourhood);
-            if (addr.city || addr.town || addr.village) partes.push(addr.city || addr.town || addr.village);
-            
-            const direccion = partes.join(', ') || data.display_name;
-            document.getElementById('encDireccion').value = direccion;
-            
-            // IDs para el backend
-            document.getElementById('encPaisId').value = addr.country_code || '';
-            document.getElementById('encProvinciaId').value = addr.state || addr.province || '';
-            document.getElementById('encCiudadId').value = addr.city || addr.town || addr.village || '';
-            
-            // Mostrar confirmación
-            const okDiv = document.getElementById('ubicacionOk');
-            const okText = document.getElementById('ubicacionTexto');
-            okText.textContent = `${addr.city || addr.town || ''}, ${addr.state || ''}, ${addr.country || ''}`;
-            okDiv.style.display = 'block';
-        }
-    } catch (err) {
-        console.error('Error geocodificando:', err);
-    }
-}
-
-function agregarValorForm() {
-    const container = document.getElementById('listaValores');
+// Sobreescribir agregarValor
+const agregarValorOriginal = agregarValor;
+agregarValor = function() {
+    const container = document.getElementById('containerValores');
     
     const div = document.createElement('div');
-    div.className = 'valor-item';
+    div.className = 'valor-box';
     div.innerHTML = `
         <input type="text" placeholder="Título (ej: Inscripción completa)" required>
         <div class="valor-row">
             <input type="number" placeholder="$ Precio" min="0" required>
-            <input type="text" placeholder="Descripción opcional (ej: incluye comida)">
+            <input type="text" placeholder="Descripción opcional">
         </div>
-        <button type="button" class="btn-eliminar-valor" onclick="this.closest('.valor-item').remove()">Eliminar opción</button>
+        <button type="button" class="btn-eliminar-valor" onclick="this.closest('.valor-box').remove()">Eliminar opción</button>
     `;
     
     container.appendChild(div);
+};
+
+function validarForm() {
+    // Validación básica
 }
 
-function validarFechas() {
-    // Validación visual si es necesaria
-}
-
-async function guardarEncuentroForm() {
-    // Validaciones
-    const nombre = document.getElementById('encNombre').value.trim();
-    if (!nombre) {
-        alert('Ingresá el nombre del encuentro');
-        document.getElementById('encNombre').focus();
-        return;
-    }
-    
-    const tipos = document.querySelectorAll('.chip.seleccionado');
-    if (tipos.length === 0) {
-        alert('Seleccioná al menos un tipo de encuentro');
-        return;
-    }
-    
-    const lat = document.getElementById('encLat').value;
-    if (!lat) {
-        alert('Marcá la ubicación en el mapa');
-        return;
-    }
-    
-    // Recolectar fechas
-    const fechas = [];
-    document.querySelectorAll('.fecha-item').forEach(item => {
-        const dia = item.querySelector('input[type="date"]').value;
-        if (!dia) return;
-        
-        const horarios = [];
-        item.querySelectorAll('.horario-item').forEach(h => {
-            const hora = h.querySelector('input[type="time"]').value;
-            const desc = h.querySelector('input[type="text"]').value;
-            if (hora && desc) horarios.push({ hora, desc });
-        });
-        
-        if (horarios.length > 0) {
-            fechas.push({ dia, horarios });
-        }
-    });
-    
-    if (fechas.length === 0) {
-        alert('Agregá al menos una fecha con horario');
-        return;
-    }
-    
-    // Recolectar valores
-    const valores = [];
-    document.querySelectorAll('.valor-item').forEach(item => {
-        const titulo = item.querySelector('input[type="text"]').value;
-        const precio = item.querySelector('input[type="number"]').value;
-        const desc = item.querySelectorAll('input[type="text"]')[1]?.value || '';
-        if (titulo && precio) {
-            valores.push({ titulo, precio: parseFloat(precio), desc });
-        }
-    });
-    
-    if (valores.length === 0) {
-        alert('Agregá al menos una opción de valor');
-        return;
-    }
-    
-    // Preparar datos
-    const usuario = obtenerUsuarioActual();
-    const params = new URLSearchParams({
-        action: 'crearEncuentro',
-        equipoCreadorId: usuario.equipoId,
-        creadorNombre: usuario.equipoNombre || usuario.nombre,
-        nombre: nombre,
-        flyerUrl: document.getElementById('flyerUrl').value || '',
-        fechasJSON: JSON.stringify(fechas),
-        valoresJSON: JSON.stringify(valores),
-        cupoMaximo: document.getElementById('encCupo').value,
-        lugar: document.getElementById('encDireccion').value,
-        lat: lat,
-        lng: document.getElementById('encLng').value,
-        paisId: document.getElementById('encPaisId').value,
-        provinciaId: document.getElementById('encProvinciaId').value,
-        ciudadId: document.getElementById('encCiudadId').value,
-        tipo: Array.from(tipos).map(t => t.dataset.tipo).join(', '),
-        descripcion: document.getElementById('encDescripcion').value,
-        estado: 'publicado'
-    });
-    
-    // Enviar
-    const btn = document.getElementById('btnGuardar');
-    btn.disabled = true;
-    btn.textContent = 'Creando...';
-    
-    try {
-        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
-        
-        if (result.success) {
-            cerrarModalEncuentro();
-            mostrarMensajeEncuentros('🎉 Encuentro creado con éxito', 'success');
-            CacheManager.invalidateAll();
-            renderizarMisEncuentros();
-        } else {
-            throw new Error(result.error || 'Error al crear');
-        }
-    } catch (err) {
-        alert(err.message || 'Error de conexión');
-        btn.disabled = false;
-        btn.textContent = 'Crear encuentro';
-    }
-}
-
-function cerrarModalEncuentro() {
+// Cerrar con animación
+const cerrarModalOriginal = cerrarModalEncuentro;
+cerrarModalEncuentro = function() {
     const modal = document.getElementById('modalEncuentro');
     if (modal) {
-        modal.style.animation = 'slideDownForm 0.2s ease';
+        modal.style.animation = 'slideDownV4 0.2s ease';
         setTimeout(() => {
             modal.remove();
-            if (mapaForm) {
-                mapaForm.remove();
-                mapaForm = null;
+            if (mapaEncuentro) {
+                mapaEncuentro.remove();
+                mapaEncuentro = null;
             }
         }, 200);
     }
-}
+};
 
-// Animación de cierre
-if (!document.getElementById('encuentro-close-anim')) {
+// CSS para cerrar
+if (!document.getElementById('slide-down-anim')) {
     const style = document.createElement('style');
-    style.id = 'encuentro-close-anim';
+    style.id = 'slide-down-anim';
     style.textContent = `
-        @keyframes slideDownForm {
+        @keyframes slideDownV4 {
             from { transform: translateY(0); opacity: 1; }
             to { transform: translateY(100%); opacity: 0; }
         }
     `;
     document.head.appendChild(style);
 }
-
-// Exponer funciones necesarias
-window.cerrarModalEncuentro = cerrarModalEncuentro;
 // ============================================
 // FUNCIONES AUXILIARES DEL MODAL
 // ============================================
