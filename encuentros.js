@@ -1059,10 +1059,34 @@ function crearModalDetalle(enc, detalle, encuentroId) {
     
     modal.innerHTML = `
         <div style="width: 100%; max-width: 900px; max-height: 95vh; overflow-y: auto; background: white; border-radius: 16px; position: relative; animation: slideUpMsg 0.3s ease;">
-            <div style="position: sticky; top: 0; background: white; z-index: 10; padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
-                <button onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+            <div style="position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #e2e8f0;">
+    <!-- Fila 1: Título y cerrar -->
+    <div style="padding: 20px 20px 10px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; font-size: clamp(1.1rem, 4vw, 1.5rem); line-height: 1.3; flex: 1; padding-right: 15px;">${enc.nombre}</h2>
+        <button onclick="document.getElementById('modalDetalleEncuentro').remove()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #64748b; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">×</button>
+    </div>
+    
+    <!-- Fila 2: RESUMEN PARA CREADOR (solo se muestra si es creador) -->
+    <div id="resumenCreadorSticky" style="display: none; padding: 12px 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-top: 1px solid #bbf7d0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #166534;" id="resumenEquiposTotal">0</div>
+                    <div style="font-size: 0.75rem; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">Equipos</div>
+                </div>
+                <div style="width: 1px; height: 40px; background: #86efac;"></div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.4rem; font-weight: 800; color: #16a34a;" id="resumenJugadoresTotal">0</div>
+                    <div style="font-size: 0.75rem; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">Jugadores</div>
+                </div>
             </div>
+            <button onclick="descargarAsistenciasCompletasCSV('${encuentroId}')" 
+                style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 4px rgba(22,163,74,0.3); display: flex; align-items: center; gap: 6px;">
+                <span>📥</span> Descargar CSV
+            </button>
+        </div>
+    </div>
+</div>
             
             <div style="padding: 20px;">
                 ${enc.flyerUrl ? `
@@ -1169,7 +1193,11 @@ function crearModalDetalle(enc, detalle, encuentroId) {
 async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     const usuario = obtenerUsuarioActual();
   const esCreador = String(equipoCreadorId).trim().toLowerCase() === String(usuario.equipoId).trim().toLowerCase();
-    
+    // Mostrar resumen sticky si es creador
+const resumenSticky = document.getElementById('resumenCreadorSticky');
+if (resumenSticky && esCreador) {
+    resumenSticky.style.display = 'block';
+}
     console.log('Cargando asistencias:', { encuentroId, equipoCreadorId, usuarioEquipoId: usuario.equipoId, esCreador });
     const container = modal.querySelector('#asistenciasContainer');
     
@@ -1184,17 +1212,27 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
     try {
         let asistenciasHTML = '';
         
-        if (esCreador) {
-            // CREADOR: Ver todos los jugadores
-            const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
-            const data = await resp.json();
-            
-            console.log('Respuesta asistencias creador:', data);
-            
-            if (data.success && data.data && data.data.length > 0) {
-                const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
-                const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
-                
+       if (esCreador) {
+    // CREADOR: Ver todos los jugadores
+    const resp = await fetch(`${ENCUENTROS_CONFIG.API_URL}?action=getAsistenciasCompletasCreador&encuentroId=${encuentroId}&equipoCreadorId=${usuario.equipoId}`);
+    const data = await resp.json();
+    
+    console.log('Respuesta asistencias creador:', data);
+    
+    if (data.success && data.data && data.data.length > 0) {
+        
+        // 🔢 CALCULAR TOTALES PARA RESUMEN STICKY
+        const totalEquipos = data.data.length;
+        const totalJugadores = data.data.reduce((acc, eq) => acc + eq.jugadores.length, 0);
+        const totalVoy = data.data.reduce((acc, eq) => acc + eq.jugadores.filter(j => j.respuesta === 'voy').length, 0);
+        
+        // 📝 ACTUALIZAR RESUMEN STICKY
+        const elEquipos = document.getElementById('resumenEquiposTotal');
+        const elJugadores = document.getElementById('resumenJugadoresTotal');
+        if (elEquipos) elEquipos.textContent = totalEquipos;
+        if (elJugadores) elJugadores.textContent = totalVoy; // Solo los que van
+        
+        
                 asistenciasHTML = `
                     <div style="margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
@@ -1257,6 +1295,12 @@ async function cargarAsistenciasAsync(encuentroId, equipoCreadorId, modal) {
                         <p style="color: #64748b; text-align: center; padding: 20px;">No hay jugadores confirmados todavía</p>
                     </div>
                 `;
+        // Agregar esto:
+    const elEquipos = document.getElementById('resumenEquiposTotal');
+    const elJugadores = document.getElementById('resumenJugadoresTotal');
+    if (elEquipos) elEquipos.textContent = '0';
+    if (elJugadores) elJugadores.textContent = '0';
+}
             }
         } else {
             // EQUIPO INVITADO: Ver solo sus jugadores
