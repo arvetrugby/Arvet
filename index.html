@@ -1713,6 +1713,28 @@ document.getElementById("modalOverlay").addEventListener("click", function(e) {
     }
 });
 </script>
+     <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleFeatures');
+    const featuresGrid = document.getElementById('featuresGrid');
+    
+    if (toggleBtn && featuresGrid) {
+        toggleBtn.addEventListener('click', function() {
+            featuresGrid.classList.toggle('open');
+            
+            // Cambiar el texto del botón
+            if (featuresGrid.classList.contains('open')) {
+                toggleBtn.textContent = 'Ver menos';
+            } else {
+                toggleBtn.textContent = 'Ver más';
+                
+                // Scroll suave hacia arriba cuando se cierra
+                featuresGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+});
+    </script>
 </body>
 </html>
 
