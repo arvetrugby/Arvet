@@ -184,11 +184,11 @@ const LoadingManager = {
 
         // Animar barra de progreso
         const textos = [
-            'Alistando los botines...',
-            'Preparando el scrum...',
-            'La cerveza en hielo...',
-            'Inflando la pelota...',
-            '¡Listo para jugar!'
+            'Podes editar...',
+            'Podes cancelar...',
+            'Podes descargar...',
+            '..listado de asistenes.',
+            '¡A jugar!'
         ];
         const progressEl = overlay.querySelector(`#arvet-progress-${id}`);
         const textEl     = overlay.querySelector(`#arvet-text-${id}`);
