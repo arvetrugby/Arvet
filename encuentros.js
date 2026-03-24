@@ -187,8 +187,8 @@ const LoadingManager = {
             'Podes editar...',
             'Podes cancelar...',
             'Podes descargar...',
-            '..listado de asistenes.',
-            '¡A jugar!'
+            '..Cuantos somos?',
+            '¡A ver quien viene!'
         ];
         const progressEl = overlay.querySelector(`#arvet-progress-${id}`);
         const textEl     = overlay.querySelector(`#arvet-text-${id}`);
