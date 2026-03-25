@@ -549,8 +549,11 @@ color:white;
     line-height: 1.3;
     white-space: normal;
 }
-    /* FINANZAS - ESTILOS */
+/* ============================================
+   FINANZAS - ESTILOS COMPLETOS
+   ============================================ */
 
+/* Resumen de balance */
 .finanzas-resumen {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -565,8 +568,13 @@ color:white;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border-left: 4px solid;
+    transition: transform 0.2s;
+}
+
+.card-resumen:hover {
+    transform: translateY(-2px);
 }
 
 .card-resumen.ingresos { border-left-color: #10b981; }
@@ -574,10 +582,36 @@ color:white;
 .card-resumen.balance.positivo { border-left-color: #3b82f6; }
 .card-resumen.balance.negativo { border-left-color: #f59e0b; }
 
-.resumen-icono { font-size: 2rem; }
-.resumen-label { display: block; font-size: 0.875rem; color: #64748b; }
-.resumen-monto { display: block; font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+.resumen-icono {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 12px;
+}
 
+.resumen-info {
+    flex: 1;
+}
+
+.resumen-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.resumen-monto {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Acciones rápidas */
 .finanzas-acciones {
     display: flex;
     gap: 12px;
@@ -596,15 +630,23 @@ color:white;
     cursor: pointer;
     font-weight: 600;
     color: #374151;
+    font-family: "Montserrat", sans-serif;
+    transition: all 0.2s;
 }
 
-.btn-accion-finanza:hover { border-color: #4f46e5; color: #4f46e5; }
+.btn-accion-finanza:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
 
+/* Filtros */
 .finanzas-filtros {
     display: flex;
     gap: 12px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .finanzas-filtros select {
@@ -612,41 +654,103 @@ color:white;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
     background: white;
+    font-size: 0.9rem;
     min-width: 150px;
+    font-family: "Montserrat", sans-serif;
+    cursor: pointer;
 }
 
-.finanzas-lista {
+.finanzas-filtros select:focus {
+    outline: none;
+    border-color: #4f46e5;
+}
+
+/* Cards de transacciones */
+.finanzas-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.finanza-card {
     background: white;
     border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
 }
 
-.lista-header {
-    display: grid;
-    grid-template-columns: 100px 2fr 120px 120px 100px 100px;
-    gap: 15px;
-    padding: 16px 20px;
-    background: #f8fafc;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #64748b;
+.finanza-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.transaccion-item {
-    display: grid;
-    grid-template-columns: 100px 2fr 120px 120px 100px 100px;
-    gap: 15px;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
+.finanza-card.ingresos { border-left-color: #10b981; }
+.finanza-card.egresos { border-left-color: #ef4444; }
+
+.card-header {
+    display: flex;
     align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
-.transaccion-item.ingresos .t-monto { color: #10b981; font-weight: 600; }
-.transaccion-item.egresos .t-monto { color: #ef4444; font-weight: 600; }
+.card-icono {
+    font-size: 1.5rem;
+    line-height: 1;
+}
 
+.card-fecha {
+    color: #64748b;
+    font-size: 0.875rem;
+    flex: 1;
+}
+
+.card-body {
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+.card-concepto {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.card-categoria {
+    display: inline-block;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.card-monto {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.card-monto.ingresos { color: #10b981; }
+.card-monto.egresos { color: #ef4444; }
+
+.card-acciones {
+    display: flex;
+    gap: 8px;
+}
+
+/* Badges */
 .badge-categoria {
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -654,6 +758,14 @@ color:white;
     background: #e2e8f0;
     color: #475569;
 }
+
+.badge-categoria.cuota { background: #dbeafe; color: #1d4ed8; }
+.badge-categoria.sponsor { background: #d1fae5; color: #065f46; }
+.badge-categoria.evento { background: #fef3c7; color: #92400e; }
+.badge-categoria.equipamiento { background: #fce7f3; color: #be185d; }
+.badge-categoria.alquiler { background: #ede9fe; color: #6d28d9; }
+.badge-categoria.viaje { background: #cffafe; color: #0e7490; }
+.badge-categoria.seguro { background: #fee2e2; color: #991b1b; }
 
 .badge-estado {
     padding: 4px 10px;
@@ -665,32 +777,85 @@ color:white;
 .badge-estado.pagado { background: #d1fae5; color: #065f46; }
 .badge-estado.pendiente { background: #fef3c7; color: #92400e; }
 
+/* Botones de acción */
 .btn-icon {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 5px;
+    padding: 6px;
     opacity: 0.6;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 1rem;
 }
 
-.btn-icon:hover { opacity: 1; }
+.btn-icon:hover {
+    opacity: 1;
+    background: #f1f5f9;
+}
 
+/* Estados vacíos */
 .sin-resultados {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+    font-size: 1rem;
+    grid-column: 1 / -1;
+}
+
+.loading {
     text-align: center;
     padding: 40px;
     color: #64748b;
+    grid-column: 1 / -1;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .finanzas-cards {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
-    .lista-header,
-    .transaccion-item {
-        grid-template-columns: 80px 1fr 100px;
+    .finanzas-resumen {
+        grid-template-columns: 1fr;
     }
-    .lista-header span:nth-child(3),
-    .lista-header span:nth-child(4),
-    .transaccion-item .t-categoria,
-    .transaccion-item .t-estado {
-        display: none;
+    
+    .finanzas-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .finanzas-filtros {
+        flex-direction: column;
+    }
+    
+    .finanzas-filtros select {
+        width: 100%;
+    }
+    
+    .btn-accion-finanza {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .card-footer {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .card-acciones {
+        width: 100%;
+        justify-content: flex-end;
     }
 }
 </style>
