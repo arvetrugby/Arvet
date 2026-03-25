@@ -195,20 +195,21 @@ const LoadingManager = {
         const startTime  = Date.now();
         let textIndex    = 0;
 
-        const tick = () => {
+       const tick = () => {
             if (!document.body.contains(overlay)) return;
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / 3500) * 90, 90);
             progressEl.style.width = progress + '%';
-
             const newIndex = Math.min(Math.floor(elapsed / 900), textos.length - 1);
             if (newIndex !== textIndex) {
                 textIndex = newIndex;
                 textEl.textContent = textos[textIndex];
             }
             requestAnimationFrame(tick);
-             
-            // Auto-destruir si tarda más de 10 segundos
+        };
+        requestAnimationFrame(tick);
+
+        // Auto-destruir si tarda más de 10 segundos
         setTimeout(() => {
             if (document.body.contains(overlay)) {
                 overlay.remove();
@@ -220,17 +221,8 @@ const LoadingManager = {
     hide(id) {
         const overlay = this.overlays.get(id);
         if (!overlay) return;
-        };
-    
-    },
-
-    hide(id) {
-        const overlay = this.overlays.get(id);
-       if (!overlay) return;
-
         const progressEl = overlay.querySelector(`#arvet-progress-${id}`);
         if (progressEl) progressEl.style.width = '100%';
-
         setTimeout(() => {
             overlay.classList.add('arvet-loader-hidden');
             setTimeout(() => {
@@ -239,7 +231,7 @@ const LoadingManager = {
             }, 600);
         }, 400);
     },
-    
+
     hideAll() {
         this.overlays.forEach((_, id) => this.hide(id));
     }
