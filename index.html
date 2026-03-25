@@ -1789,65 +1789,30 @@ document.getElementById("modalOverlay").addEventListener("click", function(e) {
 </style>
 
 <script>
-let deferredPrompt;
-let promptFired = false;
+function copiarLink(tipo) {
+    const currentUser = JSON.parse(localStorage.getItem('arvet_user') || '{}');
+    const equipoId = currentUser.equipoId || '';
+    const slug = currentUser.slug || equipoId;
 
-// Capturar el evento beforeinstallprompt
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    promptFired = true;
-    mostrarBoton();
-});
+    const links = {
+        registro: `https://www.arvetrugby.com/registro-jugador.html?equipo=${equipoId}`,
+        web: `https://www.arvetrugby.com/${slug}`
+    };
 
-// Mostrar botón si cumple condiciones
-function mostrarBoton() {
-    const yaInstalada = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    // Mostrar si: hay prompt disponible O es iOS (que no tiene prompt pero sí "Add to Home")
-    if (!yaInstalada && (promptFired || esIOS)) {
-        document.getElementById('btnInstalar').style.display = 'block';
-    }
-}
+    const link = links[tipo];
+    if (!link) return;
 
-// Click en el botón
-document.getElementById('btnInstalar').addEventListener('click', async () => {
-    const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (esIOS) {
-        // En iOS mostrar instrucciones
-        alert('Para instalar en iPhone:\n1. Tocá el botón Compartir (📤)\n2. Seleccioná "Agregar a pantalla de inicio"');
-        return;
-    }
-    
-    if (!deferredPrompt) {
-        // Si no hay prompt, intentar recargar para que aparezca
-        alert('Para instalar:\nChrome → Menú (⋮) → "Agregar a pantalla de inicio"');
-        return;
-    }
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-        document.getElementById('btnInstalar').style.display = 'none';
-    }
-    deferredPrompt = null;
-});
-
-// Ocultar cuando se instaló
-window.addEventListener('appinstalled', () => {
-    document.getElementById('btnInstalar').style.display = 'none';
-    deferredPrompt = null;
-});
-
-// Verificar al cargar
-setTimeout(mostrarBoton, 1000);
-
-// Si ya está instalada, ocultar
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    document.getElementById('btnInstalar').style.display = 'none';
+    navigator.clipboard.writeText(link).then(() => {
+        showMsg('✅ Link copiado en portapapeles, compartilo por WhatsApp', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = link;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showMsg('✅ Link copiado en portapapeles, compartilo por WhatsApp', 'success');
+    });
 }
 </script>
 </body>
