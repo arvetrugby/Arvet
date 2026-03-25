@@ -988,18 +988,19 @@ async function aceptarInvitacion(encuentroId) {
     try {
         const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
         
-        if (result.success) {
-            mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
-            CacheManager.invalidate(`invitaciones-${usuario.equipoId}`);
-            
-            // Crear asistencias en background
-            fetch(`${ENCUENTROS_CONFIG.API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`)
-                .catch(err => console.error('Error creando asistencias:', err));
-            
-           setTimeout(() => {
-    LoadingManager.hideAll(); // limpiar cualquier loader colgado
-    renderizarInvitaciones();
-}, 800);
+       if (result.success) {
+    mostrarMensajeEncuentros('¡Invitación aceptada!', 'success');
+    CacheManager.invalidate(`invitaciones-${usuario.equipoId}`);
+    
+    // Crear asistencias en background — silencioso
+    fetch(`${ENCUENTROS_CONFIG.API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`)
+        .catch(() => {});
+    
+    setTimeout(() => {
+        LoadingManager.hideAll();
+        renderizarInvitaciones();
+    }, 800);
+
         } else {
             mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
         }
