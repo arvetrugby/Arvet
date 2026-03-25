@@ -1859,7 +1859,7 @@ async function guardarEncuentro(e) {
     const params = new URLSearchParams({
         action: 'crearEncuentro',
         equipoCreadorId: usuario.equipoId,
-        creadorNombre: usuario.equipoNombre || usuario.nombre,
+        creadorNombre: usuario.nombreEquipo || usuario.equipoNombre || 'Equipo',
         nombre: document.getElementById('encNombre').value,
         flyerUrl: document.getElementById('flyerUrl').value || '',
         fechasJSON: JSON.stringify(fechas),
