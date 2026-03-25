@@ -207,8 +207,21 @@ const LoadingManager = {
                 textEl.textContent = textos[textIndex];
             }
             requestAnimationFrame(tick);
+             
+            // Auto-destruir si tarda más de 10 segundos
+        setTimeout(() => {
+            if (document.body.contains(overlay)) {
+                overlay.remove();
+                this.overlays.delete(id);
+            }
+        }, 10000);
+    },
+
+    hide(id) {
+        const overlay = this.overlays.get(id);
+        if (!overlay) return;
         };
-        requestAnimationFrame(tick);
+    
     },
 
     hide(id) {
@@ -502,7 +515,8 @@ async function renderizarMisEncuentros() {
     const container = document.getElementById('listaMisEncuentros');
     const empty = document.getElementById('emptyCreados');
     
-    if (!container || encuentrosState.cargando) return;
+    if (!container) return;
+encuentrosState.cargando = false;
     
     // Mostrar skeleton mientras carga
     container.innerHTML = SkeletonUI.grid(3);
@@ -733,7 +747,8 @@ async function renderizarInvitaciones() {
     const empty = document.getElementById('emptyInvitaciones');
     const badge = document.getElementById('badgeInvitaciones');
     
-    if (!container || encuentrosState.cargando) return;
+   if (!container) return;
+encuentrosState.cargando = false;
     
     container.innerHTML = SkeletonUI.grid(3);
     if (empty) empty.style.display = 'none';
@@ -989,7 +1004,10 @@ async function aceptarInvitacion(encuentroId) {
             fetch(`${ENCUENTROS_CONFIG.API_URL}?action=crearAsistenciasEquipo&encuentroId=${encuentroId}&equipoId=${usuario.equipoId}`)
                 .catch(err => console.error('Error creando asistencias:', err));
             
-            setTimeout(() => renderizarInvitaciones(), 300);
+           setTimeout(() => {
+    LoadingManager.hideAll(); // limpiar cualquier loader colgado
+    renderizarInvitaciones();
+}, 800);
         } else {
             mostrarMensajeEncuentros(result.error || 'Error al aceptar', 'error');
         }
@@ -1019,7 +1037,10 @@ async function rechazarInvitacion(encuentroId) {
         if (result.success) {
             mostrarMensajeEncuentros('Invitación rechazada', 'info');
             CacheManager.invalidate(`invitaciones-${usuario.equipoId}`);
-            setTimeout(() => renderizarInvitaciones(), 300);
+            setTimeout(() => {
+    LoadingManager.hideAll(); // limpiar cualquier loader colgado
+    renderizarInvitaciones();
+}, 800);
         } else {
             mostrarMensajeEncuentros(result.error || 'Error al rechazar', 'error');
         }
@@ -1890,6 +1911,8 @@ function cerrarModalEncuentro() {
         mapaEncuentro.remove();
         mapaEncuentro = null;
     }
+    LoadingManager.hideAll();
+
 }
 
 // ============================================
