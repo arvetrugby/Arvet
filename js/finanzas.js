@@ -32,17 +32,21 @@ function cargarFinanzasDesdeAPI() {
 
     document.getElementById('finanzasContent').innerHTML = '<div class="loading">Cargando finanzas...</div>';
 
-    // Cargar transacciones y resumen en paralelo
+    // Cargar todo en paralelo
     Promise.all([
         fetch(`${APPS_SCRIPT_URL}?action=getFinanzas&equipoId=${equipoId}`).then(r => r.json()),
-        fetch(`${APPS_SCRIPT_URL}?action=getResumenFinanzas&equipoId=${equipoId}`).then(r => r.json())
+        fetch(`${APPS_SCRIPT_URL}?action=getResumenFinanzas&equipoId=${equipoId}`).then(r => r.json()),
+        fetch(`${APPS_SCRIPT_URL}?action=getJugadores&equipoId=${equipoId}`).then(r => r.json())
     ])
-    .then(([finanzas, resumen]) => {
+    .then(([finanzas, resumen, jugadores]) => {
         if (finanzas.success) {
             finanzasData.transacciones = finanzas.data;
         }
         if (resumen.success) {
             finanzasData.resumen = resumen.data;
+        }
+        if (jugadores.success) {
+            finanzasData.jugadores = jugadores.data;
         }
         renderizarFinanzasUI();
     })
@@ -51,7 +55,6 @@ function cargarFinanzasDesdeAPI() {
         showMsg('Error de conexión', 'error');
     });
 }
-
 function renderizarFinanzasUI() {
     const container = document.getElementById('finanzasContent');
     const resumen = finanzasData.resumen || { ingresos: 0, egresos: 0, balance: 0 };
@@ -130,7 +133,13 @@ function renderizarFinanzasUI() {
     cargarMesesDisponibles();
 }
 function cargarMesesDisponibles() {
-    const meses = [...new Set(finanzasData.transacciones.map(t => t.fecha.slice(0, 7)))].sort().reverse();
+    // Extraer meses únicos de las transacciones (formato YYYY-MM)
+    const meses = [...new Set(finanzasData.transacciones.map(t => {
+        // Asegurar que la fecha esté en formato correcto
+        const fecha = t.fecha ? t.fecha.split('T')[0] : '';
+        return fecha.slice(0, 7); // YYYY-MM
+    }))].filter(m => m && m.length === 7).sort().reverse();
+    
     const select = document.getElementById('filtroMes');
     if (select && meses.length > 0) {
         select.innerHTML = '<option value="todos">Todos los meses</option>' + 
@@ -145,7 +154,20 @@ function renderizarCards() {
         return '<div class="sin-resultados">No hay transacciones registradas</div>';
     }
 
-    return filtradas.map(t => `
+    return filtradas.map(t => {
+        // Buscar nombre del jugador si es cuota
+        let nombreJugador = '';
+        if (t.categoria === 'cuota' && t.jugadorId) {
+            const jugador = finanzasData.jugadores?.find(j => j.id === t.jugadorId);
+            if (jugador) {
+                nombreJugador = `${jugador.nombre} ${jugador.apellido}`;
+            }
+        }
+        
+        // Subtítulo: jugador (si es cuota) o categoría
+        const subtitulo = nombreJugador || t.categoria;
+        
+        return `
         <div class="finanza-card ${t.tipo}">
             <div class="card-header">
                 <span class="card-icono">${t.tipo === 'ingreso' ? '📥' : '📤'}</span>
@@ -156,7 +178,7 @@ function renderizarCards() {
             </div>
             <div class="card-body">
                 <h4 class="card-concepto">${t.concepto}</h4>
-                <span class="card-categoria badge-categoria ${t.categoria}">${t.categoria}</span>
+                <span class="card-categoria badge-categoria ${t.categoria}">${subtitulo}</span>
             </div>
             <div class="card-footer">
                 <span class="card-monto ${t.tipo}">$${formatearMonto(t.monto)}</span>
@@ -166,21 +188,28 @@ function renderizarCards() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 function filtrarTransaccionesData() {
-    const mes = document.getElementById('filtroMes')?.value || 'todos';
-    const tipo = document.getElementById('filtroTipo')?.value || 'todos';
-    const categoria = document.getElementById('filtroCategoria')?.value || 'todos';
+    const mesSelect = document.getElementById('filtroMes');
+    const tipoSelect = document.getElementById('filtroTipo');
+    const categoriaSelect = document.getElementById('filtroCategoria');
+    
+    const mes = mesSelect ? mesSelect.value : 'todos';
+    const tipo = tipoSelect ? tipoSelect.value : 'todos';
+    const categoria = categoriaSelect ? categoriaSelect.value : 'todos';
 
     return finanzasData.transacciones.filter(t => {
-        const matchMes = mes === 'todos' || t.fecha.startsWith(mes);
+        // Normalizar fecha a YYYY-MM-DD
+        const fechaNormalizada = t.fecha ? t.fecha.split('T')[0] : '';
+        const mesTransaccion = fechaNormalizada.slice(0, 7); // YYYY-MM
+        
+        const matchMes = mes === 'todos' || mesTransaccion === mes;
         const matchTipo = tipo === 'todos' || t.tipo === tipo;
         const matchCat = categoria === 'todos' || t.categoria === categoria;
         return matchMes && matchTipo && matchCat;
     });
 }
-
 function filtrarTransacciones() {
     const lista = document.getElementById('listaTransacciones');
     if (lista) lista.innerHTML = renderizarTransacciones();
