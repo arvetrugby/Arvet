@@ -50,9 +50,15 @@ const LoadingManager = {
     overlays: new Map(),
 
     show(id, message = 'Cargando...') {
-         if (mapaEstaActivo && !id.includes('guardar') && !id.includes('accion')) {
-            return; // Ignorar este loader
+
+        
+         // 🔧 NO mostrar loader si el modal del mapa está abierto (excepto acciones importantes)
+        const modalMapaAbierto = document.getElementById('modalEncuentro') || document.getElementById('modalEditarEncuentro');
+        if (modalMapaAbierto && !id.includes('guardar') && !id.includes('accion') && !id.includes('editar')) {
+            return; // Ignorar - el mapa está abierto
         }
+
+        
         if (this.overlays.has(id)) return;
 
         // Inyectar estilos si no existen
