@@ -50,6 +50,9 @@ const LoadingManager = {
     overlays: new Map(),
 
     show(id, message = 'Cargando...') {
+         if (mapaEstaActivo && !id.includes('guardar') && !id.includes('accion')) {
+            return; // Ignorar este loader
+        }
         if (this.overlays.has(id)) return;
 
         // Inyectar estilos si no existen
