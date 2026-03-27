@@ -1863,9 +1863,11 @@ async function guardarEncuentro(e) {
             if (hora && desc) horarios.push({ hora, desc });
         });
         
-        const fechaConMediodia = fechaInput.value + 'T12:00:00.000Z';
-fechas.push({ dia: fechaConMediodia, horarios });
-    });
+        // Guardar solo la fecha sin hora ni timezone para evitar desfase
+fechas.push({ 
+    dia: fechaInput.value, // YYYY-MM-DD puro
+    horarios 
+});
     
     if (fechas.length === 0) {
         mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
@@ -2339,9 +2341,11 @@ async function guardarEdicionEncuentro(e, encuentroId) {
             if (hora && desc) horarios.push({ hora, desc });
         });
         
-        const fechaConMediodia = fechaInput.value + 'T12:00:00.000Z';
-fechas.push({ dia: fechaConMediodia, horarios });
-    });
+       // Guardar solo la fecha sin hora ni timezone para evitar desfase
+fechas.push({ 
+    dia: fechaInput.value, // YYYY-MM-DD puro
+    horarios 
+});
     
     if (fechas.length === 0) {
         mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
@@ -2805,32 +2809,29 @@ function obtenerUsuarioActual() {
 function formatearFecha(fechaStr) {
     if (!fechaStr) return '';
     
-    // FIX TEMPORAL: Si la hora es 00:00:00, sumar 12 horas para mostrar bien
-    if (fechaStr.includes('T00:00:00')) {
-        fechaStr = fechaStr.replace('T00:00:00', 'T12:00:00');
-    }
-    
-    // Si viene sin T, agregar mediodía
-    if (!fechaStr.includes('T')) {
-        fechaStr = fechaStr + 'T12:00:00.000Z';
-    }
-    
+    // Extraer solo YYYY-MM-DD, ignorando hora y timezone
     const fechaParte = fechaStr.split('T')[0];
-    const partes = fechaParte.split('-');
-    
-    const año = partes[0];
-    const mes = parseInt(partes[1]);
-    const dia = parseInt(partes[2]);
+    const [año, mes, dia] = fechaParte.split('-');
     
     const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
     
-    // Usar UTC para evitar conversiones de zona horaria
-    const fechaUTC = new Date(Date.UTC(parseInt(año), mes - 1, dia));
-    const nombreDia = dias[fechaUTC.getUTCDay()];
-    const nombreMes = meses[mes - 1];
+    // Calcular día de la semana con algoritmo de Zeller (sin Date object)
+    let y = parseInt(año);
+    let m = parseInt(mes);
+    let d = parseInt(dia);
     
-    return `${nombreDia} ${dia} ${nombreMes}`;
+    if (m < 3) {
+        m += 12;
+        y -= 1;
+    }
+    const k = y % 100;
+    const j = Math.floor(y / 100);
+    let h = (d + Math.floor((13 * (m + 1)) / 5) + k + Math.floor(k / 4) + Math.floor(j / 4) - 2 * j) % 7;
+    if (h < 0) h += 7;
+    const diaSemanaIndex = h === 0 ? 6 : h - 1;
+    
+    return `${dias[diaSemanaIndex]} ${d} ${meses[parseInt(mes) - 1]}`;
 }
 function usuarioLogueado() {
     return !!localStorage.getItem('arvet_user');
