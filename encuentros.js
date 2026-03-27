@@ -2806,25 +2806,15 @@ function obtenerUsuarioActual() {
 function formatearFecha(fechaStr) {
   if (!fechaStr) return '';
 
-  // Nos quedamos solo con YYYY-MM-DD (por si viene con hora)
-  const fechaParte = fechaStr.split('T')[0];
+  const fecha = new Date(fechaStr);
 
-  // Extraer valores directamente (SIN usar Date)
-  const [anio, mes, dia] = fechaParte.split('-').map(Number);
+  const dia = fecha.getUTCDate();
+  const mes = fecha.getUTCMonth(); // 0-11
 
   const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-  return `${dia} ${meses[mes - 1]}`;
+  return `${dia} ${meses[mes]}`;
 }
-function usuarioLogueado() {
-    return !!localStorage.getItem('arvet_user');
-}
-
-function mostrarPreviewEncuentro(encuentroId) {
-    // Redirigir a preview o mostrar modal de login
-    window.location.href = `preview.html?encuentroId=${encuentroId}`;
-}
-
 // ============================================
 // EXPONER FUNCIONES GLOBALES
 // ============================================
