@@ -2872,3 +2872,10 @@ window.agregarEditDia = agregarEditDia;
 window.agregarEditHorario = agregarEditHorario;
 window.agregarEditValor = agregarEditValor;
 window.guardarEdicionEncuentro = guardarEdicionEncuentro;
+
+// TEST - Verificar que la función funciona correctamente
+console.log('=== TEST formatearFecha ===');
+console.log('2026-05-16:', formatearFecha('2026-05-16')); // Debe decir: 16 de mayo
+console.log('2026-03-27:', formatearFecha('2026-03-27')); // Debe decir: 27 de marzo
+console.log('2025-12-01:', formatearFecha('2025-12-01')); // Debe decir: 1 de diciembre
+console.log('===========================');
