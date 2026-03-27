@@ -2802,6 +2802,7 @@ function obtenerUsuarioActual() {
 
 function formatearFecha(fechaStr) {
     if (!fechaStr) return '';
+    console.log('🔍 formatearFecha input:', fechaStr); // Ver entrada
     const partes = fechaStr.split('T')[0].split('-');
     const año = partes[0];
     const mes = parseInt(partes[1]);
@@ -2814,7 +2815,11 @@ function formatearFecha(fechaStr) {
     const nombreDia = dias[fechaUTC.getUTCDay()];
     const nombreMes = meses[mes - 1];
     
-    return `${nombreDia} ${dia} ${nombreMes}`;
+    const resultado = `${nombreDia} ${dia} ${nombreMes}`;
+    console.log('✅ formatearFecha output:', resultado); // Ver salida
+    
+    return resultado;
+    
 }
 
 function usuarioLogueado() {
