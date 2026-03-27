@@ -2342,11 +2342,12 @@ async function guardarEdicionEncuentro(e, encuentroId) {
             if (hora && desc) horarios.push({ hora, desc });
         });
         
-       // Guardar solo la fecha sin hora ni timezone para evitar desfase
-fechas.push({ 
-    dia: fechaInput.value, // YYYY-MM-DD puro
-    horarios 
-});
+        // Guardar solo la fecha sin hora ni timezone para evitar desfase
+        fechas.push({ 
+            dia: fechaInput.value, // YYYY-MM-DD puro
+            horarios 
+        });
+    }); // ← FALTABA ESTE CIERRE DEL forEach
     
     if (fechas.length === 0) {
         mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
@@ -2406,7 +2407,6 @@ fechas.push({
         LoadingManager.hide('guardar-edicion');
     }
 }
-
 // ============================================
 // CANCELAR ENCUENTRO
 // ============================================
