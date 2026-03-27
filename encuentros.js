@@ -2807,25 +2807,29 @@ function obtenerUsuarioActual() {
 }
 
 function formatearFecha(fechaStr) {
-    console.log('Input fechaStr:', fechaStr);
-    
     if (!fechaStr) return '';
     
-    const fechaParte = fechaStr.split('T')[0];
-    console.log('Fecha parte:', fechaParte);
+    // DEBUG - descomentar para verificar
+    // console.log('formatearFecha input:', fechaStr);
     
+    // Extraer solo YYYY-MM-DD, ignorando cualquier hora o timezone
+    const fechaParte = fechaStr.split('T')[0];
     const [año, mes, dia] = fechaParte.split('-');
-    console.log('Año:', año, 'Mes:', mes, 'Día:', dia);
+    
+    // Parsear como enteros para eliminar ceros a la izquierda
+    const diaNum = parseInt(dia, 10);
+    const mesNum = parseInt(mes, 10);
     
     const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     
-    const resultado = `${parseInt(dia, 10)} de ${meses[parseInt(mes, 10) - 1]}`;
-    console.log('Resultado:', resultado);
+    const resultado = `${diaNum} de ${meses[mesNum - 1]}`;
+    
+    // DEBUG - descomentar para verificar
+    // console.log('formatearFecha output:', resultado);
     
     return resultado;
 }
-
 
 function usuarioLogueado() {
     return !!localStorage.getItem('arvet_user');
