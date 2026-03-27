@@ -758,14 +758,20 @@ async function renderizarInvitaciones() {
     const empty = document.getElementById('emptyInvitaciones');
     const badge = document.getElementById('badgeInvitaciones');
     
-   if (!container) return;
-encuentrosState.cargando = false;
+    if (!container) return;
+    
+    // 🔧 Prevenir múltiples cargas
+    if (encuentrosState.cargando) {
+        console.log('⚠️ Ya está cargando invitaciones, ignorando');
+        return;
+    }
     
     container.innerHTML = SkeletonUI.grid(3);
     if (empty) empty.style.display = 'none';
     
     encuentrosState.cargando = true;
     LoadingManager.show('invitaciones', 'Cargando invitaciones...');
+    
     
     const usuario = obtenerUsuarioActual();
     const cacheKey = `invitaciones-${usuario.equipoId}`;
