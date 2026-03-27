@@ -2802,8 +2802,15 @@ function obtenerUsuarioActual() {
 
 function formatearFecha(fechaStr) {
     if (!fechaStr) return '';
-    console.log('🔍 formatearFecha input:', fechaStr); // Ver entrada
-    const partes = fechaStr.split('T')[0].split('-');
+    
+    // Si viene sin T (formato antiguo YYYY-MM-DD), agregar T12:00:00Z
+    if (!fechaStr.includes('T')) {
+        fechaStr = fechaStr + 'T12:00:00.000Z';
+    }
+    
+    const fechaParte = fechaStr.split('T')[0];
+    const partes = fechaParte.split('-');
+    
     const año = partes[0];
     const mes = parseInt(partes[1]);
     const dia = parseInt(partes[2]);
@@ -2811,15 +2818,12 @@ function formatearFecha(fechaStr) {
     const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
     
+    // Usar UTC para evitar conversiones de zona horaria
     const fechaUTC = new Date(Date.UTC(parseInt(año), mes - 1, dia));
     const nombreDia = dias[fechaUTC.getUTCDay()];
     const nombreMes = meses[mes - 1];
     
-    const resultado = `${nombreDia} ${dia} ${nombreMes}`;
-    console.log('✅ formatearFecha output:', resultado); // Ver salida
-    
-    return resultado;
-    
+    return `${nombreDia} ${dia} ${nombreMes}`;
 }
 
 function usuarioLogueado() {
