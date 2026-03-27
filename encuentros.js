@@ -519,13 +519,21 @@ async function renderizarMisEncuentros() {
     const empty = document.getElementById('emptyCreados');
     
     if (!container) return;
-encuentrosState.cargando = false;
+    
+    // 🔧 SI YA ESTÁ CARGANDO, NO HACER NADA (previene múltiples loaders)
+    if (encuentrosState.cargando) {
+        console.log('⚠️ Ya está cargando, ignorando llamada duplicada');
+        return;
+    }
     
     // Mostrar skeleton mientras carga
     container.innerHTML = SkeletonUI.grid(3);
     if (empty) empty.style.display = 'none';
     
+    // 🔧 Marcar como cargando ANTES de mostrar el loader
     encuentrosState.cargando = true;
+    
+    // Ahora sí mostrar loader (solo una vez)
     LoadingManager.show('mis-encuentros', 'Cargando encuentros...');
     
     const usuario = obtenerUsuarioActual();
