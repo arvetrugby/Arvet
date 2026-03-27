@@ -48,20 +48,27 @@ const CacheManager = {
 // ============================================
 const LoadingManager = {
     overlays: new Map(),
+    idsMostrados: new Set(), // 🔧 Nuevo: tracking de IDs ya mostrados
 
     show(id, message = 'Cargando...') {
-        // 🔧 DEBUG: Ver qué está disparando el loader
-        console.log('LoadingManager.show() llamado con:', { id, message, stack: new Error().stack });
-
-        
-         // 🔧 NO mostrar loader si el modal del mapa está abierto (excepto acciones importantes)
-        const modalMapaAbierto = document.getElementById('modalEncuentro') || document.getElementById('modalEditarEncuentro');
-        if (modalMapaAbierto && !id.includes('guardar') && !id.includes('accion') && !id.includes('editar')) {
-            return; // Ignorar - el mapa está abierto
+        // 🔧 SI YA SE MOSTRÓ ESTE ID, NO MOSTRAR OTRO
+        if (this.idsMostrados.has(id)) {
+            console.log('⏩ Loader ignorado (ya mostrado):', id);
+            return;
         }
-
+        
+        // 🔧 IGNORAR IDs de carga automática (mis-encuentros, invitaciones, etc)
+        const idsAutomaticos = ['mis-encuentros', 'invitaciones', 'detalle', 'flyers'];
+        if (idsAutomaticos.includes(id)) {
+            console.log('⏩ Loader automático ignorado:', id);
+            return;
+        }
         
         if (this.overlays.has(id)) return;
+        
+        // Marcar como mostrado
+        this.idsMostrados.add(id);
+       
 
         // Inyectar estilos si no existen
         if (!document.getElementById('arvet-loader-styles')) {
