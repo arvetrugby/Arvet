@@ -2814,7 +2814,7 @@ function formatearFecha(fechaStr) {
   const fechaUTC = new Date(Date.UTC(año, mes - 1, dia));
   
   // Ajustar +1 día si es necesario (descomentar si el problema persiste)
-  // fechaUTC.setUTCDate(fechaUTC.getUTCDate() + 1);
+fechaUTC.setUTCDate(fechaUTC.getUTCDate() + 1);
   
   const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   
