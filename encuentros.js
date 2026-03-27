@@ -1864,10 +1864,11 @@ async function guardarEncuentro(e) {
         });
         
         // Guardar solo la fecha sin hora ni timezone para evitar desfase
-fechas.push({ 
-    dia: fechaInput.value, // YYYY-MM-DD puro
-    horarios 
-});
+        fechas.push({ 
+            dia: fechaInput.value, // YYYY-MM-DD puro
+            horarios 
+        });
+    }); // ← FALTABA ESTE CIERRE
     
     if (fechas.length === 0) {
         mostrarMensajeEncuentros('Debes agregar al menos una fecha', 'error');
@@ -1915,7 +1916,8 @@ fechas.push({
     });
     
     try {
-        async const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
+        // ✅ CORREGIDO: eliminado 'async' antes de const
+        const result = await fetchWithRetry(`${ENCUENTROS_CONFIG.API_URL}?${params.toString()}`);
         
         if (result.success) {
             cerrarModalEncuentro();
@@ -1928,13 +1930,12 @@ fechas.push({
     } catch (err) {
         mostrarMensajeEncuentros(err.message || 'Error al crear encuentro', 'error');
         btnGuardar.disabled = false;
-        btnGuardar.textContent = 'Crear encuentro';
+        btnGuardar.textContent = 'Creando encuentro...';
         btnGuardar.style.opacity = '1';
     } finally {
         LoadingManager.hide('guardar');
     }
 }
-
 function cerrarModalEncuentro() {
     const modal = document.getElementById('modalEncuentro');
     if (modal) modal.remove();
