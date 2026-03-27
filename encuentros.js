@@ -2804,20 +2804,21 @@ function obtenerUsuarioActual() {
 }
 
 function formatearFecha(fechaStr) {
-    if (!fechaStr) return '';
-    
-    // Extraer solo YYYY-MM-DD
-    const fechaParte = fechaStr.split('T')[0];
-    const [año, mes, dia] = fechaParte.split('-');
-    
-    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    
-    // Parsear como enteros
-    const diaNum = parseInt(dia, 10);
-    const mesNum = parseInt(mes, 10);
-    
-    // Retornar directamente sin crear objetos Date
-    return `${diaNum} de ${meses[mesNum - 1]}`;
+  if (!fechaStr) return '';
+  
+  // Extraer componentes YYYY-MM-DD
+  const fechaParte = fechaStr.split('T')[0];
+  const [año, mes, dia] = fechaParte.split('-').map(Number);
+  
+  // Crear fecha en UTC para evitar conversiones de timezone
+  const fechaUTC = new Date(Date.UTC(año, mes - 1, dia));
+  
+  // Ajustar +1 día si es necesario (descomentar si el problema persiste)
+  // fechaUTC.setUTCDate(fechaUTC.getUTCDate() + 1);
+  
+  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  
+  return `${fechaUTC.getUTCDate()} ${meses[fechaUTC.getUTCMonth()]}`;
 }
 
 function usuarioLogueado() {
@@ -2862,9 +2863,3 @@ window.agregarEditHorario = agregarEditHorario;
 window.agregarEditValor = agregarEditValor;
 window.guardarEdicionEncuentro = guardarEdicionEncuentro;
 
-// TEST - Verificar que la función funciona correctamente
-console.log('=== TEST formatearFecha ===');
-console.log('2026-05-16:', formatearFecha('2026-05-16')); // Debe decir: 16 de mayo
-console.log('2026-03-27:', formatearFecha('2026-03-27')); // Debe decir: 27 de marzo
-console.log('2025-12-01:', formatearFecha('2025-12-01')); // Debe decir: 1 de diciembre
-console.log('===========================');
