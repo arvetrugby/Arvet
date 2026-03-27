@@ -1,6 +1,5 @@
-// ============================================
-// ARVET - SISTEMA DE ENCUENTROS/PARTIDOS - OPTIMIZADO V2
-// ============================================
+console.log('✅ encuentros.js SE CARGÓ - línea 1');
+
 
 // ============================================
 // CONFIGURACIÓN GLOBAL
@@ -43,9 +42,7 @@ const CacheManager = {
     }
 };
 
-// ============================================
-// LOADING SCREEN (igual que index)
-// ============================================
+
 // ============================================
 // LOADING SCREEN (igual que index) - MODIFICADO
 // ============================================
