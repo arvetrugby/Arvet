@@ -2806,16 +2806,12 @@ function obtenerUsuarioActual() {
 function formatearFecha(fechaStr) {
   if (!fechaStr) return '';
 
-  const fecha = new Date(fechaStr);
-
-  const dia = fecha.getUTCDate();
-  const mes = fecha.getUTCMonth(); // 0-11
-
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-
-  return `${dia} ${meses[mes]}`;
+  return new Date(fechaStr).toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC'
+  });
 }
-
 function usuarioLogueado() {
     return !!localStorage.getItem('arvet_user');
 }
