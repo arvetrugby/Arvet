@@ -121,11 +121,16 @@
   }
 
   /* Logo */
-  .logo-container {
-    margin-bottom: 40px;
-    animation: fadeIn 1s ease 0.3s forwards;
-    opacity: 0;
-  }
+ .logo-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  margin: 0;
+  z-index: 20;
+
+  animation: fadeIn 1s ease 0.3s forwards;
+  opacity: 0;
+}
 
   .logo-container img {
     height: 80px;
@@ -573,12 +578,12 @@
     }
 
     .logo-container {
-      text-align: center;
-      margin-bottom: 30px;
+      bottom: 15px;
+    right: 15px;
     }
 
     .logo-container img {
-      height: 60px;
+       height: 55px;
     }
 
     .title-group {
