@@ -2808,13 +2808,15 @@ function formatearFecha(fechaStr) {
 
   const fecha = new Date(fechaStr);
 
-  const dia = fecha.getUTCDate();
-  const mes = fecha.getUTCMonth();
-
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-
-  return `${dia}-${meses[mes]}`;
+  return fecha.toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC'
+  });
 }
+
+console.log(formatearFecha("2026-05-16"));
+console.log(formatearFecha("2026-05-16T00:00:00.000Z"));
 
 function usuarioLogueado() {
     return !!localStorage.getItem('arvet_user');
