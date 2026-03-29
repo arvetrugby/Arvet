@@ -1596,7 +1596,7 @@ function calcularEdad(fechaNacimiento) {
 }
 
 // Función para formatear fecha YYYY-MM-DD → DD/MM/YYYY
-function formatearFecha(fecha) {
+window.formatearFecha = function(fecha) {
     if (!fecha) return '';
 
     const str = String(fecha).split('T')[0];
@@ -1608,7 +1608,7 @@ function formatearFecha(fecha) {
         day: 'numeric',
         month: 'short'
     });
-}
+};
         // Función para generar tarjeta de jugador
         function tarjetaJugador(j) {
     console.log('>>> Jugador:', j.nombre, 'Fecha raw:', j.fechaNacimiento);
