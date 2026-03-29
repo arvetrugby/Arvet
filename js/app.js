@@ -1597,17 +1597,16 @@ function calcularEdad(fechaNacimiento) {
 
 // Función para formatear fecha YYYY-MM-DD → DD/MM/YYYY
 function formatearFecha(fecha) {
-    if (!fecha || String(fecha).trim() === '') return null;
-    
+    if (!fecha) return '';
+
     const str = String(fecha).trim();
-    
-    // Si viene como YYYY-MM-DD
-    if (str.includes('-')) {
-        const [año, mes, dia] = str.split('-');
-        return `${dia}/${mes}/${año}`;
-    }
-    
-    return null;
+
+    // Nos quedamos solo con la parte de fecha (antes de la T)
+    const soloFecha = str.split('T')[0];
+
+    const [anio, mes, dia] = soloFecha.split('-');
+
+    return `${dia}/${mes}/${anio}`;
 }
         // Función para generar tarjeta de jugador
         function tarjetaJugador(j) {
