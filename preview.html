@@ -854,9 +854,9 @@
       <span class="detail-date">${d.fecha}</span>
 
       ${d.horarios.map(h => `
-        <span class="detail-time">
-          ${h.hora} hs${h.desc ? ` - ${h.desc}` : ''}
-        </span>
+       <span class="detail-time">
+  <strong>${h.hora} hs</strong>${h.desc ? ` - ${h.desc}` : ''}
+</span>
       `).join('')}
 
     </div>
