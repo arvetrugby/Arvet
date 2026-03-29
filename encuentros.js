@@ -2809,11 +2809,20 @@ function formatearFecha(fechaStr) {
   const fecha = new Date(fechaStr);
 
   const dia = fecha.getUTCDate();
-  const mes = fecha.getUTCMonth(); // 0-11
+  const mes = fecha.getUTCMonth();
 
   const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-  return `${dia} ${meses[mes]}`;
+  return `${dia}-${meses[mes]}`;
+}
+
+function usuarioLogueado() {
+    return !!localStorage.getItem('arvet_user');
+}
+
+function mostrarPreviewEncuentro(encuentroId) {
+    // Redirigir a preview o mostrar modal de login
+    window.location.href = `preview.html?encuentroId=${encuentroId}`;
 }
 // ============================================
 // EXPONER FUNCIONES GLOBALES
