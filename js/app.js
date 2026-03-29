@@ -1599,14 +1599,15 @@ function calcularEdad(fechaNacimiento) {
 function formatearFecha(fecha) {
     if (!fecha) return '';
 
-    const str = String(fecha).trim();
+    const str = String(fecha).split('T')[0];
+    const [anio, mes, dia] = str.split('-');
 
-    // Nos quedamos solo con la parte de fecha (antes de la T)
-    const soloFecha = str.split('T')[0];
+    const fechaObj = new Date(anio, mes - 1, dia);
 
-    const [anio, mes, dia] = soloFecha.split('-');
-
-    return `${dia}/${mes}/${anio}`;
+    return fechaObj.toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'short'
+    });
 }
         // Función para generar tarjeta de jugador
         function tarjetaJugador(j) {
