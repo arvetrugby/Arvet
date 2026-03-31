@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ARVET - Gestión Deportiva para Rugby</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -21,12 +21,14 @@
             --gray: #64748b;
             --success: #10b981;
             --radius: 16px;
-            --shadow: 0 20px 40px rgba(0,0,0,0.1);
-            --shadow-hover: 0 30px 60px rgba(0,0,0,0.15);
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 40px rgba(0,0,0,0.15);
         }
 
         html {
             scroll-behavior: smooth;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         body {
@@ -35,48 +37,54 @@
             color: var(--dark);
             line-height: 1.6;
             overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
         }
 
-        /* NAVBAR */
+        /* NAVBAR - CORREGIDO */
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.98);
             backdrop-filter: blur(20px);
             z-index: 1000;
-            padding: 15px 5%;
+            padding: 12px 4%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 100vw;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             font-weight: 800;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--primary);
+            white-space: nowrap;
         }
 
         .logo-icon {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             list-style: none;
         }
 
@@ -84,45 +92,27 @@
             text-decoration: none;
             color: var(--gray);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: color 0.3s;
-            position: relative;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
             color: var(--primary);
         }
 
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s;
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
         .btn-nav {
             background: var(--primary);
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(30,58,138,0.3);
-        }
-
-        .btn-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(30,58,138,0.4);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .mobile-menu-btn {
@@ -132,26 +122,29 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--primary);
+            padding: 5px;
+            margin-left: 10px;
         }
 
-        /* HERO SECTION */
+        /* HERO SECTION - CORREGIDO */
         .hero {
-            min-height: 100vh;
+            min-height: auto;
             display: flex;
             align-items: center;
-            padding: 120px 5% 80px;
+            padding: 100px 4% 60px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
         .hero::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 800px;
-            height: 800px;
+            top: -30%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
             background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
             animation: pulse 4s ease-in-out infinite;
         }
@@ -162,21 +155,28 @@
         }
 
         .hero-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: 40px;
             align-items: center;
             width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content {
+            max-width: 100%;
         }
 
         .hero-content h1 {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 900;
             line-height: 1.1;
             margin-bottom: 20px;
             color: var(--dark);
+            word-wrap: break-word;
         }
 
         .hero-content h1 span {
@@ -187,131 +187,108 @@
         }
 
         .hero-subtitle {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             color: var(--gray);
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-weight: 500;
+            line-height: 1.6;
         }
 
         .hero-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 30px;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             color: white;
-            padding: 16px 32px;
+            padding: 14px 28px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s;
-            box-shadow: 0 8px 30px rgba(30,58,138,0.3);
+            box-shadow: 0 6px 20px rgba(30,58,138,0.3);
             border: none;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(30,58,138,0.4);
+            white-space: nowrap;
         }
 
         .btn-secondary {
             background: white;
             color: var(--primary);
-            padding: 16px 32px;
+            padding: 14px 28px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s;
             border: 2px solid var(--primary);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-3px);
+            white-space: nowrap;
         }
 
         .hero-stats {
             display: flex;
-            gap: 40px;
-            margin-top: 40px;
-            padding-top: 30px;
+            gap: 30px;
+            padding-top: 25px;
             border-top: 1px solid rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
 
         .stat {
-            text-align: center;
+            text-align: left;
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             color: var(--primary);
             display: block;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--gray);
             font-weight: 600;
         }
 
-        /* SCREENSHOT CONTAINER */
+        /* SCREENSHOT CONTAINER - CORREGIDO */
         .screenshot-container {
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
+            width: 100%;
+            max-width: 100%;
         }
 
         .screenshot-wrapper {
             background: white;
             border-radius: var(--radius);
-            padding: 15px;
+            padding: 12px;
             box-shadow: var(--shadow);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-        }
-
-        .screenshot-wrapper:hover {
-            transform: translateY(-10px) rotate(0deg) !important;
-            box-shadow: var(--shadow-hover);
+            width: 100%;
         }
 
         .screenshot-wrapper.main {
             z-index: 3;
-            transform: rotate(-2deg);
         }
 
         .screenshot-wrapper.secondary {
-            position: absolute;
-            width: 60%;
-            z-index: 2;
-        }
-
-        .screenshot-wrapper.secondary.left {
-            bottom: -30px;
-            left: -30px;
-            transform: rotate(-5deg);
-        }
-
-        .screenshot-wrapper.secondary.right {
-            bottom: -20px;
-            right: -20px;
-            transform: rotate(3deg);
+            display: none;
         }
 
         .screenshot-placeholder {
@@ -326,188 +303,173 @@
             font-weight: 600;
             position: relative;
             overflow: hidden;
-            min-height: 250px;
+            min-height: 180px;
+            width: 100%;
         }
 
-        .screenshot-placeholder::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                linear-gradient(90deg, transparent 50%, rgba(255,255,255,0.4) 50%),
-                linear-gradient(transparent 50%, rgba(255,255,255,0.4) 50%);
-            background-size: 20px 20px;
-            opacity: 0.3;
+        .screenshot-placeholder span {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
         }
 
-        .screenshot-placeholder i {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
+        .screenshot-placeholder p {
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 0 10px;
         }
 
         .screenshot-label {
             position: absolute;
-            bottom: 15px;
-            left: 15px;
+            bottom: 10px;
+            left: 10px;
             background: var(--primary);
             color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
             font-weight: 700;
         }
 
         /* FEATURES SECTION */
         .features {
-            padding: 100px 5%;
+            padding: 80px 4%;
             background: white;
+            width: 100%;
         }
 
         .section-header {
             text-align: center;
-            max-width: 700px;
-            margin: 0 auto 60px;
+            max-width: 600px;
+            margin: 0 auto 50px;
+            padding: 0 10px;
         }
 
         .section-tag {
             display: inline-block;
             background: rgba(30,58,138,0.1);
             color: var(--primary);
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 50px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .section-title {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 800;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             color: var(--dark);
+            line-height: 1.2;
         }
 
         .section-subtitle {
             color: var(--gray);
-            font-size: 1.1rem;
+            font-size: 1rem;
+            line-height: 1.5;
         }
 
-        /* FEATURE BLOCKS - ALTERNATING LAYOUT */
+        /* FEATURE BLOCKS */
         .feature-block {
-            max-width: 1400px;
-            margin: 0 auto 100px;
+            max-width: 1100px;
+            margin: 0 auto 80px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 80px;
+            gap: 50px;
             align-items: center;
+            width: 100%;
         }
 
         .feature-block:last-child {
             margin-bottom: 0;
         }
 
-        .feature-block.reverse {
-            direction: rtl;
-        }
-
-        .feature-block.reverse > * {
-            direction: ltr;
+        .feature-content {
+            max-width: 100%;
         }
 
         .feature-content h3 {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: var(--dark);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            line-height: 1.3;
         }
 
         .feature-icon {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             flex-shrink: 0;
         }
 
         .feature-content p {
             color: var(--gray);
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            line-height: 1.8;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.7;
         }
 
         .feature-list {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .feature-list li {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
             font-weight: 600;
             color: var(--dark);
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         .feature-list li::before {
             content: '✓';
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: rgba(16,185,129,0.1);
             color: var(--success);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .feature-screenshot {
-            position: relative;
+            width: 100%;
+            max-width: 100%;
         }
 
         .feature-screenshot .screenshot-wrapper {
-            transform: rotate(2deg);
-        }
-
-        .feature-block.reverse .feature-screenshot .screenshot-wrapper {
-            transform: rotate(-2deg);
+            max-width: 100%;
         }
 
         /* STEPS SECTION */
         .steps {
-            padding: 100px 5%;
+            padding: 80px 4%;
             background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
             color: white;
             position: relative;
             overflow: hidden;
-        }
-
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            width: 100%;
         }
 
         .steps .section-title {
@@ -519,11 +481,11 @@
         }
 
         .steps-grid {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
+            gap: 20px;
             position: relative;
             z-index: 1;
         }
@@ -533,71 +495,61 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: var(--radius);
-            padding: 40px 30px;
+            padding: 30px 20px;
             text-align: center;
             transition: all 0.3s;
-            position: relative;
         }
 
         .step-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
             background: rgba(255,255,255,0.1);
-            border-color: var(--secondary);
         }
 
         .step-number {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, var(--secondary), #fbbf24);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 900;
             color: var(--dark);
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 30px rgba(245,158,11,0.3);
+            margin: 0 auto 15px;
+            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
         }
 
         .step-card h4 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
             font-weight: 700;
         }
 
         .step-card p {
             color: rgba(255,255,255,0.7);
-            font-size: 0.95rem;
-        }
-
-        .step-arrow {
-            position: absolute;
-            right: -25px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--secondary);
-            font-size: 1.5rem;
-            opacity: 0.5;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         /* TESTIMONIALS */
         .testimonials {
-            padding: 100px 5%;
+            padding: 80px 4%;
             background: #f1f5f9;
+            width: 100%;
         }
 
         .testimonials-grid {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: 25px;
         }
 
         .testimonial-card {
             background: white;
-            padding: 40px;
+            padding: 30px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             transition: all 0.3s;
@@ -612,9 +564,9 @@
         .testimonial-card::before {
             content: '"';
             position: absolute;
-            top: 20px;
-            left: 30px;
-            font-size: 5rem;
+            top: 15px;
+            left: 20px;
+            font-size: 4rem;
             color: var(--primary);
             opacity: 0.1;
             font-weight: 900;
@@ -623,9 +575,10 @@
 
         .testimonial-text {
             color: var(--gray);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-style: italic;
-            line-height: 1.8;
+            line-height: 1.7;
+            font-size: 0.95rem;
             position: relative;
             z-index: 1;
         }
@@ -633,12 +586,12 @@
         .testimonial-author {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .author-avatar {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             display: flex;
@@ -646,108 +599,102 @@
             justify-content: center;
             color: white;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .author-info h5 {
             font-weight: 700;
             color: var(--dark);
+            font-size: 0.95rem;
+            margin-bottom: 2px;
         }
 
         .author-info span {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
 
         /* CTA SECTION */
         .cta {
-            padding: 100px 5%;
+            padding: 80px 4%;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             text-align: center;
             color: white;
             position: relative;
             overflow: hidden;
-        }
-
-        .cta::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            width: 100%;
         }
 
         .cta-content {
             position: relative;
             z-index: 1;
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
+            padding: 0 10px;
         }
 
         .cta h2 {
-            font-size: 3rem;
+            font-size: 2.2rem;
             font-weight: 900;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            line-height: 1.2;
         }
 
         .cta p {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
 
         .btn-white {
             background: white;
             color: var(--primary);
-            padding: 18px 40px;
+            padding: 16px 35px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.3s;
             display: inline-block;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .btn-white:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
 
         /* FOOTER */
         footer {
             background: var(--dark);
             color: white;
-            padding: 60px 5% 30px;
+            padding: 50px 4% 25px;
+            width: 100%;
         }
 
         .footer-grid {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-brand .logo {
+            color: white;
+            margin-bottom: 12px;
         }
 
         .footer-brand p {
             color: rgba(255,255,255,0.7);
-            margin-top: 15px;
-            line-height: 1.8;
+            line-height: 1.7;
+            font-size: 0.9rem;
         }
 
         .footer-links h4 {
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: white;
+            font-size: 1rem;
         }
 
         .footer-links ul {
@@ -755,13 +702,14 @@
         }
 
         .footer-links li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .footer-links a {
             color: rgba(255,255,255,0.7);
             text-decoration: none;
             transition: color 0.3s;
+            font-size: 0.9rem;
         }
 
         .footer-links a:hover {
@@ -770,16 +718,17 @@
 
         .footer-bottom {
             border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 30px;
+            padding-top: 25px;
             text-align: center;
             color: rgba(255,255,255,0.5);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        /* MOBILE STYLES */
+        /* MOBILE STYLES - CORREGIDO */
         @media (max-width: 1024px) {
             .hero-container {
                 grid-template-columns: 1fr;
+                gap: 40px;
                 text-align: center;
             }
 
@@ -797,26 +746,27 @@
 
             .screenshot-container {
                 order: -1;
-                max-width: 600px;
+                max-width: 500px;
                 margin: 0 auto;
-            }
-
-            .screenshot-wrapper.secondary {
-                display: none;
             }
 
             .feature-block {
                 grid-template-columns: 1fr;
-                gap: 40px;
+                gap: 30px;
+                text-align: center;
             }
 
-            .feature-block.reverse {
-                direction: ltr;
+            .feature-content h3 {
+                justify-content: center;
+            }
+
+            .feature-list li {
+                justify-content: center;
             }
 
             .feature-screenshot {
                 order: -1;
-                max-width: 500px;
+                max-width: 450px;
                 margin: 0 auto;
             }
 
@@ -824,12 +774,8 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .step-arrow {
-                display: none;
-            }
-
             .testimonials-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .footer-grid {
@@ -838,6 +784,20 @@
         }
 
         @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 4%;
+            }
+
+            .logo {
+                font-size: 1.1rem;
+            }
+
+            .logo-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
             .nav-links {
                 display: none;
                 position: absolute;
@@ -849,75 +809,237 @@
                 padding: 20px;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1);
                 gap: 15px;
+                width: 100%;
             }
 
             .nav-links.active {
                 display: flex;
             }
 
-            .mobile-menu-btn {
-                display: block;
+            .nav-links a {
+                font-size: 1rem;
+                padding: 10px 0;
             }
 
             .btn-nav {
                 display: none;
             }
 
+            .mobile-menu-btn {
+                display: block;
+            }
+
             .hero {
-                padding: 100px 5% 60px;
+                padding: 90px 4% 50px;
             }
 
             .hero-content h1 {
-                font-size: 2rem;
+                font-size: 1.9rem;
+                margin-bottom: 15px;
             }
 
             .hero-subtitle {
                 font-size: 1rem;
+                margin-bottom: 20px;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
+                padding: 14px 20px;
+                font-size: 0.95rem;
+            }
+
+            .hero-stats {
+                flex-direction: row;
+                justify-content: space-around;
+                gap: 15px;
+                padding-top: 20px;
+                margin-top: 20px;
+            }
+
+            .stat {
+                text-align: center;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .screenshot-placeholder {
+                min-height: 200px;
+            }
+
+            .screenshot-placeholder span {
+                font-size: 3rem;
+            }
+
+            .features {
+                padding: 60px 4%;
             }
 
             .section-title {
-                font-size: 1.75rem;
+                font-size: 1.6rem;
+            }
+
+            .section-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .feature-block {
+                margin-bottom: 50px;
             }
 
             .feature-content h3 {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.4rem;
+            }
+
+            .feature-content p {
+                font-size: 0.95rem;
+            }
+
+            .feature-list {
+                text-align: left;
+                max-width: 280px;
+                margin: 0 auto;
+            }
+
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+
+            .steps {
+                padding: 60px 4%;
             }
 
             .steps-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
             .step-card {
-                text-align: left;
                 display: flex;
                 align-items: center;
                 gap: 20px;
+                text-align: left;
+                padding: 25px 20px;
             }
 
             .step-number {
                 margin: 0;
                 flex-shrink: 0;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .step-card h4 {
+                font-size: 1.1rem;
+                margin-bottom: 5px;
+            }
+
+            .step-card p {
+                font-size: 0.9rem;
+            }
+
+            .testimonials {
+                padding: 60px 4%;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .testimonial-card {
+                padding: 25px;
+            }
+
+            .testimonial-text {
+                font-size: 0.95rem;
+            }
+
+            .cta {
+                padding: 60px 4%;
             }
 
             .cta h2 {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+
+            .cta p {
+                font-size: 1rem;
+            }
+
+            .btn-white {
+                width: 100%;
+                padding: 16px 20px;
+            }
+
+            footer {
+                padding: 40px 4% 20px;
             }
 
             .footer-grid {
                 grid-template-columns: 1fr;
+                gap: 30px;
                 text-align: center;
             }
 
-            .footer-brand {
-                order: -1;
+            .footer-brand .logo {
+                justify-content: center;
+            }
+
+            .footer-links h4 {
+                margin-bottom: 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .hero-content h1 {
+                font-size: 1.7rem;
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+            }
+
+            .feature-content h3 {
+                font-size: 1.2rem;
+            }
+
+            .stat-number {
+                font-size: 1.3rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
             }
         }
 
         /* ANIMATIONS */
         .fade-in {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease-out;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
         }
 
         .fade-in.visible {
@@ -925,22 +1047,11 @@
             transform: translateY(0);
         }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-light);
+        /* REMOVE PARALLAX ON MOBILE */
+        @media (max-width: 768px) {
+            .screenshot-wrapper {
+                transform: none !important;
+            }
         }
     </style>
 <base target="_blank">
@@ -958,7 +1069,7 @@
             <li><a href="#testimonios">Testimonios</a></li>
             <li><a href="#contacto">Contacto</a></li>
         </ul>
-        <a href="#crear-equipo" class="btn-nav">Crear Equipo Gratis</a>
+        <a href="#crear-equipo" class="btn-nav">Crear Equipo</a>
         <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
     </nav>
 
@@ -967,19 +1078,15 @@
         <div class="hero-container">
             <div class="hero-content">
                 <h1>Gestioná tu equipo de <span>Rugby</span> sin vueltas</h1>
-                <p class="hero-subtitle">Equipos, encuentros y jugadores en un solo lugar. Creado por veteranos, para veteranos. Tu propia página web profesional en minutos.</p>
+                <p class="hero-subtitle">Equipos, encuentros y jugadores en un solo lugar. Creado por veteranos, para veteranos.</p>
                 <div class="hero-buttons">
-                    <a href="#" class="btn-primary">
-                        <span>⚡</span> Crear Mi Equipo Ahora
-                    </a>
-                    <a href="#funciones" class="btn-secondary">
-                        <span>▶</span> Ver Demo
-                    </a>
+                    <a href="#" class="btn-primary">⚡ Crear Mi Equipo</a>
+                    <a href="#funciones" class="btn-secondary">▶ Ver Demo</a>
                 </div>
                 <div class="hero-stats">
                     <div class="stat">
                         <span class="stat-number">500+</span>
-                        <span class="stat-label">Equipos Activos</span>
+                        <span class="stat-label">Equipos</span>
                     </div>
                     <div class="stat">
                         <span class="stat-number">15k</span>
@@ -995,21 +1102,9 @@
                 <div class="screenshot-wrapper main">
                     <div class="screenshot-placeholder">
                         <span>📸</span>
-                        <p>Captura: Panel de Administración</p>
+                        <p>Panel de Administración</p>
                     </div>
                     <span class="screenshot-label">DASHBOARD</span>
-                </div>
-                <div class="screenshot-wrapper secondary left">
-                    <div class="screenshot-placeholder" style="min-height: 150px;">
-                        <span>📱</span>
-                        <p style="font-size: 0.8rem;">Vista Mobile</p>
-                    </div>
-                </div>
-                <div class="screenshot-wrapper secondary right">
-                    <div class="screenshot-placeholder" style="min-height: 150px;">
-                        <span>🌐</span>
-                        <p style="font-size: 0.8rem;">Página Pública</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1023,104 +1118,104 @@
             <p class="section-subtitle">Desde la gestión del plantel hasta los encuentros inter-equipos, todo en una plataforma gratuita.</p>
         </div>
 
-        <!-- Feature 1: Crear Equipo -->
+        <!-- Feature 1 -->
         <div class="feature-block fade-in">
             <div class="feature-content">
                 <h3>
                     <div class="feature-icon">🏆</div>
                     Creá tu Equipo en Minutos
                 </h3>
-                <p>Registrá tu equipo de rugby veteranos y obtené instantáneamente una página web profesional con tu propia URL. Personalizá colores, subí tu escudo y contá tu historia.</p>
+                <p>Registrá tu equipo de rugby veteranos y obtené instantáneamente una página web profesional con tu propia URL.</p>
                 <ul class="feature-list">
-                    <li>URL personalizada: arvetrugby.com/tu-equipo</li>
-                    <li>Selector de colores para tu marca</li>
-                    <li>Galería de fotos (hasta 8 imágenes)</li>
-                    <li>Sección "Quiénes Somos" editable</li>
+                    <li>URL personalizada</li>
+                    <li>Selector de colores</li>
+                    <li>Galería de fotos</li>
+                    <li>Sección editable</li>
                 </ul>
             </div>
             <div class="feature-screenshot">
                 <div class="screenshot-wrapper">
                     <div class="screenshot-placeholder">
                         <span>🎨</span>
-                        <p>Captura: Configuración del Equipo</p>
+                        <p>Configuración del Equipo</p>
                     </div>
                     <span class="screenshot-label">PERSONALIZACIÓN</span>
                 </div>
             </div>
         </div>
 
-        <!-- Feature 2: Gestionar Plantel -->
-        <div class="feature-block reverse fade-in">
+        <!-- Feature 2 -->
+        <div class="feature-block fade-in">
             <div class="feature-content">
                 <h3>
                     <div class="feature-icon">👥</div>
                     Gestión Inteligente del Plantel
                 </h3>
-                <p>Los jugadores se registran solos mediante un link de invitación. Vos solo revisás quién confirma para el próximo partido. Todo el plantel con fotos y datos en un solo lugar.</p>
+                <p>Los jugadores se registran solos mediante un link de invitación. Vos solo revisás quién confirma.</p>
                 <ul class="feature-list">
-                    <li>Link de registro para jugadores</li>
-                    <li>Perfiles con fotos públicas</li>
-                    <li>Confirmación de asistencia</li>
-                    <li>Datos de contacto organizados</li>
+                    <li>Link de registro</li>
+                    <li>Perfiles con fotos</li>
+                    <li>Confirmación online</li>
+                    <li>Datos organizados</li>
                 </ul>
             </div>
             <div class="feature-screenshot">
                 <div class="screenshot-wrapper">
                     <div class="screenshot-placeholder">
                         <span>👤</span>
-                        <p>Captura: Lista de Jugadores</p>
+                        <p>Lista de Jugadores</p>
                     </div>
                     <span class="screenshot-label">PLANTEL</span>
                 </div>
             </div>
         </div>
 
-        <!-- Feature 3: Encuentros -->
+        <!-- Feature 3 -->
         <div class="feature-block fade-in">
             <div class="feature-content">
                 <h3>
                     <div class="feature-icon">⚔️</div>
                     Encuentros Automáticos
                 </h3>
-                <p>Publicá que querés jugar y recibí propuestas de otros equipos. Coordiná fecha, lugar y condiciones en un solo lugar. Sistema de invitaciones con aceptación/rechazo.</p>
+                <p>Publicá que querés jugar y recibí propuestas de otros equipos. Coordiná todo en un solo lugar.</p>
                 <ul class="feature-list">
-                    <li>Creá encuentros con múltiples fechas opcionales</li>
-                    <li>Recibí invitaciones de otros equipos</li>
-                    <li>Mapa interactivo para ubicación</li>
-                    <li>Historial de encuentros completados</li>
+                    <li>Múltiples fechas</li>
+                    <li>Invitaciones</li>
+                    <li>Mapa interactivo</li>
+                    <li>Historial completo</li>
                 </ul>
             </div>
             <div class="feature-screenshot">
                 <div class="screenshot-wrapper">
                     <div class="screenshot-placeholder">
                         <span>📅</span>
-                        <p>Captura: Gestión de Encuentros</p>
+                        <p>Gestión de Encuentros</p>
                     </div>
                     <span class="screenshot-label">ENCUENTROS</span>
                 </div>
             </div>
         </div>
 
-        <!-- Feature 4: Finanzas -->
-        <div class="feature-block reverse fade-in">
+        <!-- Feature 4 -->
+        <div class="feature-block fade-in">
             <div class="feature-content">
                 <h3>
                     <div class="feature-icon">💰</div>
                     Finanzas Simplificadas
                 </h3>
-                <p>Sistema de cuotas integrado. Los jugadores pagan desde la plataforma y queda todo registrado. Controlá ingresos, egresos y el balance de tu equipo.</p>
+                <p>Sistema de cuotas integrado. Los jugadores pagan desde la plataforma y queda todo registrado.</p>
                 <ul class="feature-list">
-                    <li>Cobro de cuotas online</li>
-                    <li>Categorización de gastos</li>
-                    <li>Balance en tiempo real</li>
-                    <li>Historial de transacciones</li>
+                    <li>Cobro online</li>
+                    <li>Categorización</li>
+                    <li>Balance real</li>
+                    <li>Historial</li>
                 </ul>
             </div>
             <div class="feature-screenshot">
                 <div class="screenshot-wrapper">
                     <div class="screenshot-placeholder">
                         <span>📊</span>
-                        <p>Captura: Panel de Finanzas</p>
+                        <p>Panel de Finanzas</p>
                     </div>
                     <span class="screenshot-label">FINANZAS</span>
                 </div>
@@ -1137,34 +1232,31 @@
         </div>
         <div class="steps-grid">
             <div class="step-card">
-                <span class="step-arrow">→</span>
                 <div class="step-number">1</div>
                 <div>
                     <h4>Creá tu Equipo</h4>
-                    <p>Completá el formulario con los datos básicos y obtené tu página web instantáneamente.</p>
+                    <p>Completá el formulario y obtené tu página web instantáneamente.</p>
                 </div>
             </div>
             <div class="step-card">
-                <span class="step-arrow">→</span>
                 <div class="step-number">2</div>
                 <div>
                     <h4>Invitá Jugadores</h4>
-                    <p>Compartí el link de registro por WhatsApp. Ellos se suman solos al plantel.</p>
+                    <p>Compartí el link por WhatsApp. Ellos se suman solos.</p>
                 </div>
             </div>
             <div class="step-card">
-                <span class="step-arrow">→</span>
                 <div class="step-number">3</div>
                 <div>
                     <h4>Publicá Encuentros</h4>
-                    <p>Creá un encuentro y esperá propuestas de otros equipos para jugar.</p>
+                    <p>Creá un encuentro y esperá propuestas de otros equipos.</p>
                 </div>
             </div>
             <div class="step-card">
                 <div class="step-number">4</div>
                 <div>
                     <h4>Gestioná Todo</h4>
-                    <p>Administrá asistencias, finanzas y comunicaciones desde un solo lugar.</p>
+                    <p>Administrá asistencias, finanzas y comunicaciones.</p>
                 </div>
             </div>
         </div>
@@ -1175,11 +1267,11 @@
         <div class="section-header">
             <span class="section-tag">Testimonios</span>
             <h2 class="section-title">Lo que dicen los equipos</h2>
-            <p class="section-subtitle">Miles de jugadores ya usan ARVET para organizar sus partidos</p>
+            <p class="section-subtitle">Miles de jugadores ya usan ARVET</p>
         </div>
         <div class="testimonials-grid">
             <div class="testimonial-card fade-in">
-                <p class="testimonial-text">"Antes organizar un partido era un desastre de grupos de WhatsApp. Ahora todo está en un solo lugar y los jugadores confirman asistencia desde la app."</p>
+                <p class="testimonial-text">"Antes organizar un partido era un desastre de grupos de WhatsApp. Ahora todo está en un solo lugar."</p>
                 <div class="testimonial-author">
                     <div class="author-avatar">MR</div>
                     <div class="author-info">
@@ -1189,7 +1281,7 @@
                 </div>
             </div>
             <div class="testimonial-card fade-in">
-                <p class="testimonial-text">"La página web propia nos dio una presencia profesional. Otros equipos nos encuentran fácil y la gestión de cuotas se simplificó un montón."</p>
+                <p class="testimonial-text">"La página web propia nos dio presencia profesional. Otros equipos nos encuentran fácil."</p>
                 <div class="testimonial-author">
                     <div class="author-avatar">LG</div>
                     <div class="author-info">
@@ -1199,7 +1291,7 @@
                 </div>
             </div>
             <div class="testimonial-card fade-in">
-                <p class="testimonial-text">"Gratis, sin comisiones y funciona perfecto en el celular. Ideal para equipos de veteranos que no queremos complicarnos con la tecnología."</p>
+                <p class="testimonial-text">"Gratis, sin comisiones y funciona perfecto en el celular. Ideal para veteranos."</p>
                 <div class="testimonial-author">
                     <div class="author-avatar">JP</div>
                     <div class="author-info">
@@ -1215,7 +1307,7 @@
     <section class="cta">
         <div class="cta-content">
             <h2>¿Listo para organizar tu equipo?</h2>
-            <p>Unite a más de 500 equipos de rugby veteranos que ya usan ARVET. Es gratis, sin suscripciones ni comisiones.</p>
+            <p>Unite a más de 500 equipos de rugby veteranos. Es gratis, sin suscripciones.</p>
             <a href="#" class="btn-white">Crear Mi Equipo Ahora →</a>
         </div>
     </section>
@@ -1224,7 +1316,7 @@
     <footer id="contacto">
         <div class="footer-grid">
             <div class="footer-brand">
-                <div class="logo" style="color: white;">
+                <div class="logo">
                     <div class="logo-icon">🏉</div>
                     ARVET
                 </div>
@@ -1236,7 +1328,6 @@
                     <li><a href="#">Funciones</a></li>
                     <li><a href="#">Precios</a></li>
                     <li><a href="#">Seguridad</a></li>
-                    <li><a href="#">Updates</a></li>
                 </ul>
             </div>
             <div class="footer-links">
@@ -1245,21 +1336,19 @@
                     <li><a href="#">Blog</a></li>
                     <li><a href="#">Guías</a></li>
                     <li><a href="#">Soporte</a></li>
-                    <li><a href="#">API</a></li>
                 </ul>
             </div>
             <div class="footer-links">
                 <h4>Contacto</h4>
                 <ul>
                     <li><a href="#">hola@arvetrugby.com</a></li>
-                    <li><a href="#">+54 11 2345-6789</a></li>
                     <li><a href="#">Instagram</a></li>
                     <li><a href="#">Facebook</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 ARVET - Agrupación Rugby de Veteranos Argentina. Todos los derechos reservados.</p>
+            <p>&copy; 2026 ARVET - Agrupación Rugby de Veteranos Argentina.</p>
         </div>
     </footer>
 
@@ -1270,7 +1359,14 @@
             navLinks.classList.toggle('active');
         }
 
-        // Smooth Scroll for Navigation Links
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        // Smooth Scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1280,8 +1376,6 @@
                         behavior: 'smooth',
                         block: 'start'
                     });
-                    // Close mobile menu if open
-                    document.getElementById('navLinks').classList.remove('active');
                 }
             });
         });
@@ -1289,7 +1383,7 @@
         // Intersection Observer for Fade-in Animations
         const observerOptions = {
             threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            rootMargin: '0px 0px -30px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
@@ -1304,35 +1398,24 @@
             observer.observe(el);
         });
 
-        // Navbar Background on Scroll
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.1)';
-            } else {
-                navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.05)';
-            }
-        });
-
-        // Counter Animation for Stats
-        function animateCounter(element, target, duration = 2000) {
+        // Counter Animation
+        function animateCounter(element, target) {
             let start = 0;
+            const duration = 1500;
             const increment = target / (duration / 16);
 
-            function updateCounter() {
+            function update() {
                 start += increment;
                 if (start < target) {
                     element.textContent = Math.floor(start) + '+';
-                    requestAnimationFrame(updateCounter);
+                    requestAnimationFrame(update);
                 } else {
                     element.textContent = target + '+';
                 }
             }
-
-            updateCounter();
+            update();
         }
 
-        // Trigger counter animation when hero is visible
         const heroObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1344,21 +1427,9 @@
                     heroObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.5 });
+        }, { threshold: 0.3 });
 
         heroObserver.observe(document.querySelector('.hero'));
-
-        // Parallax Effect for Screenshots
-        document.addEventListener('mousemove', (e) => {
-            const screenshots = document.querySelectorAll('.screenshot-wrapper');
-            const x = (window.innerWidth - e.pageX * 2) / 100;
-            const y = (window.innerHeight - e.pageY * 2) / 100;
-
-            screenshots.forEach((screenshot, index) => {
-                const speed = (index + 1) * 0.5;
-                screenshot.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
-            });
-        });
     </script>
 </body>
 </html>
