@@ -248,26 +248,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     mostrarMensaje('⏳ Subiendo foto...');
     
     const formData = new FormData();
-    formData.append('image', archivoSubir);
-    
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        const url = result.data.url || result.data.display_url || result.data.medium?.url;
+formData.append('file', archivoSubir);
+formData.append('upload_preset', 'arvet_upload');
+
+const response = await fetch('https://api.cloudinary.com/v1_1/dy9zeeo5g/image/upload', {
+  method: 'POST',
+  body: formData,
+  signal: controller.signal
+});
+
+const result = await response.json();
+
+if (result.secure_url) {
+  const url = result.secure_url;
+
         
         if (!url) throw new Error('No se obtuvo URL');
         
