@@ -1060,8 +1060,15 @@ avatarUpload.addEventListener('change', async function() {
         const result = await response.json();
 
         if (result.secure_url) {
-            avatarUrl = result.secure_url;
-            avatarPreview.src = avatarUrl;
+
+    const urlOptimizada = result.secure_url.replace(
+        '/upload/',
+        '/upload/f_auto,q_auto/'
+    );
+
+    avatarUrl = urlOptimizada;
+    avatarPreview.src = avatarUrl;
+}
         } else {
             console.error("Error Cloudinary:", result);
         }
