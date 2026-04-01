@@ -1041,33 +1041,36 @@ function initRegistroJugador() {
         });
     });
 
-    // Subida a imgbb
-    avatarUpload.addEventListener('change', async function() {
+    // Subida avatar (Cloudinary)
+avatarUpload.addEventListener('change', async function() {
 
-        const file = this.files[0];
-        if (!file) return;
+    const file = this.files[0];
+    if (!file) return;
 
-      const formData = new FormData();
-formData.append("file", file);
-formData.append("upload_preset", "arvet_upload");
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "arvet_upload");
 
-const response = await fetch("https://api.cloudinary.com/v1_1/dy9zeeo5g/image/upload", {
-    method: "POST",
-    body: formData
-});
+    try {
+        const response = await fetch("https://api.cloudinary.com/v1_1/dy9zeeo5g/image/upload", {
+            method: "POST",
+            body: formData
+        });
 
-const result = await response.json();
+        const result = await response.json();
 
-if (result.secure_url) {
-    avatarUrl = result.secure_url;
-    avatarPreview.src = avatarUrl;
-
-
-        } catch (error) {
-            console.error("Error subiendo imagen:", error);
+        if (result.secure_url) {
+            avatarUrl = result.secure_url;
+            avatarPreview.src = avatarUrl;
+        } else {
+            console.error("Error Cloudinary:", result);
         }
 
-    });
+    } catch (error) {
+        console.error("Error subiendo imagen:", error);
+    }
+
+});
     
     // Obtener equipoId de la URL
     
