@@ -307,16 +307,16 @@ if (result.secure_url) {
         testImg.src = avatarUrlActual;
         
       } else {
-        mostrarMensaje('Error: ' + (result.error?.message || 'Error de ImgBB'), 'error');
-      
-      
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        mostrarMensaje('⏱️ Timeout - intentá con imagen más chica', 'error');
-      } else {
-        mostrarMensaje('❌ Error: ' + err.message, 'error');
-      }
-    }
+  mostrarMensaje('Error: ' + (result.error?.message || 'Error de Cloudinary'), 'error');
+}
+
+} catch (err) {
+  if (err.name === 'AbortError') {
+    mostrarMensaje('⏱️ Timeout - intentá con imagen más chica', 'error');
+  } else {
+    mostrarMensaje('❌ Error: ' + err.message, 'error');
+  }
+}
   });
   // ==========================================
   // CAMBIAR CONTRASEÑA
