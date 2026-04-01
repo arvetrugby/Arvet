@@ -308,7 +308,7 @@ if (result.secure_url) {
         
       } else {
         mostrarMensaje('Error: ' + (result.error?.message || 'Error de ImgBB'), 'error');
-      }
+      
       
     } catch (err) {
       if (err.name === 'AbortError') {
