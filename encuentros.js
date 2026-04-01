@@ -1793,24 +1793,26 @@ async function subirFlyerOptimizado() {
     };
     reader.readAsDataURL(file);
     
-    const formData = new FormData();
-    formData.append('image', file);
     
+    
+    const formData = new FormData();
+formData.append('file', file);
+formData.append('upload_preset', 'arvet_upload');
     const btnGuardar = document.getElementById('btnGuardarEncuentro');
     const originalText = btnGuardar.textContent;
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></span>Subiendo...';
     
     try {
-        const response = await fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            document.getElementById('flyerUrl').value = result.data.url;
+        const response = await fetch('https://api.cloudinary.com/v1_1/dy9zeeo5g/image/upload', {
+    method: 'POST',
+    body: formData
+});
+
+const result = await response.json();
+
+if (result.secure_url) {
+    document.getElementById('flyerUrl').value = result.secure_url;
             mostrarMensajeEncuentros('Flyer subido correctamente', 'success');
         } else {
             throw new Error('Error en respuesta');
@@ -2128,21 +2130,22 @@ async function editarEncuentro(encuentroId) {
             reader.readAsDataURL(file);
             
             const formData = new FormData();
-            formData.append('image', file);
+formData.append('file', file);
+formData.append('upload_preset', 'arvet_upload');
             
             const btn = document.getElementById('btnGuardarEdicion');
             btn.disabled = true;
             btn.textContent = 'Subiendo...';
             
             try {
-                const response = await fetch('https://api.imgbb.com/1/upload?key=2c40bfae99afcb6fd536a0e303a77b90', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    document.getElementById('editFlyerUrl').value = result.data.url;
+                const response = await fetch('https://api.cloudinary.com/v1_1/dy9zeeo5g/image/upload', {
+    method: 'POST',
+    body: formData
+});
+
+const result = await response.json();
+if (result.secure_url) {
+    document.getElementById('editFlyerUrl').value = result.secure_url;
                     mostrarMensajeEncuentros('Flyer actualizado', 'success');
                 }
             } catch (err) {
