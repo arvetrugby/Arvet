@@ -9,7 +9,7 @@ const ENCUENTROS_CONFIG = {
     ITEMS_POR_PAGINA: 10,
     DEBOUNCE_DELAY: 300,
     MAX_RETRIES: 3,
-    API_URL: typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbzxxxxxxxxxxxxxxxx/exec'
+    API_URL: typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbxE-UiI85pCcUYq5LqJjN7UU7aOtXsVV_7Hyag-hYgOT4LcjGhVQaDt6js9PEQQ6E9Z/exec'
 };
 
 // ============================================
