@@ -1068,7 +1068,7 @@ avatarUpload.addEventListener('change', async function() {
 
     avatarUrl = urlOptimizada;
     avatarPreview.src = avatarUrl;
-}
+
         } else {
             console.error("Error Cloudinary:", result);
         }
